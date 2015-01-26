@@ -3,8 +3,8 @@
 ---
 ## Puppet modules
 
-###trystack (quickstack branch)
-[https://github.com/trystack/puppet-trystack/tree/quickstack](https://github.com/trystack/puppet-trystack/tree/quickstack)
+###genesis
+[https://gerrit.opnfv.org/gerrit/genesis](https://gerrit.opnfv.org/gerrit/genesis)
 
 This module is a small set of puppet code. Its intention is mostly to glue the variables in foreman to the quickstack module. These classes could also be used as a site.pp node manifest for running a puppet apply.
 
@@ -26,7 +26,7 @@ The fork is necessary because there is a patch on this fork to teach quickstack 
 Once this patch is merged the upstream astapor module can be cloned from upstream at
 [https://github.com/redhat-openstack/astapor](https://github.com/redhat-openstack/astapor).
 
-### openstack-puppet-modules (OPM) 
+### openstack-puppet-modules (OPM)
 *or the stackforge puppet modules*
 
 [https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/](https://repos.fedorapeople.org/repos/openstack/openstack-juno/epel-7/)
