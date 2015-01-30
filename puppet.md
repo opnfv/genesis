@@ -49,6 +49,27 @@ TODO: add details to do a puppet apply install
 
 Foreman is a provisioning and puppet master platform in one project.
 
-TODO: add foreman installation details
+Get a copy of foreman-installer on a node in an empty broadcast domain. Foreman expects to be the dhcp server on the network.
+
+Run foreman-installer something like this:
 
 
+    sudo foreman-installer \
+        --enable-foreman-proxy \
+        --foreman-proxy-tftp=true \
+        --foreman-proxy-tftp-servername=10.1.254.1 \
+        --foreman-proxy-dhcp=true \
+        --foreman-proxy-dhcp-interface=em1 \
+        --foreman-proxy-dhcp-gateway=10.1.254.254 \
+        --foreman-proxy-dhcp-range="10.1.254.2 10.1.254.40" \
+        --foreman-proxy-dhcp-nameservers="10.1.254.1" \
+        --foreman-proxy-dns=true \
+        --foreman-proxy-dns-interface=em1 \
+        --foreman-proxy-dns-zone=example.com \
+        --foreman-proxy-dns-reverse=254.1.10.in-addr.arpa \
+        --foreman-proxy-dns-forwarders=10.1.16.30 \
+        --foreman-proxy-foreman-base-url=https://foreman.example.com
+
+* dhcp-nameservers is the dns address given to provisioned hosts, point this to foreman
+* dns-forwarders is an external dns address that dns reqs will be forewarded to that foreman do not handle
+* make sure that your foreman-base-url will be resolvable
