@@ -1,0 +1,85 @@
+##############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# stefan.k.berg@ericsson.com
+# jonas.bjurel@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+How to setup and use the OPNFV/BGS/FUEL build system - work in progress
+
+1. Build system requirements
+----------------------------
+1.1 Host HW/VM requirements
+---------------------------
+- A x86_64 host (real iron or VM) with Ubuntu 12.04/14.04 LTS installed
+- 100 GB storage
+- 8 GB RAM
+
+1.2 Host SW dependencies
+------------------------
+On the host, the following packages must be installed:
+- debootstrap (simply available through apt-get install debootstrap)
+- docker - see https://docs.docker.com/installation/ubuntulinux/ for installation notes for 12.04 and 14.04
+- git (simply available through apt-get install git)
+
+2 Setting up the Docker build container
+----------------------------------------
+When having installed Docker, add yourself to the docker group:
+usermod -a -G docker <userid>
+
+Also make sure to define rellevant dns servers part of the global dns chain in
+in your /etc/default/docker config file, eg.
+DOCKER_OPTS=" --dns=8.8.8.8 --dns=8.8.8.4"
+
+Then restart docker with "service docker restart".:
+
+3. Setting up OPNFV Gerrit in order to being able to clone the code
+-------------------------------------------------------------------
+- Start by creating a SSH key, if you don't already have one, create one with ssh-keygen
+
+- Add your generated public key in OPNFV Gerrit -https://gerrit.opnfv.org/
+  (this requires a linuxfoundation account, create one if you do not already have one)
+
+- Select "SSH Public Keys" to the left and then "Add Key" and paste your public key in.
+
+4. Clone the OPNFV code git repository
+--------------------------------------
+ So now we're coming to the fun part! Let's clone the code repository:
+ git clone ssh://<Linux foundation user>@gerrit.opnfv.org:29418/genesis
+
+ Change the directory to "fuel-build"
+ cd fuel-build/
+
+5. Set up (build) your build environment
+----------------------------------------
+YOU DO NOT NEED TO SET UP YOUR BUILD ENVIRONMENT, THE TOP MAKE ALL TARGET WILL DO THAT FOR YOU IF NOT ALREADY DONE,
+THE BELOW ACTIONS IN THIS SECTION ARE NOT NEEDED!
+
+Note and TODO:
+The build system will for now partly run as sudo as that is needed for the debootstrap procedure to create the root file
+system for the Ubuntu 12.04 Docker image - BUT NOTE, NONE OF THE MAKEFILES OR SCRIPTS SHALL BE EXECUTED WITH SUDO/ROOT PRIVILEDGES!
+(TODO: Change the scripts so that no root priviledges will be needed)
+
+With your ordinary user-, run the following commands from your git root:
+cd docker
+make (and you will be prompted for your password by sudo)
+cd ..
+
+6. Build your fuel .iso image
+-----------------------------
+That's it, time to build!
+make [all]
+
+This will:
+- If not allready existing, initialize the docker build environment
+- If not already done, build fuel from upstream
+- Build the defined derivate of fuel (as defined by the structure of this framework)
+
+If the build is successful, you will find the generated ISO file in the release subdirectory!
+
+7. Install your stack
+---------------------
+Please see DOC/INSTALL/README

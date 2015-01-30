@@ -1,0 +1,154 @@
+##############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# stefan.k.berg@ericsson.com
+# jonas.bjurel@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+
+This README file describes how to install the OPNFV BGS Stack
+=============================================================
+1.1 Install Fuel Server
+-----------------------
+1. Mount the built .iso file (release/opnfv-<version>.iso) as a bootdevice to the fuel server.
+
+2. Reboot the fuel server.
+   The system now boots from the ISO image.
+
+3. Change the grub boot params
+   When Press Tab to edit . is shown press Tab.
+   Change showmenu=no to showmenu=yes.
+   Change netmask=255.255.255.0 to netmask=255.255.0.0.
+   Press Enter.
+
+4  Wait until screen Fuel setup . is shown.
+   Note: This takes about 30 minutes.
+
+5. Select PXE Setup and change the following fields to appropriate values (example below):
+   Static Pool Start 10.20.0.3
+   Static Pool End 10.20.0.254
+   DHCP Pool Start 10.20.128.3
+   DHCP Pool End 10.20.128.254
+
+6. Select DNS & Hostname and change the following fields to appropriate values:
+   Hostname <CEE Region name>-fuel
+   Domain <Domain Name>
+   Search Domain <Search Domain Name>
+   Hostname to test DNS <Hostname to test DNS>
+
+7. Select Time Sync and change the following fields to appropriate values:
+   NTP Server 1 <Customer NTP server 1>
+   NTP Server 2 <Customer NTP server 2>
+   NTP Server 3<Customer NTP server 3>
+   Note: This step is only to pass the network test, the actual ntp parameters will be set with the pre_deply script.
+
+8. Start the installation.
+   Select Quit Setup and press Save and Quit.
+   Installation starts, wait until a screen with logon credentials is shown.
+   Note: This takes about 15 minutes.
+
+10. Enable PXE Booting and put it first in the bios boot order menu.
+
+11. Reboot the controller- and compute blades.
+
+12. Connect to Fuel wit a browser towards port 8000
+
+13. Create and name a new OpenStack environment, to be installed.
+
+14. Select Icehouse on Ubuntu . in field OpenStack Release.
+
+15. Select deployment mode.
+    Select the Multi-node with HA.
+
+16. Select compute node mode.
+    Select KVM as hypervisor.
+
+17. Select network mode.
+    Select Neutron with VLAN segmentation.
+
+18. Select Storage Backends.
+    Select Ceph for Cinder and default for glance.
+
+
+19. Select additional services.
+    Check option Install Celiometer (OpenStack Telemetry).
+
+20. Create the new environment.
+
+21. Wait for availability nodes.
+    Wait until all nodes are displayed in top right in <total number of server> TOTAL NODES and <total number of servers> UNALLOCATED NODES.
+
+22. Open the created environment.
+
+23. Open the networks tab.
+
+24. Update the public configuration.
+    Change the following fields to appropriate values:
+    IP Range Start to <Public IP Address start>
+    IP Range End to <Public IP Address end>
+    CIDR to <CIDR for Public IP Addresses>
+    Gateway to <Gateway for Public IP Addresses>
+    Check  VLAN tagging.
+    Set appropriate VLAN id.
+
+25. Update the management configuration.
+    Set CIDR to 172.16.255.128/25.
+    Check VLAN tagging.
+    Set appropriate  VLAN id.
+
+26. Update the storage configuration.
+    Set CIDR to the appropriate value
+    Check VLAN tagging.
+    Set appropriate VLAN id.
+
+27. Update the Neutron L2 configuration.
+    Set VLAN ID range.
+
+28. Update the Neutron L3 configuration.
+    Set Internal network CIDR to an appropriate value
+    Set Internal network gateway to an appropriate value
+    Set Floating IP ranges.
+    Set DNS Servers
+
+29. Save Settings.
+
+30. Click "verify network" to check the network set-up
+
+31. Update storage configuration.
+
+32. Open the nodes tab.
+
+33. Assign roles.
+    Check Controller and Telemetry . MongoDB.
+    Check three nodes to be installed as Controller in pane Assign Role.
+    Click Apply Changes.
+    Check Compute.
+    Check nodes to be installed as Compute nodes in pane Assign Role.
+    Click Apply Changes.
+
+34. Configure interfaces.
+    Check Select All to select all nodes with Control, Telemetry . MongoDB and Compute node roles.
+    Click Configure Interfaces.
+    Screen Configure interfaces on number of <number of nodes> nodes is shown.
+    Assign interfaces (bonded) for mgmt-, admin-, private-, public- and storage networks
+
+35. Run the pre-deploy script.
+    Log on as root to the Fuel node.
+    Print Fuel environment Id (fuel env)
+    #> id | status | name | mode | release_id | changes <id>| new | <CEE Region name>| ha_compact | 2 | <ite specific information>
+
+36. Run the pre-deployment script (/opt/opnfv/pre-deploy.sh <id>)
+    As prompted for-, set the DNS servers to go into /etc/resolv.conf.
+    As prompted for-, set any Hosts file additions for controllers and compute nodes. You will be prompted for name, FQDN and IP for each entry. Press return when prompted for a name when you have completed your input.
+    As prompted for-, set NTP upstream configuration for controllers. You will be prompted for a NTP server each entry. Press return when prompted for a NTP server when you have completed your input.
+
+37. Deploy the environment.
+    In the Fuel GUI, click Deploy Changes.
+
+38 Verify the OpenStack Environment
+   Open the Health Check tab .
+   Select Select All.
+   Click Run tests.

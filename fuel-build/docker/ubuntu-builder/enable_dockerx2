@@ -1,0 +1,10 @@
+#!/bin/sh
+# Needed to expose underlying cgroups to container
+
+mount -n -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
+mount -t securityfs none /sys/kernel/security
+
+for mnt in $(cut -d: -f2 /proc/1/cgroup); do
+  mkdir /sys/fs/cgroup/$mnt
+  mount -n -t cgroup -o $mnt cgroup /sys/fs/cgroup/$mnt
+done

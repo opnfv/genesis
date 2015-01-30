@@ -1,0 +1,30 @@
+#!/bin/bash
+##############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# stefan.k.berg@ericsson.com
+# jonas.bjurel@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+#
+context=$1
+shift
+GID=`id -g`
+USER=`whoami`
+res=`docker build -q --rm -  <<EOF
+FROM $context
+RUN echo "invalidate cache" && echo "done"
+RUN /usr/sbin/groupadd --gid $GID $USER
+RUN /usr/sbin/adduser --system --uid=$UID --gid=$GID --home $HOME --shell /bin/bash $USER
+RUN /usr/sbin/usermod -a -G fuse $USER
+RUN echo "export HOME=$HOME" >> /etc/bash.bashrc
+RUN echo "$@" >> /etc/bash.bashrc
+RUN echo 'exit \\$?' >> /etc/bash.bashrc
+EOF`
+CID=`echo $res | sed 's/.* //'`
+docker run --privileged=true --rm -i -t -u $USER -w $PWD -v ${HOME}/.ssh:${HOME}/.ssh -v $PWD:$PWD $CID bash
+rc=$?
+docker rmi $CID > /dev/null
+exit $rc

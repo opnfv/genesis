@@ -1,0 +1,17 @@
+--- package/usr/share/pyshared/nova/virt/libvirt/driver.py.org
++++ package/usr/share/pyshared/nova/virt/libvirt/driver.py
+@@ -3280,10 +3280,10 @@
+             # client app is connected. Thus we can't get away
+             # with a single type=pty console. Instead we have
+             # to configure two separate consoles.
+-            consolelog = vconfig.LibvirtConfigGuestSerial()
+-            consolelog.type = "file"
+-            consolelog.source_path = self._get_console_log_path(instance)
+-            guest.add_device(consolelog)
++            #consolelog = vconfig.LibvirtConfigGuestSerial()
++            #consolelog.type = "file"
++            #consolelog.source_path = self._get_console_log_path(instance)
++            #guest.add_device(consolelog)
+ 
+             consolepty = vconfig.LibvirtConfigGuestSerial()
+             consolepty.type = "pty"
