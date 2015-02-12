@@ -8,25 +8,16 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-CONTEXT1 := opnfv.org/ubuntu:12.04
-CONTEXT2 := opnfv.org/ubuntu-builder:12.04
+FILES = $(wildcard ubuntu-builder/*) runcontext
 
-.PHONY: docker all
+.PHONY: all
+all:	.docker
 
-all:	create-docker-ubuntu populate-docker-ubuntu
-	./runcontext ${CONTEXT2} make test
+.docker: $(FILES)
+	/usr/bin/docker build --rm=true -t opnfv.org/ubuntu-builder:14.04 ubuntu-builder
+	/usr/bin/docker tag -f opnfv.org/ubuntu-builder:14.04 opnfv.org/ubuntu-builder
+	touch .docker
 
-.PHONY:	create-docker-ubuntu
-create-docker-ubuntu:
-	/usr/bin/docker run --rm -i -t ${CONTEXT1} date || \
-	sudo mkimage/mkimage.sh -t opnfv.org/ubuntu:12.04 debootstrap --include=ubuntu-minimal --components=main,universe precise
-
-.PHONY: populate-docker-ubuntu
-populate-docker-ubuntu:
-	/usr/bin/docker build --rm=true -t opnfv.org/ubuntu-builder:12.04 ubuntu-builder
-	/usr/bin/docker tag -f opnfv.org/ubuntu-builder:12.04 opnfv.org/ubuntu-builder
-
-.PHONY:	test
-test:
-	@hostname
-	@date
+.PHONY:	clean
+clean:
+	rm .docker

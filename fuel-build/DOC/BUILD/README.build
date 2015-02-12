@@ -21,7 +21,6 @@ How to setup and use the OPNFV/BGS/FUEL build system - work in progress
 1.2 Host SW dependencies
 ------------------------
 On the host, the following packages must be installed:
-- debootstrap (simply available through apt-get install debootstrap)
 - docker - see https://docs.docker.com/installation/ubuntulinux/ for installation notes for 12.04 and 14.04
 - git (simply available through apt-get install git)
 

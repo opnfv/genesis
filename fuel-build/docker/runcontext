@@ -15,16 +15,11 @@ GID=`id -g`
 USER=`whoami`
 res=`docker build -q --rm -  <<EOF
 FROM $context
-RUN echo "invalidate cache" && echo "done"
-RUN /usr/sbin/groupadd --gid $GID $USER
-RUN /usr/sbin/adduser --system --uid=$UID --gid=$GID --home $HOME --shell /bin/bash $USER
-RUN /usr/sbin/usermod -a -G fuse $USER
-RUN echo "export HOME=$HOME" >> /etc/bash.bashrc
-RUN echo "$@" >> /etc/bash.bashrc
-RUN echo 'exit \\$?' >> /etc/bash.bashrc
+RUN date || date
+RUN /root/setcontext $USER $UID $GID $HOME
 EOF`
 CID=`echo $res | sed 's/.* //'`
-docker run --privileged=true --rm -i -t -u $USER -w $PWD -v ${HOME}/.ssh:${HOME}/.ssh -v $PWD:$PWD $CID bash
+docker run --privileged=true --rm -i -t -e HOME=$HOME -u $USER -w $PWD -v ${HOME}/.ssh:${HOME}/.ssh -v $PWD:$PWD $CID "$@"
 rc=$?
 docker rmi $CID > /dev/null
 exit $rc

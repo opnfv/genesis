@@ -13,13 +13,12 @@ used for building in Ubuntu 12.04 context.
 
 There are two requirements before running make on this level:
 
-1. You need to have Docker installed on your system, and make sure
-to have a valid DNS config in your /etc/default/docker.
-e.g:
-DOCKER_OPTS=" --dns=8.8.8.8 --dns=8.8.8.4"
+1. You need to have Docker installed on your system
 
+2. If in a corporate network, make sure to have a valid DNS config in
+   your /etc/default/docker, e.g:
 
-2. You must have installed the package "debootstrap".
+   DOCKER_OPTS=" --dns=8.8.8.8 --dns=8.8.8.4"
 
 The top level makefile will refer to the "runcontext" file in order to
 run the build process as the current user with the current working
