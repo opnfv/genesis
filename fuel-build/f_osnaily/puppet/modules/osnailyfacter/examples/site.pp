@@ -53,8 +53,17 @@ if $::fuel_settings['nodes'] {
   $base_syslog_hash     = $::fuel_settings['base_syslog']
   $syslog_hash          = $::fuel_settings['syslog']
 
+  $disable_offload      = $::fuel_settings['disable_offload']
+  if $disable_offload {
+    L23network::L3::Ifconfig<||> {
+      ethtool =>     {
+        'K' => ['gso off',  'gro off'],
+      }
+    }
+  }
 
-  $use_quantum = $::fuel_settings['quantum']
+  $use_neutron = $::fuel_settings['quantum']
+
   if (!empty(filter_nodes($::fuel_settings['nodes'], 'role', 'ceph-osd')) or
     $::fuel_settings['storage']['volumes_ceph'] or
     $::fuel_settings['storage']['images_ceph'] or
@@ -66,7 +75,7 @@ if $::fuel_settings['nodes'] {
   }
 
 
-  if $use_quantum {
+  if $use_neutron {
     prepare_network_config($::fuel_settings['network_scheme'])
     #
     $internal_int     = get_network_role_property('management', 'interface')
@@ -77,6 +86,19 @@ if $::fuel_settings['nodes'] {
     if $public_int {
       $public_address = get_network_role_property('ex', 'ipaddr')
       $public_netmask = get_network_role_property('ex', 'netmask')
+
+      # TODO(Xarses): remove this after completing merge of
+      # multiple-cluster-networks
+      L23network::L3::Ifconfig<| title == $public_int |> {
+        default_gateway => true
+      }
+    } else {
+      # TODO(Xarses): remove this after completing merge of
+      # multiple-cluster-networks
+      $fw_admin_int = get_network_role_property('fw-admin', 'interface')
+      L23network::L3::Ifconfig<| title == $fw_admin_int |> {
+        default_gateway => true
+      }
     }
     #
     $storage_address = get_network_role_property('storage', 'ipaddr')
@@ -92,6 +114,13 @@ if $::fuel_settings['nodes'] {
     $internal_br = $node[0]['internal_br']
     $public_int   = $::fuel_settings['public_interface']
     $internal_int = $::fuel_settings['management_interface']
+
+    # TODO(Xarses): remove this after completing merge of
+    # multiple-cluster-networks
+    L23network::L3::Ifconfig<| title == $public_int |> {
+      default_gateway => true
+    }
+
   }
 }
 
@@ -133,6 +162,15 @@ $syslog_log_facility_murano     = 'LOG_LOCAL0'
 $syslog_log_facility_heat       = 'LOG_LOCAL0'
 $syslog_log_facility_sahara     = 'LOG_LOCAL0'
 $syslog_log_facility_ceilometer = 'LOG_LOCAL0'
+$syslog_log_facility_ceph       = 'LOG_LOCAL0'
+
+### Monit ###
+# Monit for compute nodes.
+# If enabled, will install monit and configure its watchdogs to track
+# nova-compute/api/network (and openvswitch service, if neutron enabled)
+# at compute nodes.
+# TODO(bogdando) set to true once monit package shipped with Fuel ISO
+$use_monit = false
 
 $nova_rate_limits = {
   'POST' => 100000,
@@ -167,19 +205,31 @@ case $::operatingsystem {
 class os_common {
   # OPNFV check if pre_deploy.sh has been run, otherwise fail
   class {'opnfv::opncheck': stage => 'opncheck' }
-  if ($::fuel_settings['neutron_mellanox']) and ($::fuel_settings['storage']['iser']) {
-      class { 'mellanox_openstack::iser_rename':
-                   stage => 'zero',
-                   storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
-                   iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
+  if ($::fuel_settings['neutron_mellanox']) {
+    if ($::mellanox_mode != 'disabled') {
+      class { 'mellanox_openstack::ofed_recompile' :
+        stage => 'zero',
       }
+    }
+    if ($::fuel_settings['storage']['iser']) {
+      class { 'mellanox_openstack::iser_rename':
+        stage => 'zero',
+        storage_parent => $::fuel_settings['neutron_mellanox']['storage_parent'],
+        iser_interface_name => $::fuel_settings['neutron_mellanox']['iser_interface_name'],
+      }
+      Class['mellanox_openstack::ofed_recompile'] -> Class['mellanox_openstack::iser_rename']
+    }
   }
   class {"l23network::hosts_file": stage => 'netconfig', nodes => $nodes_hash, extras => $extras_hash }
-  class {'l23network': use_ovs=>$use_quantum, stage=> 'netconfig'}
-  if $use_quantum {
+  class {'l23network': use_ovs=>$use_neutron, stage=> 'netconfig'}
+  if $use_neutron {
       class {'advanced_node_netconfig': stage => 'netconfig' }
   } else {
       class {'osnailyfacter::network_setup': stage => 'netconfig'}
+  }
+
+  if ($::osfamily == 'RedHat') {
+    package {'irqbalance': ensure => present} -> service {'irqbalance': ensure => running }
   }
 
   class { 'openstack::firewall':
@@ -256,6 +306,10 @@ class os_common {
     }
   }
 
+  class { 'osnailyfacter::atop':
+    stage => 'first',
+  }
+
   #case $role {
     #    /controller/:          { $hostgroup = 'controller' }
     #    /swift-proxy/: { $hostgroup = 'swift-proxy' }
@@ -296,7 +350,8 @@ class os_common {
   }
 
   class { 'puppet::pull' :
-    master_ip => $::fuel_settings['master_ip'],
+    modules_source   => $::fuel_settings['puppet_modules_source'],
+    manifests_source => $::fuel_settings['puppet_manifests_source'],
   }
 } # OS_COMMON ENDS
 
@@ -317,7 +372,6 @@ node default {
     /^(ha|ha_compact)$/: {
       include "osnailyfacter::cluster_ha"
       class {'os_common':}
-      class {'corosync::commitorder': stage=>'main'}
       class {'opnfv':}
       }
     "rpmcache": { include osnailyfacter::rpmcache }

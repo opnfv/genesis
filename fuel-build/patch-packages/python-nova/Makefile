@@ -22,7 +22,7 @@ clean:
 
 .PHONY: release
 release:
-	../tools/deb_unpack python-nova_2014.1.3-fuel5.1.1~mira3_all.deb $(ORIGISO)
+	../tools/deb_unpack python-nova_*.deb $(ORIGISO)
 	patch -s -p0 < nova-console.patch
 	../tools/deb_pack $(VERSION)
 	@cp *.deb ../release/packages

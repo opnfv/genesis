@@ -12,7 +12,7 @@
 # BEGIN of variables to customize
 #
 SHELL = /bin/bash
-ISOSRC = file:$(shell pwd)/fuel-5.1.1.iso
+ISOSRC = file:$(shell pwd)/fuel-6.0.1.iso
 ISOCACHE = $(shell pwd)/$(shell basename $(ISOSRC))
 PRODUCT_NAME = "OPNFV_BGS"
 VERSION = "P0000"
@@ -40,7 +40,7 @@ SUBDIRS += f_ntp
 SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
 
 .PHONY: all
-all:	
+all:
 	@docker version >/dev/null 2>&1 || (echo 'No Docker installation available'; exit 1)
 	@make -C docker
 	@docker/runcontext $(DOCKERIMG) $(MAKE) $(MAKEFLAGS) iso
@@ -48,11 +48,14 @@ all:
 $(ISOCACHE):
 	# Clone Fuel to non-persistent location and build
 	cd /tmp && git clone https://github.com/stackforge/fuel-main
-	cd /tmp/fuel-main && git checkout 5.1.1
+	cd /tmp/fuel-main && git checkout stable/6.0
 	# Setup cgroups for docker-in-docker
 	sudo /root/enable_dockerx2
 	# Patch to fix race condition when doing "Docker-in-Docker" build
-	cd /tmp/fuel-main && patch -p1 < $(TOPDIR)/fuel-main.patches
+	cd /tmp/fuel-main && patch -p1 < $(TOPDIR)/fuel-main_1.patch
+	# Patch to make the sandbox chroot in Fuel succeed with package
+	# installation in a Docker build
+	cd /tmp/fuel-main && patch -p1 < $(TOPDIR)/fuel-main_2.patch
 	# Remove Docker optimizations, otherwise multistrap will fail during
 	# Fuel build.
 	sudo rm -f /etc/apt/apt.conf.d/docker*
