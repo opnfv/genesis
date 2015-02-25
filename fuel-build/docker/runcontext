@@ -20,7 +20,7 @@ RUN /root/setcontext $USER $UID $GID $HOME
 EOF`
 GITROOT=`git rev-parse --show-toplevel`
 CID=`echo $res | sed 's/.* //'`
-docker run --privileged=true --rm -i -t -e HOME=$HOME -u $USER -w $PWD -v ${HOME}/.ssh:${HOME}/.ssh -v $GITROOT:$GITROOT $CID "$@"
+docker run --privileged=true --rm -i -e HOME=$HOME -u $USER -w $PWD -v ${HOME}/.ssh:${HOME}/.ssh -v $GITROOT:$GITROOT $CID "$@"
 rc=$?
 docker rmi $CID > /dev/null
 exit $rc
