@@ -1,0 +1,10 @@
+############################################
+# Contributors/version/date
+# jonas.bjurel@ericsson.com 0.1 2015.01.28
+############################################
+Following items needs to be done to achieve an OPNFV/BGS R1 Stack:
+1) Rebase to Fuel 6.0/6.1 - DONE
+2) Add support for CentOS 6.5 - REMAINING
+3) Add build-support and manifests for Open daylight Ubuntu and CentOS
+   - Initial build and deployment of ODL/Helium - DONE
+   - Configuration and plumbing - IN PROGRESS

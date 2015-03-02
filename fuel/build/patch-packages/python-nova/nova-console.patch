@@ -1,0 +1,28 @@
+*** package/usr/share/pyshared/nova/virt/libvirt/driver.py.orig	2015-02-16 14:19:53.203052869 +0100
+--- package/usr/share/pyshared/nova/virt/libvirt/driver.py	2015-02-16 14:22:53.065017671 +0100
+***************
+*** 3959,3968 ****
+                  # client app is connected. Thus we can't get away
+                  # with a single type=pty console. Instead we have
+                  # to configure two separate consoles.
+!                 consolelog = vconfig.LibvirtConfigGuestSerial()
+!                 consolelog.type = "file"
+!                 consolelog.source_path = self._get_console_log_path(instance)
+!                 guest.add_device(consolelog)
+
+              consolepty = vconfig.LibvirtConfigGuestSerial()
+          else:
+--- 3959,3971 ----
+                  # client app is connected. Thus we can't get away
+                  # with a single type=pty console. Instead we have
+                  # to configure two separate consoles.
+!                 # Disabled by OPNFV BEGIN
+!                 # consolelog = vconfig.LibvirtConfigGuestSerial()
+!                 # consolelog.type = "file"
+!                 # consolelog.source_path = self._get_console_log_path(instance)
+!                 # guest.add_device(consolelog)
+!                 pass
+!                 # Disabled by OPNFV END
+
+              consolepty = vconfig.LibvirtConfigGuestSerial()
+          else:

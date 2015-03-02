@@ -1,0 +1,97 @@
+##############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# stefan.k.berg@ericsson.com
+# jonas.bjurel@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+How to setup and use the OPNFV/BGS/FUEL build system
+====================================================
+
+1. Build system requirements
+----------------------------
+1.1 Host HW/VM requirements
+---------------------------
+- An x86_64 host (real iron or VM) with Ubuntu 14.04 LTS installed
+- ~30 GB available disc
+- 4 GB RAM
+
+1.2 Host SW dependencies
+------------------------
+The host should run Ubuntu 14.04
+On the host, the following packages must be installed:
+- docker - see https://docs.docker.com/installation/ubuntulinux/ for installation notes
+for Ubuntu 14.04. Note: only use the Ubuntu stock distro of Docker (docker.io)
+- git (simply available through apt-get install git)
+- make (simply available through apt-get install make)
+
+2 Setting up the Docker build container
+----------------------------------------
+When having installed Docker, add yourself to the docker group:
+usermod -a -G docker <userid>
+
+Also make sure to define rellevant dns servers part of the global dns chain in
+in your /etc/default/docker config file, eg.
+DOCKER_OPTS=" --dns=8.8.8.8 --dns=8.8.8.4"
+
+Then restart docker with "service docker.io restart".:
+
+3. Setting up OPNFV Gerrit in order to being able to clone the code
+-------------------------------------------------------------------
+- Start by creating a SSH key, if you don't already have one, create one with ssh-keygen
+
+- Add your generated public key in OPNFV Gerrit -https://gerrit.opnfv.org/
+  (this requires a linuxfoundation account, create one if you do not already have one)
+
+- Select "SSH Public Keys" to the left and then "Add Key" and paste your public key in.
+
+4. Clone the OPNFV code git repository
+--------------------------------------
+ So now we're coming to the fun part! Let's clone the code repository:
+ git clone ssh://<Linux foundation user>@gerrit.opnfv.org:29418/genesis
+
+ Change the directory to "fuel-build"
+ cd fuel-build/
+
+5. Set up (build) your build environment
+----------------------------------------
+Select the versions of the components you want to build by editing the
+fuel-build/config-spec file. Note if you want to build with OpenDaylight
+SDN controller you need to uncomment the lines starting with odl-main and
+java-main
+
+6. Build your fuel .iso image
+-----------------------------
+That's it, time to build!
+make [all]
+
+This will:
+- If not allready existing, initialize the docker build environment
+- If not already done, build OpenDaylight from upstream (as defined by fuel-build/
+  config-spec)
+- If not already done, build fuel from upstream (as defined by fuel-build/config-spec)
+- Build the defined additions to fuel (as defined by the structure of this framework)
+- Apply changes and patches to fuel (as defined by the structure of this framework)
+- Reconstruct a fuel .iso image
+
+If the build is successful, you will find the generated ISO file in the release
+subdirectory!
+
+NOTE: the build of the baseline for Fuel and odl are cached, if build results reffering
+to the same versions as specified in fuel-build/config spec has been built before, these
+packages will not be rebuilt. The cache is cleared by "make clean"
+
+7. Install your stack
+---------------------
+Please see DOC/INSTALL/README
+
+NOTES and TODO:
+---------------
+The build system will for now partly run as sudo
+BUT NOTE, NONE OF THE MAKEFILES OR SCRIPTS SHALL BE EXECUTED WITH
+SUDO/ROOT PRIVILEDGES!
+TODO: Change the scripts so that no root priviledges will be needed
+
