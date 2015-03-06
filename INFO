@@ -6,9 +6,11 @@ Primary Contact: Frank Brockners
 Project Lead: Frank Brockners
 Jira Project Name: Bootstrap Get started project
 Jira Project Prefix: BGS
-Maling list tag: [bgs]
+Mailing list tag: [bgs]
+IRC: Server:freenode.net Channel:#opnfv-bgs
+Repository: genesis
 
-Submitters:
+Committers:
 dradez@redhat.com
 fbrockne@cisco.com
 iawells@cisco.com
@@ -25,8 +27,5 @@ zhangxiong7@huawei.com
 joseph.gasparakis@intel.com
 pbandzi@cisco.com
 
-Link to TSC approval:
-Link to approval of additional submitters:
-Contributing:
-Here is a blurb on how to contribute
-
+Link to TSC approval of the project: http://meetbot.opnfv.org/meetings/opnfv-meeting/2014/opnfv-meeting.2014-12-09-15.02.html
+Link(s) to approval of additional submitters:
