@@ -1,0 +1,23 @@
+##############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# stefan.k.berg@ericsson.com
+# jonas.bjurel@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+The genesis/fuel/ci directory holds all Fuel@OPNFV abstractions for the OPNFV
+community release and continous integration pipeline.
+There are two Fuel@OPNF autonomous scripts fo this, complying to the OPNFV CI pipeline guideline:
+ - build.sh
+ - deploy.sh
+
+For more info on usage:
+./build.sh -h
+./deploy.sh -h
+
+To be able to deploy on a certain metal environment there needs to be a Deplyment Environment Adaptor" executable with propper added to $PATH such that
+deploy.sh can call it by $dea [options] as indicated by ./deploy -h.
+

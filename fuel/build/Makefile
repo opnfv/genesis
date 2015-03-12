@@ -13,24 +13,36 @@
 #
 SHELL = /bin/bash
 
-include config.mk
+#Input args
+export UNIT_TEST = FALSE
+export INTERACTIVE = TRUE
+export ISOSRC = file:$(shell pwd)/fuel-6.0.1.iso
+export ISOCACHE = $(shell pwd)/$(shell basename $(ISOSRC))
+export PRODNO = "OPNFV_BGS"
+export REVSTATE = "P0000"
+export NEWISO = $(shell pwd)/release/opnfv-${REVSTATE}.iso
 
-export BUILD_BASE = $(shell pwd)
+# Note! Invoke with "make REVSTATE=RXXXX all" to make release build!
+# Invoke with ICOCACHE=/full/path/to/iso if cached ISO is in non-standard location.
+
+#Build variables
+export BUILD_BASE := $(shell pwd)
 export DEB_DEST := $(BUILD_BASE)/release/packages/ubuntu/pool/main
 export PUPPET_DEST := $(BUILD_BASE)/release/puppet/modules
-
-ISOSRC = file:$(shell pwd)/fuel-6.0.1.iso
-ISOCACHE = $(shell pwd)/$(shell basename $(ISOSRC))
-PRODNO = "OPNFV_BGS"
-REVSTATE = "P0000"
-NEWISO = $(shell pwd)/release/opnfv-${REVSTATE}.iso
+export CACHE_DIR := $(BUILD_BASE)/cache
+export VERSION_FILE := $(BUILD_BASE)/.versions
 DOCKERIMG = opnfv.org/ubuntu-builder:14.04
-# Note! Invoke with "make REVSTATE=RXXXX iso" to make release build!
-# Invoke with ICOCACHE=/full/path/to/iso if cached ISO is in non-standard location.
+export TOPDIR := $(shell pwd)
+
 #
 # END of variables to customize
 #############################################################################
-export TOPDIR := $(shell pwd)
+
+#Include definitions
+include config.mk
+include cache.mk
+
+
 ORIGDIR := $(TOPDIR)/origiso
 
 SUBDIRS := f_isoroot
@@ -39,17 +51,17 @@ SUBDIRS += f_osnaily
 SUBDIRS += f_l23network
 SUBDIRS += f_resolvconf
 SUBDIRS += f_ntp
-#SUBDIRS += f_gif
-#SUBDIRS += f_libnss
-#SUBDIRS += f_libpcs
-#SUBDIRS += f_libxt
-#SUBDIRS += f_comm_java
-#SUBDIRS += f_ca_cert
-#SUBDIRS += f_atk_wrap
-#SUBDIRS += f_jre_head
-#SUBDIRS += f_jre
-#SUBDIRS += f_java
-#SUBDIRS += f_odl
+SUBDIRS += f_gif
+SUBDIRS += f_libnss
+SUBDIRS += f_libpcs
+SUBDIRS += f_libxt
+SUBDIRS += f_comm_java
+SUBDIRS += f_ca_cert
+SUBDIRS += f_atk_wrap
+SUBDIRS += f_jre_head
+SUBDIRS += f_jre
+SUBDIRS += f_java
+SUBDIRS += f_odl
 
 
 
@@ -62,6 +74,9 @@ SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
 .PHONY: all
 all:
 	@docker version >/dev/null 2>&1 || (echo 'No Docker installation available'; exit 1)
+	@echo "Versions of cached build results built by" $(shell hostname) "at" $(shell date -u) > $(BUILD_BASE)/.versions
+	@echo "cache.mk" $(shell md5sum $(BUILD_BASE)/cache.mk | cut -f1 -d " ") >> $(BUILD_BASE)/.versions
+	@echo "config.mk" $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") >> $(BUILD_BASE)/.versions
 	@make -C docker
 	@docker/runcontext $(DOCKERIMG) $(MAKE) $(MAKEFLAGS) iso
 
@@ -69,6 +84,8 @@ $(ISOCACHE):
 	# Clone Fuel to non-persistent location and build
 	cd /tmp && git clone $(FUEL_MAIN_REPO)
 	cd /tmp/fuel-main && git checkout $(FUEL_MAIN_TAG)
+	@echo "fuel" `git -C /tmp/fuel-main show | grep commit | rev | cut -f1 -d " "` >> ${BUILD_BASE}/.versions
+
 	# Setup cgroups for docker-in-docker
 	sudo /root/enable_dockerx2
 	# Patch to fix race condition when doing "Docker-in-Docker" build
@@ -120,7 +137,7 @@ build-clean: $(SUBCLEAN)
 	@rm -f $(NEWISO)
 
 .PHONY: clean $(SUBCLEAN)
-clean: prepare $(SUBCLEAN)
+clean:  prepare $(SUBCLEAN)
 	$(MAKE) -C patch-packages -f Makefile clean
 	$(MAKE) -C opendaylight -f Makefile clean
 	@rm -f *.iso
@@ -128,6 +145,7 @@ clean: prepare $(SUBCLEAN)
 	@rm -Rf newiso
 	@rm -f f_odl
 	@rm -f $(NEWISO)
+	@rm -f $(BUILD_BASE)/.versions
 
 $(SUBCLEAN): %.clean:
 	$(MAKE) -C $* -f Makefile clean

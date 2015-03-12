@@ -34,20 +34,42 @@ all:	odl
 
 .PHONY: setup
 setup:
-	@if [ ! -d "$(TOPDIR)/f_odl" ]; then ln -s "$(realpath $(BUILD_DIR))/f_odl" "$(realpath $(TOPDIR))/f_odl";  fi
+	rm -f "$(BUILD_BASE)/f_odl"
+	ln -s "$(shell readlink -e $(BUILD_DIR))/f_odl" "$(shell readlink -e $(BUILD_BASE))/f_odl"
+
+.PHONY: check-cache-validity
+check-cache-validity:
+	@if [ $(git ls-remote $(ODL_MAIN_REPO) $(ODL_MAIN_TAG) | awk '{print $(NF-1)}') -ne $(cat $(CACHE_DIR)/.versions | grep odl | awk '{print $NF}') ]; then @echo "Cache is not up to date, stopping!"; exit 1; fi
 
 .PHONY: odl
 odl:
+
 ifeq ($(ODL_MAIN_REPO),)
 	@echo "No config-spec target for ODL, nothing to build"
 else
 
 ifeq ($(shell if [ -e .odl-build.log ];then cat .odl-build.log; fi;),$(ODL_MAIN_TAG))
 	@cd /tmp && git clone $(ODL_MAIN_REPO) && cd /tmp/controller && git checkout $(ODL_MAIN_TAG)
+
 	@echo "ODL is up to date"
 else
-	@if [ ! -d "/tmp/controller" ]; then cd /tmp && git clone $(ODL_MAIN_REPO); fi;
-	@cd /tmp/controller && git checkout $(ODL_MAIN_TAG) && mvn -Dmaven.test.skip=true -gs $(MAVEN_SPEC) clean install;
+	@if [ ! -d "/tmp/controller" ]; then\
+	   cd /tmp && git clone $(ODL_MAIN_REPO);\
+	fi;
+
+	@if [ "$(UNIT_TEST)" = "FALSE" ]; then\
+	   echo "Building ODL without unit test";\
+	   cd /tmp/controller &&\
+	   git checkout $(ODL_MAIN_TAG) &&\
+	   mvn -D maven.test.skip=true -gs $(MAVEN_SPEC) clean install;\
+	else\
+	   echo "Building ODL with unit test";\
+	   cd /tmp/controller &&\
+	   git checkout $(ODL_MAIN_TAG) &&\
+	   mvn -gs $(MAVEN_SPEC) clean install;\
+	fi;
+
+	@echo "odl" `git -C /tmp/controller show | grep commit | rev | cut -f1 -d " "` >> $(BUILD_BASE)/.versions
 	@./make-odl-deb.sh -N $(ODL_SHORT_NAME)_`cd /tmp/controller; git rev-parse --short HEAD` -n $(ODL_SHORT_NAME) -v "$(ODL_VERSION)" -t "$(ODL_MAIN_TAG)" -m $(MAINTAINER) -d $(DEPEND) -p $(TARGET_BUILD_PATH)
 	@echo $(ODL_MAIN_TAG) > .odl-build.log
 endif

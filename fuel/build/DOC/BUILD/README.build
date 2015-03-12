@@ -27,6 +27,7 @@ On the host, the following packages must be installed:
 for Ubuntu 14.04. Note: only use the Ubuntu stock distro of Docker (docker.io)
 - git (simply available through apt-get install git)
 - make (simply available through apt-get install make)
+- curl
 
 2 Setting up the Docker build container
 ----------------------------------------
