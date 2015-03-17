@@ -260,11 +260,11 @@ do
 done
 
 # Constructing script variables
-DEB_PACK_BASE_PATH="f_${PACKAGE_SHORT_NAME}/${PACKAGE_NAME}_${PACKAGE_VERSION}/"
+DEB_PACK_BASE_PATH="f_${PACKAGE_SHORT_NAME}/package/${PACKAGE_NAME}_${PACKAGE_VERSION}"
 echo ${DEB_PACK_BASE_PATH} >> "$BUILD_HISTORY"
 TARGET_INSTALL_PATH="/usr/share/java/${PACKAGE_SHORT_NAME}/"
-DEB_PACK_CONTENT_PATH="${DEB_PACK_BASE_PATH}usr/share/java/${PACKAGE_SHORT_NAME}/"
-DEB_PACK_CONFIG_PATH="${DEB_PACK_BASE_PATH}etc/${PACKAGE_SHORT_NAME}"
+DEB_PACK_CONTENT_PATH="${DEB_PACK_BASE_PATH}/usr/share/java/${PACKAGE_SHORT_NAME}/"
+DEB_PACK_CONFIG_PATH="${DEB_PACK_BASE_PATH}/etc/${PACKAGE_SHORT_NAME}"
 TARGET_TAR=$(ls ${TARGET_BUILD_PATH}*.tar.gz)
 TARGET_TAR="${TARGET_TAR##*/}"
 TAR_PATH="${TARGET_TAR%.*}"
@@ -295,20 +295,20 @@ find ${DEB_PACK_CONFIG_PATH}/etc/ -type f -print -exec chmod 644 {} \;
 find ${DEB_PACK_CONFIG_PATH}/etc/ -type d -print -exec chmod 755 {} \;
 
 # Create package usr/bin odl script
-mkdir  "${DEB_PACK_BASE_PATH}usr/bin"
-chmod 755 "${DEB_PACK_BASE_PATH}usr/bin"
-make-DEBIAN_bin > "${DEB_PACK_BASE_PATH}usr/bin/odl"
-chmod 755 "${DEB_PACK_BASE_PATH}usr/bin/odl"
+mkdir  "${DEB_PACK_BASE_PATH}/usr/bin"
+chmod 755 "${DEB_PACK_BASE_PATH}/usr/bin"
+make-DEBIAN_bin > "${DEB_PACK_BASE_PATH}/usr/bin/odl"
+chmod 755 "${DEB_PACK_BASE_PATH}/usr/bin/odl"
 
 # Create Deb pack install meta-data
-mkdir "${DEB_PACK_BASE_PATH}DEBIAN"
-make-DEBIAN_control > "${DEB_PACK_BASE_PATH}DEBIAN/control"
-make-DEBIAN_conffiles > "${DEB_PACK_BASE_PATH}DEBIAN/conffiles"
-mkdir -p "${DEB_PACK_BASE_PATH}usr/share/doc/${PACKAGE_SHORT_NAME}"
-make-DEBIAN_copyright > "${DEB_PACK_BASE_PATH}usr/share/doc/${PACKAGE_SHORT_NAME}/copyright"
-make-DEBIAN_changelog > "${DEB_PACK_BASE_PATH}usr/share/doc/${PACKAGE_SHORT_NAME}/changelog.Debian"
+mkdir "${DEB_PACK_BASE_PATH}/DEBIAN"
+make-DEBIAN_control > "${DEB_PACK_BASE_PATH}/DEBIAN/control"
+make-DEBIAN_conffiles > "${DEB_PACK_BASE_PATH}/DEBIAN/conffiles"
+mkdir -p "${DEB_PACK_BASE_PATH}/usr/share/doc/${PACKAGE_SHORT_NAME}"
+make-DEBIAN_copyright > "${DEB_PACK_BASE_PATH}/usr/share/doc/${PACKAGE_SHORT_NAME}/copyright"
+make-DEBIAN_changelog > "${DEB_PACK_BASE_PATH}/usr/share/doc/${PACKAGE_SHORT_NAME}/changelog.Debian"
 
 # Create Deb pack post install symlinks and usr/bin scripts
-make-DEBIAN_postinst > "${DEB_PACK_BASE_PATH}DEBIAN/postinst"
-chmod 755  "${DEB_PACK_BASE_PATH}DEBIAN/postinst"
-mkdir -p "${DEB_PACK_BASE_PATH}usr/bin"
+make-DEBIAN_postinst > "${DEB_PACK_BASE_PATH}/DEBIAN/postinst"
+chmod 755  "${DEB_PACK_BASE_PATH}/DEBIAN/postinst"
+mkdir -p "${DEB_PACK_BASE_PATH}/usr/bin"

@@ -23,7 +23,7 @@ ifeq ($(ODL_MAIN_REPO),)
 else
 	@mkdir -p tmp/src
 	@mkdir -p release/pool/main
-	@cp -rp $(DEB_NAME) tmp/src
+	@cp -rp package/$(DEB_NAME) tmp/src
 	@gzip -f9 tmp/src/$(DEB_NAME)/usr/share/doc/$(ODL_NAME_SHORT)/changelog.Debian
 	@fakeroot dpkg-deb --build tmp/src/$(DEB_NAME)
 	@lintian tmp/src/$(DEB_NAME).deb
