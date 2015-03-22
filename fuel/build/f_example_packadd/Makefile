@@ -31,6 +31,10 @@ clean:
 	@rm -rf release
 	@rm -f ../release/packages/ubuntu/pool/main/$(DEB_NAME)
 
+.PHONY: validate-cache
+validate-cache:
+	@echo "No cache validation schema available for $(shell pwd)"
+	@echo "Continuing ..."
 
 .PHONY: release
 release:release/pool/main/$(DEB_NAME)

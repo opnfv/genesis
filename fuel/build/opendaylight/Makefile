@@ -12,7 +12,7 @@
 # BEGIN of variables to customize
 #
 SHELL = /bin/bash
-include ../config.mk
+
 
 BUILD_DIR := $(shell pwd)
 GIT_DIR := /tmp
@@ -32,14 +32,31 @@ MAVEN_SPEC = $(BUILD_DIR)/odl_maven/settings.xml
 .PHONY: all
 all:	odl
 
+############################################################################
+# BEGIN of Include definitions
+#
+include ../config.mk
+#
+# END Include definitions
+#############################################################################
+
 .PHONY: setup
 setup:
 	rm -f "$(BUILD_BASE)/f_odl"
 	ln -s "$(shell readlink -e $(BUILD_DIR))/f_odl" "$(shell readlink -e $(BUILD_BASE))/f_odl"
 
-.PHONY: check-cache-validity
-check-cache-validity:
-	@if [ $(git ls-remote $(ODL_MAIN_REPO) $(ODL_MAIN_TAG) | awk '{print $(NF-1)}') -ne $(cat $(CACHE_DIR)/.versions | grep odl | awk '{print $NF}') ]; then @echo "Cache is not up to date, stopping!"; exit 1; fi
+.PHONY: validate-cache
+validate-cache:
+	@REMOTE_ID=$(shell git ls-remote $(ODL_MAIN_REPO) $(ODL_MAIN_TAG)^{} | awk '{print $$(NF-1)}'); \
+	if [ -z $$REMOTE_ID ] || [ $$REMOTE_ID = " " ]; \
+	then \
+	   REMOTE_ID=$(shell git ls-remote $(ODL_MAIN_REPO) $(ODL_MAIN_TAG) | awk '{print $$(NF-1)}'); \
+	fi; \
+	if [ $$REMOTE_ID != $(shell cat $(VERSION_FILE) | grep odl | awk '{print $$NF}') ]; \
+	then \
+	   echo "Cache does not match upstream OpenDaylight, cache must be rebuilt!"; \
+	   exit 1; \
+	fi
 
 .PHONY: odl
 odl:
@@ -69,7 +86,7 @@ else
 	   mvn -gs $(MAVEN_SPEC) clean install;\
 	fi;
 
-	@echo "odl" `git -C /tmp/controller show | grep commit | rev | cut -f1 -d " "` >> $(BUILD_BASE)/.versions
+	@echo "odl" `git -C /tmp/controller show | grep commit | head -1 | cut -d " " -f2` >> $(VERSION_FILE)
 	@./make-odl-deb.sh -N $(ODL_SHORT_NAME)_`cd /tmp/controller; git rev-parse --short HEAD` -n $(ODL_SHORT_NAME) -v "$(ODL_VERSION)" -t "$(ODL_MAIN_TAG)" -m $(MAINTAINER) -d $(DEPEND) -p $(TARGET_BUILD_PATH)
 	@echo $(ODL_MAIN_TAG) > .odl-build.log
 endif

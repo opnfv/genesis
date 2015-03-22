@@ -18,6 +18,10 @@ clean:
 	@rm -rf tmp
 	@rm -rf release
 
+.PHONY: validate-cache
+validate-cache:
+	@echo "No cache validation schema available for $(shell pwd)"
+	@echo "Continuing ..."
 
 .PHONY: release
 release:

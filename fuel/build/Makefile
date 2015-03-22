@@ -8,11 +8,10 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
+SHELL = /bin/bash
 ############################################################################
 # BEGIN of variables to customize
 #
-SHELL = /bin/bash
-
 #Input args
 export UNIT_TEST = FALSE
 export INTERACTIVE = TRUE
@@ -31,20 +30,10 @@ export DEB_DEST := $(BUILD_BASE)/release/packages/ubuntu/pool/main
 export PUPPET_DEST := $(BUILD_BASE)/release/puppet/modules
 export CACHE_DIR := $(BUILD_BASE)/cache
 export VERSION_FILE := $(BUILD_BASE)/.versions
-DOCKERIMG = opnfv.org/ubuntu-builder:14.04
+export DOCKERIMG = opnfv.org/ubuntu-builder:14.04
 export TOPDIR := $(shell pwd)
 
-
-#
-# END of variables to customize
-#############################################################################
-
-#Include definitions
-include config.mk
-include cache.mk
-
-
-ORIGDIR := $(TOPDIR)/origiso
+#Build subclasses
 
 SUBDIRS := f_isoroot
 SUBDIRS += f_opnfv_puppet
@@ -53,32 +42,43 @@ SUBDIRS += f_l23network
 SUBDIRS += f_resolvconf
 SUBDIRS += f_ntp
 SUBDIRS += f_odl_docker
-
-
+#SUBDIRS += f_odl
 
 # f_example is only an example of how to generate a .deb package and
 # should not be enabled in official builds.
 #SUBDIRS += f_example
 
+ORIGDIR := $(TOPDIR)/origiso
+#
+# END of variables to customize
+#############################################################################
+
 SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
+
 
 .PHONY: all
 all:
 	@docker version >/dev/null 2>&1 || (echo 'No Docker installation available'; exit 1)
-	@echo "Versions of cached build results built by" $(shell hostname) "at" $(shell date -u) > $(BUILD_BASE)/.versions
-	@echo "cache.mk" $(shell md5sum $(BUILD_BASE)/cache.mk | cut -f1 -d " ") >> $(BUILD_BASE)/.versions
-	@echo "config.mk" $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") >> $(BUILD_BASE)/.versions
+	@echo "Versions of cached build results built by" $(shell hostname) "at" $(shell date -u) > $(VERSION_FILE)
+	@echo "cache.mk" $(shell md5sum $(BUILD_BASE)/cache.mk | cut -f1 -d " ") >> $(VERSION_FILE)
+	@echo "config.mk" $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") >> $(VERSION_FILE)
 	@make -C docker
 	@docker/runcontext $(DOCKERIMG) $(MAKE) $(MAKEFLAGS) iso
 
-
+############################################################################
+# BEGIN of Include definitions
+#
+include config.mk
+include cache.mk
+#
+# END Include definitions
+#############################################################################
 
 $(ISOCACHE):
 	# Clone Fuel to non-persistent location and build
 	cd /tmp && git clone $(FUEL_MAIN_REPO)
 	cd /tmp/fuel-main && git checkout $(FUEL_MAIN_TAG)
-	@echo "fuel" `git -C /tmp/fuel-main show | grep commit | rev | cut -f1 -d " "` >> ${BUILD_BASE}/.versions
-
+	@echo "fuel" `git -C /tmp/fuel-main show | grep commit | head -1 | cut -d " " -f2` >> $(VERSION_FILE)
 	# Setup cgroups for docker-in-docker
 	sudo /root/enable_dockerx2
 	# Patch to fix race condition when doing "Docker-in-Docker" build
@@ -130,7 +130,7 @@ build-clean: $(SUBCLEAN)
 	@rm -f $(NEWISO)
 
 .PHONY: clean $(SUBCLEAN)
-clean:  prepare $(SUBCLEAN)
+clean:  clean-cache prepare $(SUBCLEAN)
 	$(MAKE) -C patch-packages -f Makefile clean
 	#$(MAKE) -C opendaylight -f Makefile clean
 	@rm -f *.iso

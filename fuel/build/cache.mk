@@ -8,23 +8,22 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
+SHELL = /bin/bash
+CACHEVALIDATE := $(addsuffix .validate,$(SUBDIRS))
+CACHECLEAN := $(addsuffix .clean,$(CACHEFILES) $(CACHEDIRS))
+
 ############################################################################
 # BEGIN of variables to customize
 #
-SHELL = /bin/bash
-
-#export BUILD_BASE = $(shell pwd)
-#export CACHE_DIR = "$(BUILD_BASE)/cache"
-
 CACHEDIRS := opendaylight/f_odl/package
 
 CACHEFILES := opendaylight/.odl-build-history
 CACHEFILES += opendaylight/.odl-build.log
 CACHEFILES += .versions
-CACHEFILES += fuel-6.0.1.iso
-#CACHEFILES += $(ISOSRC)
-
-CACHECLEAN = $(addsuffix .clean,$(CACHEDIRS))
+CACHEFILES += $(shell basename $(ISOSRC))
+#
+# END of variables to customize
+############################################################################
 
 .PHONY: prepare-cache
 prepare-cache: make-cache-dir $(CACHEDIRS) $(CACHEFILES)
@@ -34,54 +33,66 @@ make-cache-dir:
 	@rm -rf ${CACHE_DIR}
 	@mkdir ${CACHE_DIR}
 
-
 .PHONY: clean-cache
 clean-cache: $(CACHECLEAN)
 	@rm -rf ${CACHE_DIR}
 
 .PHONY: $(CACHEDIRS)
 $(CACHEDIRS):
-	@mkdir -p $(dir ${CACHE_DIR}/$@)
-	@if [ ! -d ${BUILD_BASE}/$@ ]; then\
-	   mkdir -p $(dir ${BUILD_BASE}/$@);\
- 	   ln -s ${BUILD_BASE}/$@ ${CACHE_DIR}/$@;\
-	   rm -rf ${BUILD_BASE}/$@;\
-	else\
-	   ln -s ${BUILD_BASE}/$@ ${CACHE_DIR}/$@;\
+	@mkdir -p $(dir $(CACHE_DIR)/$@)
+	@if [ ! -d $(BUILD_BASE)/$@ ]; then\
+	   mkdir -p $(BUILD_BASE)/$@;\
 	fi
+	@ln -s $(BUILD_BASE)/$@ $(CACHE_DIR)/$@
 
 .PHONY: $(CACHEFILES)
 $(CACHEFILES):
-	@mkdir -p $(dir ${CACHE_DIR}/$@)
-	@if [ ! -f ${BUILD_BASE}/$@ ]; then\
-	   mkdir $(dir ${BUILD_BASE}/$@);\
-	   echo " " > ${BUILD_BASE}/$@;\
- 	   ln -s ${BUILD_BASE}/$@ ${CACHE_DIR}/$@;\
-	   rm -f ${BUILD_BASE}/$@;\
+	@mkdir -p $(dir $(CACHE_DIR)/$@)
+	@if [ ! -d $(dir $(BUILD_BASE)/$@) ]; then\
+	   mkdir -p $(dir $(BUILD_BASE)/$@);\
+	fi
+
+	@if [ ! -f $(BUILD_BASE)/$@ ]; then\
+	   echo " " > $(BUILD_BASE)/$@;\
+ 	   ln -s $(BUILD_BASE)/$@ $(CACHE_DIR)/$@;\
+	   rm -f $(BUILD_BASE)/$@;\
 	else\
-	   ln -s ${BUILD_BASE}/$@ ${CACHE_DIR}/$@;\
+	   ln -s $(BUILD_BASE)/$@ $(CACHE_DIR)/$@;\
 	fi
 
 .PHONY: validate-cache
-validate-cache:
-#	if [ $(shell md5sum ${BUILD_BASE}/config.mk) -ne $(shell cat ${CACHE_DIR}/.versions | grep config.mk awk '{print $NF}') ]; then\
+validate-cache: prepare $(CACHEVALIDATE)
+	@if [[ $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") != $(shell cat $(VERSION_FILE) | grep config.mk | awk '{print $$NF}') ]]; then\
 	   echo "Cache does not match current config.mk definition, cache must be rebuilt";\
 	   exit 1;\
 	fi;
 
-#	if [ $(shell md5sum ${BUILD_BASE}/cache.mk) -ne $(shell cat ${CACHE_DIR}/.versions | grep config.mk awk '{print $NF}') ]; then\
+	@if [[ $(shell md5sum $(BUILD_BASE)/cache.mk | cut -f1 -d " ") != $(shell cat $(VERSION_FILE) | grep cache.mk | awk '{print $$NF}') ]]; then\
 	   echo "Cache does not match current cache.mk definition, cache must be rebuilt";\
 	   exit 1;\
 	fi;
 
-#	$(MAKE) -C opendaylight validate-cache
-#	if [ $? -ne 0 ]; then\
-	   echo "Cache does not match current OpenDaylight version, cach must be rebuilt";\
-	   exit 1;\
-	fi;
+# Once the Make structure is refactored, this should go in as a validate-cache
+# taget in the fuel Makefile
 
-#       $(SUBDIRS)
+	@REMOTE_ID=$(shell git ls-remote $(FUEL_MAIN_REPO) $(FUEL_MAIN_TAG)^{} | awk '{print $$(NF-1)}'); \
+	if [ -z $$REMOTE_ID ] || [ $$REMOTE_ID = " " ]; \
+	then \
+	   REMOTE_ID=$(shell git ls-remote $(FUEL_MAIN_REPO) $(FUEL_MAIN_TAG) | awk '{print $$(NF-1)}'); \
+	fi; \
+	if [ $$REMOTE_ID != $(shell cat $(VERSION_FILE) | grep fuel | awk '{print $$NF}') ]; \
+	then \
+	   echo "Cache does not match upstream Fuel, cache must be rebuilt!"; \
+	   exit 1; \
+	fi
+
+	#$(MAKE) -C opendaylight validate-cache
+
+.PHONY: $(CACHEVALIDATE)
+$(CACHEVALIDATE): %.validate:
+	@echo VALIDATE $(CACHEVALIDATE)
+	$(MAKE) -C $* -f Makefile validate-cache
 
 .PHONY: $(CACHECLEAN)
 $(CACHECLEAN): %.clean:
-	rm -f ${CACHE_DIR}/$*
+	rm -rf ${CACHE_DIR}/$*

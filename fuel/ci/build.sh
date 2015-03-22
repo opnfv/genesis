@@ -17,6 +17,9 @@ if [ -f ${LOCK_FILE} ]; then \
    fi; \
 fi;' EXIT
 
+############################################################################
+# BEGIN of usage description
+#
 usage ()
 {
 cat << EOF
@@ -31,6 +34,8 @@ OPTIONS:
   -l log-file ($BUILD_LOG), specifies the output log-file (stdout and stderr), if not specified logs are output to console as normal
   -v version tag to be applied to the build result
   -r alternative remote access method script/program. curl is default.
+  -t run small build-script unit test.
+  -T run large build-script unit test.
   -f build flags ($BUILD_FLAGS):
      o s: Do nothing, succeed
      o f: Do nothing, fail
@@ -70,136 +75,13 @@ build -c http://opnfv.org/artifactory/fuel/cache -d ~/jenkins/genesis/fuel/ci/ou
 NOTE: At current the build scope is set to the git root of the repository, -d destination locations outside that scope will not work
 EOF
 }
+#
+# END of usage description
+############################################################################
 
-
-
-debug_make () {
-    make -C ${BUILD_BASE} clean
-    echo "This is a fake debug fuel .iso image" > ${BUILD_BASE}/fuel-6.0.1.iso
-    echo "This is a fake debug versions file" > ${BUILD_BASE}/.versions
-    rm -rf ${BUILD_BASE}/release
-    mkdir ${BUILD_BASE}/release
-    echo "This is a fake debug OPNFV .iso image"  > ${BUILD_BASE}/release/fake-debug.iso
-    echo "This is a fake debug OPNFV .iso.txt message"  > ${BUILD_BASE}/release/fake-debug.iso.txt
-    echo "This a fake debug odl build history" > ${BUILD_BASE}/opendaylight/.odl-build-history
-    echo "This a fake debug odl build log" > ${BUILD_BASE}/opendaylight/.odl-build.log
-}
-
-cache_check () {
-    if [ ! -f ${BUILD_BASE}/fuel-6.0.1.iso ] || \
-       [ ! -f ${BUILD_BASE}/.versions ] || \
-       [ ! -f ${BUILD_BASE}/opendaylight/.odl-build-history ]; \
-       [ ! -f ${BUILD_BASE}/opendaylight/.odl-build.log ]; then
-	echo "Cache not present in the build system"
-	echo "TEST FAILED"
-	exit $rc
-    fi
-}
-
-integration-test () {
-
-##### Always succeed integration test ####
-    make -C ${BUILD_BASE} clean
-    echo "TEST - $0 - ALWAYS SUCCEED"
-    set +e
-    $0 -f s tmp/output
-    rc=$?
-    set -e
-    if [ $rc -ne 0 ]; then
-	echo "TEST FAILED"
-	rc=150
-	exit $rc
-    fi
-
-##### Always fail integration test ####
-    make -C ${BUILD_BASE} clean
-    echo "TEST - $0 - ALWAYS FAIL"
-    set +e
-    $0 -f f tmp/output
-    rc=$?
-    set -e
-    if [ $rc -eq 0 ]; then
-	echo "TEST FAILED"
-	rc=151
-	exit $rc
-    fi
-
-##### Populate cache integration test ####
-    make -C ${BUILD_BASE} clean
-    echo "TEST - $0 - POPULATE CACHE"
-    rm -rf tmp
-    mkdir tmp
-    mkdir tmp/cache
-    set +e
-    $0 -c ${BUILD_CACHE_URI} -f PD tmp/output
-    rc=$?
-    set -e
-    if [ $rc -ne 0 ]; then
-	echo "TEST FAILED"
-	rc=152
-	exit $rc
-    fi
-
-    if [ ! -f  tmp/output/fake-debug.iso ] || [ ! -f  tmp/output/fake-debug.iso ]; then
-	echo "TEST FAILED"
-	rc=153
-	exit $rc
-    fi
-    rc=154
-    cache_check
-
-##### Build uinge cache integration test ####
-    make -C ${BUILD_BASE} clean
-    echo "TEST - $0 - BUILD USING CACHE"
-    set +e
-    $0 -c ${BUILD_CACHE_URI} -f D tmp/output
-    rc=$?
-    set -e
-    if [ $rc -ne 0 ]; then
-	echo "TEST FAILED"
-	rc=155
-	exit $rc
-    fi
-
-    if [ ! -f  tmp/output/fake-debug.iso ] || [ ! -f  tmp/output/fake-debug.iso ]; then
-	echo "TEST FAILED"
-	rc=156
-	exit $rc
-    fi
-    rc=157
-    cache_check
-
-#### Repopulate cache because cache non existant ####
-    make -C ${BUILD_BASE} clean
-    echo "TEST - $0 - BUILD USING CACHE"
-    rm -rf tmp/cache/*
-    set +e
-    $0 -c ${BUILD_CACHE_URI} -f D tmp/output
-    rc=$?
-    set -e
-    if [ $rc -ne 0 ]; then
-	echo "TEST FAILED"
-	rc=158
-	exit $rc
-    fi
-
-    if [ ! -f  tmp/output/fake-debug.iso ] || [ ! -f  tmp/output/fake-debug.iso ]; then
-	echo "TEST FAILED"
-	rc=160
-	exit $rc
-    fi
-    rc=161
-    cache_check
-
-# Repopulate cache because cach is ivalidated
-#TBD
-rm -rf tmp
-echo "All tests passed!"
-rc=0
-exit $rc
-}
-
-#DEFAULT VALUES
+############################################################################
+# BEGIN of variables to customize
+#
 BUILD_BASE=$(readlink -e ../build/)
 RESULT_DIR="${BUILD_BASE}/release"
 BUILD_SPEC="${BUILD_BASE}/config.mk"
@@ -207,8 +89,14 @@ CACHE_DIR="cache"
 LOCAL_CACHE_ARCH_NAME="fuel-cache"
 REMOTE_CACHE_ARCH_NAME="fuel_cache-$(md5sum ${BUILD_SPEC}| cut -f1 -d " ")"
 REMOTE_ACCESS_METHD=curl
+INCLUDE_DIR=../include
+#
+# END of variables to customize
+############################################################################
 
-#SCRIPT ASSIGNED VARIABLES
+############################################################################
+# BEGIN of script assigned variables
+#
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 LOCK_FILE="${SCRIPT_DIR}/.build.lck"
 TEST_SUCCEED=0
@@ -220,6 +108,7 @@ RECURSIV=0
 DETACH=0
 DEBUG=0
 INTEGRATION_TEST=0
+FULL_INTEGRATION_TEST=0
 INTERACTIVE=0
 BUILD_CACHE_URI=
 BUILD_SPEC=
@@ -227,8 +116,22 @@ BUILD_DIR=
 BUILD_LOG=
 BUILD_VERSION=
 MAKE_ARGS=
+#
+# END of script assigned variables
+############################################################################
 
-while getopts "s:c:v:f:l:r:RTh" OPTION
+############################################################################
+# BEGIN of include pragmas
+#
+source ${INCLUDE_DIR}/build.sh.debug
+#
+# END of include
+############################################################################
+
+############################################################################
+# BEGIN of main
+#
+while getopts "s:c:v:f:l:r:RtTh" OPTION
 do
     case $OPTION in
 	h)
@@ -264,8 +167,13 @@ do
 	    RECURSIVE=1
 	    ;;
 
+	t)
+	    INTEGRATION_TEST=1
+	    ;;
+
 	T)
 	    INTEGRATION_TEST=1
+	    FULL_INTEGRATION_TEST=1
 	    ;;
 
 	*)
@@ -316,7 +224,7 @@ for ((i=0; i<${#BUILD_FLAGS};i++)); do
 	    ;;
 
 	*)
-	    echo "${BUILD_FLAGS:$i:1} is not a valid build flag"
+	    echo "${BUILD_FLAGS:$i:1} is not a valid build flag - exiting ...."
 	    rc=100
 	    exit $rc
 	    ;;
@@ -330,13 +238,13 @@ if [ ${INTEGRATION_TEST} -eq 1 ]; then
 fi
 
 if [ ! -f ${BUILD_SPEC} ]; then
-    echo "spec file does not exist: $BUILD_SPEC"
+    echo "spec file does not exist: $BUILD_SPEC - exiting ...."
     rc=100
     exit $rc
 fi
 
 if [ -z ${BUILD_DIR} ]; then
-    echo "Missing build directory"
+    echo "Missing build directory - exiting ...."
     rc=100
     exit $rc
 fi
@@ -379,7 +287,7 @@ if [ ! -z ${BUILD_CACHE_URI} ]; then
 	mkdir /tmp/cache
 	echo "Downloading cach file ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME} ..."
 	set +e
-	${REMOTE_ACCESS_METHD} -o /tmp/cache/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}
+	${REMOTE_ACCESS_METHD} -o /tmp/cache/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz
 	rc=$?
 	set -e
 	if [ $rc -ne 0 ]; then
@@ -389,10 +297,11 @@ if [ ! -z ${BUILD_CACHE_URI} ]; then
 	    echo "Unpacking cache file ..."
 	    tar -C /tmp/cache -xvf /tmp/cache/${LOCAL_CACHE_ARCH_NAME}.tgz
 	    cp /tmp/cache/cache/.versions ${BUILD_BASE}/.
-	    echo "Validating cache content ..."
 	    set +e
        	    make -C ${BUILD_BASE} validate-cache;
 	    rc=$?
+	    set -e
+
 	    if [ $rc -ne 0 ]; then
 		echo "Cache invalid - a new cache will be built "
 		POPULATE_CACHE=1
@@ -455,13 +364,13 @@ rc=$?
 set -e
 
 if [ $rc -gt 0 ]; then
-    echo "Build: make prepare-cache failed, exiting ..."
+    echo "Build: make prepare-cache failed - exiting ..."
     rc=100
     exit $rc
 fi
 echo "Copying built OPNFV .iso file to target directory ${BUILD_DIR} ..."
 rm -rf ${BUILD_DIR}
-mkdir ${BUILD_DIR}
+mkdir -p ${BUILD_DIR}
 cp ${BUILD_BASE}/.versions ${BUILD_DIR}
 cp ${RESULT_DIR}/*.iso* ${BUILD_DIR}
 
@@ -470,9 +379,12 @@ if [ $POPULATE_CACHE -eq 1 ]; then
 	echo "Building cache ..."
 	tar --dereference -C ${BUILD_BASE} -caf ${BUILD_BASE}/${LOCAL_CACHE_ARCH_NAME}.tgz ${CACHE_DIR}
 	echo "Uploading cache ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}"
-	${REMOTE_ACCESS_METHD} -T ${BUILD_BASE}/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}
+	${REMOTE_ACCESS_METHD} -T ${BUILD_BASE}/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz
 	rm ${BUILD_BASE}/${LOCAL_CACHE_ARCH_NAME}.tgz
     fi
 fi
 echo "Success!!!"
 exit 0
+#
+# END of main
+############################################################################

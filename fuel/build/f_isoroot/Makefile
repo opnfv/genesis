@@ -26,6 +26,10 @@ clean: $(SUBCLEAN)
 $(SUBCLEAN): %.clean:
 	$(MAKE) -C $* -f Makefile clean
 
+validate-cache:
+	@echo "No cache validation schema available for $(shell pwd)"
+	@echo "Continuing ..."
+
 .PHONY: release
 release:clean $(SUBDIRS)
 	@cp -Rvp release/* ../release/isoroot

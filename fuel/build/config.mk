@@ -16,3 +16,12 @@ FUEL_MAIN_TAG = stable/6.0
 
 DOCKER_REPO := http://get.docker.com/builds/Linux/x86_64
 DOCKER_TAG := docker-latest
+
+.PHONY: get-odl-repo
+get-odl-repo:
+	@echo $(ODL_MAIN_REPO) $(ODL_MAIN_TAG)
+
+.PHONY: get-fuel-repo
+get-fuel-repo:
+	@echo $(FUEL_MAIN_REPO) $(FUEL_MAIN_TAG)
+

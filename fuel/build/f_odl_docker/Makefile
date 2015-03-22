@@ -12,7 +12,7 @@ TOP := $(shell pwd)
 BUILDTAG := loving_daniel
 
 # Edit this to match the GENESIS / OPNFV in your environment
-export OPNFV_PUPPET := /home/lmcdasm/MAR24/genesis/common/puppet-opnfv
+export OPNFV_PUPPET := $(BUILD_BASE)/../../common/puppet-opnfv
 include ../config.mk
 
 .PHONY: all
@@ -25,7 +25,7 @@ all:
 	@docker save ${BUILDTAG} > puppet/modules/opnfv/odl_docker/odl_docker_image.tar
 	@wget ${DOCKER_REPO}/${DOCKER_TAG} -O  puppet/modules/opnfv/odl_docker/docker-latest
 	@echo "OPFNV_PUPPET is: ${OPNFV_PUPPET}"
-	@cp -Rvp ${OPNFV_PUPPET}/manifests/templates/dockerfile/compute_scripts  puppet/modules/opnfv
+	@cp -Rvp ${OPNFV_PUPPET}/manifests/templates/dockerfile/container_scripts  puppet/modules/opnfv
 
 .PHONY: clean
 clean:
@@ -39,9 +39,13 @@ build-clean:
 	@rm -rf puppet/modules/opnfv/odl_docker/odl_docker_image.tar
 	@rm -rf puppet/modules/opnfv/odl_docker/docker-latest
 
+.PHONY: validate-cache
+validate-cache:
+	@echo "No cache validation schema available for $(shell pwd)"
+	@echo "Continuing ..."
 
 .PHONY: release
 release:
 	# Fetch PP from OPNFV Common
-	@cp -Rvp ${OPNFV_PUPPET}/common/puppet-opnfv/manifests/odl_docker.pp ${PUPPET_DEST}
+	@cp -Rvp ${OPNFV_PUPPET}/manifests/odl_docker.pp ${PUPPET_DEST}
 	@cp -Rvp puppet/modules/* $(PUPPET_DEST)
