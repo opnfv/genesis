@@ -24,16 +24,5 @@ class opnfv {
   # Make sure all added packages are installed
   include opnfv::add_packages
   # Setup OpenDaylight
-  include opnfv::odl
-  include opnfv::java
-  include opnfv::jre
-  include opnfv::jre_head
-  include opnfv::atk_wrap
-  include opnfv::gif
-  include opnfv::ca_cert
-  include opnfv::comm_java
-  include opnfv::libpcs
-  include opnfv::libxt
-  include opnfv::libnss
-  include opnfv::defjre
+  include opnfv::odl_docker
 }

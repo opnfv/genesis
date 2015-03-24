@@ -1,18 +1,18 @@
 ##############################################################################
 # Copyright (c) 2015 Ericsson AB and others.
-# stefan.k.berg@ericsson.com
-# jonas.bjurel@ericsson.com
+# daniel.smith@ericsson.com
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0
 # which accompanies this distribution, and is available at
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-ODL_MAIN_REPO := https://git.opendaylight.org/gerrit/p/controller.git
-ODL_MAIN_TAG := release/helium
+#!/usr/bin/expect
+spawn /opt/odl/distribution-karaf-0.2.2-Helium-SR2/bin/client
+expect "root>"
+send "feature:list | grep -i odl-restconf\r"
+send "\r\r\r"
+expect "root>"
+send "logout\r"
 
-FUEL_MAIN_REPO := https://github.com/stackforge/fuel-main
-FUEL_MAIN_TAG = stable/6.0
 
-DOCKER_REPO := http://get.docker.com/builds/Linux/x86_64
-DOCKER_TAG := docker-latest

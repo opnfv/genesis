@@ -34,6 +34,7 @@ export VERSION_FILE := $(BUILD_BASE)/.versions
 DOCKERIMG = opnfv.org/ubuntu-builder:14.04
 export TOPDIR := $(shell pwd)
 
+
 #
 # END of variables to customize
 #############################################################################
@@ -51,17 +52,7 @@ SUBDIRS += f_osnaily
 SUBDIRS += f_l23network
 SUBDIRS += f_resolvconf
 SUBDIRS += f_ntp
-SUBDIRS += f_gif
-SUBDIRS += f_libnss
-SUBDIRS += f_libpcs
-SUBDIRS += f_libxt
-SUBDIRS += f_comm_java
-SUBDIRS += f_ca_cert
-SUBDIRS += f_atk_wrap
-SUBDIRS += f_jre_head
-SUBDIRS += f_jre
-SUBDIRS += f_java
-SUBDIRS += f_odl
+SUBDIRS += f_odl_docker
 
 
 
@@ -79,6 +70,8 @@ all:
 	@echo "config.mk" $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") >> $(BUILD_BASE)/.versions
 	@make -C docker
 	@docker/runcontext $(DOCKERIMG) $(MAKE) $(MAKEFLAGS) iso
+
+
 
 $(ISOCACHE):
 	# Clone Fuel to non-persistent location and build
@@ -123,11 +116,11 @@ patch-packages:
 
 .PHONY: prepare
 prepare:
-	$(MAKE) -C opendaylight -f Makefile setup
+	#$(MAKE) -C opendaylight -f Makefile setup
 
 .PHONY: odl
 odl:
-	$(MAKE) -C opendaylight -f Makefile
+	#$(MAKE) -C opendaylight -f Makefile
 
 .PHONY: build-clean $(SUBCLEAN)
 build-clean: $(SUBCLEAN)
@@ -139,7 +132,7 @@ build-clean: $(SUBCLEAN)
 .PHONY: clean $(SUBCLEAN)
 clean:  prepare $(SUBCLEAN)
 	$(MAKE) -C patch-packages -f Makefile clean
-	$(MAKE) -C opendaylight -f Makefile clean
+	#$(MAKE) -C opendaylight -f Makefile clean
 	@rm -f *.iso
 	@rm -Rf release
 	@rm -Rf newiso

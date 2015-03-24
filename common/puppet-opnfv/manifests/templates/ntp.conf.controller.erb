@@ -8,11 +8,15 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-ODL_MAIN_REPO := https://git.opendaylight.org/gerrit/p/controller.git
-ODL_MAIN_TAG := release/helium
+tinker panic 0
+driftfile /var/lib/ntp/ntp.drift
+statistics loopstats peerstats clockstats
+filegen loopstats file loopstats type day enable
+filegen peerstats file peerstats type day enable
+filegen clockstats file clockstats type day enable
+restrict -4 default kod notrap nomodify nopeer noquery
+restrict -6 default kod notrap nomodify nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+<%= @file_content %>
 
-FUEL_MAIN_REPO := https://github.com/stackforge/fuel-main
-FUEL_MAIN_TAG = stable/6.0
-
-DOCKER_REPO := http://get.docker.com/builds/Linux/x86_64
-DOCKER_TAG := docker-latest

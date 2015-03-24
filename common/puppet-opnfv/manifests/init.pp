@@ -14,17 +14,27 @@
 
 
 class opnfv {
-    exec {'disable selinux':
-        command => '/usr/sbin/setenforce 0',
-        unless => '/usr/sbin/getenforce | grep Permissive',
-    }
-    include stdlib
-    stage { 'presetup':
-      before => Stage['setup'],
-    }
-
-    class { "opnfv::repo":
-     stage => presetup,
+     if $::osfamily == 'Fuel' {
+	include opnfv::resolver
+	include opnfv::ntp
+	include opnfv::add_packages
+	include opnfv::odl_docker
+	include opnfv::opncheck
     }
 
+   if $::osfamily == 'RedHat' {
+
+    	exec {'disable selinux':
+       		command => '/usr/sbin/setenforce 0',
+        	unless => '/usr/sbin/getenforce | grep Permissive',
+    	}
+    	include stdlib
+    	stage { 'presetup':
+      		before => Stage['setup'],
+    	}
+
+    	class { "opnfv::repo":
+     		stage => presetup,
+    	}
+   }
 }
