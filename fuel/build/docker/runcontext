@@ -31,5 +31,5 @@ echo command: docker run ${RUN_CONTEXT_OPT} $CID "$@"
 docker run ${RUN_CONTEXT_OPT} $CID "$@"
 
 rc=$?
-docker rmi $CID > /dev/null
+docker rmi -f $CID > /dev/null
 exit $rc
