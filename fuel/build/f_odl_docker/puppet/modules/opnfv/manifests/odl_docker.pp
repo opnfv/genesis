@@ -35,6 +35,20 @@ class opnfv::odl_docker
                 source => "/etc/puppet/modules/opnfv/scripts/start_odl_container.sh",
                 mode => 750,
              }
+
+        # fix failed to find the cgroup root issue
+        # https://github.com/docker/docker/issues/8791
+        if $::operatingsystem == 'Ubuntu' {
+          package {'cgroup-lite':
+            ensure => present,
+          }
+
+          service {'cgroup-lite':
+            ensure  => running,
+            enable  => true,
+            require => Package['cgroup-lite'],
+          }
+        }
   }
  }
 }
