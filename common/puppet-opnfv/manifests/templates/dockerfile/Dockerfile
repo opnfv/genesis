@@ -79,4 +79,4 @@ EXPOSE 52150
 EXPOSE 36826
 
 # set the ENTRYPOINT - An entry point allows us to run this container as an exectuable
-CMD ["/etc/init.d/start_odl_docker.sh"]
+CMD ["/etc/init.d/start_odl_docker_container.sh"]
