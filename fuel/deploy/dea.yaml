@@ -1,0 +1,26 @@
+---
+name: ENV-1
+server_type: esxi
+shelf:
+ - id: 1
+   blade:
+    - id: 1
+      role: controller
+    - id: 2
+    - id: 3
+      role: controller
+    - id: 4
+    - id: 5
+    - id: 6
+networking:
+ switch_type: esxi
+ switch_mgmt_ip: 192.168.0.1/24
+ vlan:
+  - name: traffic
+    tag: 100
+  - name: storage
+    tag: 102
+  - name: control
+    tag: 101
+  - name: management
+...
