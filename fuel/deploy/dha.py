@@ -1,26 +1,36 @@
+from hardware_adapters.hp.hp_adapter import HpAdapter
 
 class DeploymentHardwareAdapter(object):
-    def __new__(cls, server_type):
+    def __new__(cls, server_type, *args):
         if cls is DeploymentHardwareAdapter:
-            if server_type == 'esxi':  return EsxiAdapter()
-            if server_type == 'hp': return HpAdapter()
-            if server_type == 'dell': return DellAdapter()
-            if server_type == 'libvirt': return LibvirtAdapter()
+            if server_type == 'esxi':  return EsxiAdapter(*args)
+            if server_type == 'hp': return HpAdapter(*args)
+            if server_type == 'dell': return DellAdapter(*args)
+            if server_type == 'libvirt': return LibvirtAdapter(*args)
         return super(DeploymentHardwareAdapter, cls).__new__(cls)
 
 
 class HardwareAdapter(object):
 
-    def power_off_blades(self):
+    def power_off_blades(self, shelf, blade_list):
         raise NotImplementedError
 
-    def power_on_blades(self):
+    def power_off_blade(self, shelf, blade):
+        raise NotImplementedError
+
+    def power_on_blades(self, shelf, blade_list):
+        raise NotImplementedError
+
+    def power_on_blade(self, shelf, blade):
         raise NotImplementedError
 
     def power_cycle_blade(self):
         raise NotImplementedError
 
-    def set_boot_order(self):
+    def set_boot_order_blades(self, shelf, blade_list):
+        raise NotImplementedError
+
+    def set_boot_order_blade(self, shelf, blade):
         raise NotImplementedError
 
     def reset_to_factory_defaults(self):
@@ -29,20 +39,23 @@ class HardwareAdapter(object):
     def configure_networking(self):
         raise NotImplementedError
 
-    def get_blade_mac_addresses(self, shelf_id, blade_id):
+    def get_blade_mac_addresses(self, shelf, blade):
         raise NotImplementedError
 
-    def get_blade_hardware_info(self, shelf_id, blade_id):
+    def get_hardware_info(self, shelf, blade):
         raise NotImplementedError
 
 
 class EsxiAdapter(HardwareAdapter):
-    pass
+
+    def __init__(self):
+        self.environment = {1: {1: {'mac': ['00:50:56:8c:05:85']},
+                                2: {'mac': ['00:50:56:8c:21:92']}}}
+
+    def get_blade_mac_addresses(self, shelf, blade):
+        return self.environment[shelf][blade]['mac']
 
 class LibvirtAdapter(HardwareAdapter):
-    pass
-
-class HpAdapter(HardwareAdapter):
     pass
 
 class DellAdapter(HardwareAdapter):

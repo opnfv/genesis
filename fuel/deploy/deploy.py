@@ -1,43 +1,28 @@
-import subprocess
-import sys
 import time
 import os
+import sys
+
+import common
 from dha import DeploymentHardwareAdapter
 from dea import DeploymentEnvironmentAdapter
+from configure_environment import ConfigureEnvironment
+
 
 SUPPORTED_RELEASE = 'Juno on CentOS 6.5'
-N = {'id': 0, 'status': 1, 'name': 2, 'cluster': 3, 'ip': 4, 'mac': 5,
-     'roles': 6, 'pending_roles': 7, 'online': 8}
-E = {'id': 0, 'status': 1, 'name': 2, 'mode': 3, 'release_id': 4,
-     'changes': 5, 'pending_release_id': 6}
-R = {'id': 0, 'name': 1, 'state': 2, 'operating_system': 3, 'version': 4}
-RO = {'name': 0, 'conflicts': 1}
 
-def exec_cmd(cmd):
-    process = subprocess.Popen(cmd,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT,
-                               shell=True)
-    return process.communicate()[0]
-
-def parse(printout):
-   parsed_list = []
-   lines = printout.splitlines()
-   for l in lines[2:]:
-        parsed = [e.strip() for e in l.split('|')]
-        parsed_list.append(parsed)
-   return parsed_list
-
-def err(error_message):
-    sys.stderr.write(error_message)
-    sys.exit(1)
-
-
+N = common.N
+E = common.E
+R = common.R
+RO = common.RO
+exec_cmd = common.exec_cmd
+parse = common.parse
+err = common.err
 
 class Deploy(object):
 
-    def __init__(self):
+    def __init__(self, yaml_config_dir):
         self.supported_release = None
+        self.yaml_config_dir = yaml_config_dir
 
     def get_id_list(self, list):
         return [l[0] for l in list]
@@ -96,6 +81,18 @@ class Deploy(object):
         self.check_role_definitions()
         self.check_previous_installation()
 
+    def power_off_blades(self, dha, shelf_blades_dict):
+        for shelf, blade_list in shelf_blades_dict.iteritems():
+            dha.power_off_blades(shelf, blade_list)
+
+    def power_on_blades(self, dha, shelf_blades_dict):
+        for shelf, blade_list in shelf_blades_dict.iteritems():
+            dha.power_on_blades(shelf, blade_list)
+
+    def set_boot_order(self, dha, shelf_blades_dict):
+        for shelf, blade_list in shelf_blades_dict.iteritems():
+            dha.set_boot_order_blades(shelf, blade_list)
+
     def count_discovered_nodes(self, node_list):
         discovered_nodes = 0
         for node in node_list:
@@ -122,7 +119,7 @@ class Deploy(object):
     def assign_cluster_node_ids(self, dha, dea, controllers, compute_hosts):
         node_list= parse(exec_cmd('fuel node list'))
         for shelf_id in dea.get_shelf_ids():
-            for blade_id in dea.get_blade_ids(shelf_id):
+            for blade_id in dea.get_blade_ids_per_shelf(shelf_id):
                 blade_mac_list = dha.get_blade_mac_addresses(
                     shelf_id, blade_id)
 
@@ -142,27 +139,36 @@ class Deploy(object):
                         "with MACs %s or blade is not in "
                         "discover status\n" % blade_mac_list)
 
-    def env_exists(self, env_name):
-        env_list = parse(exec_cmd('fuel env --list'))
-        for env in env_list:
-            if env[E['name']] == env_name and env[E['status']] == 'new':
-                return True
-        return False
 
     def configure_environment(self, dea):
-        env_name = dea.get_environment_name()
-        exec_cmd('fuel env -c --name %s --release %s --mode ha --net neutron '
-                 '--nst vlan' % (env_name, self.supported_release[R['id']]))
+        config_env = ConfigureEnvironment(dea, self.yaml_config_dir)
 
-        if not self.env_exists(env_name):
-            err("Failed to create environment %s" % env_name)
+
+
+    def provision(self):
+
+
+
+    def fix_power_address(self):
+
+
+
+
+    def deploy(self):
+
+        if id in self.get_id_list(parse(exec_cmd('fuel env list'))):
+
+        self.fix_power_address()
+
 
 
 
 def main():
 
     yaml_path = exec_cmd('pwd').strip() + '/dea.yaml'
-    deploy = Deploy()
+    yaml_config_dir = '/var/lib/opnfv/pre_deploy'
+
+    deploy = Deploy(yaml_config_dir)
 
     dea = DeploymentEnvironmentAdapter()
 
@@ -172,29 +178,33 @@ def main():
 
     dea.parse_yaml(yaml_path)
 
-    dha = DeploymentHardwareAdapter(dea.get_server_type())
+    server_type, mgmt_ip, username, password = dea.get_server_info()
+    shelf_blades_dict = dea.get_blade_ids_per_shelves()
+
+    dha = DeploymentHardwareAdapter(server_type, mgmt_ip, username, password)
 
     deploy.check_prerequisites()
 
-    dha.power_off_blades()
+    deploy.power_off_blades(dha, shelf_blades_dict)
 
-    dha.configure_networking()
+    deploy.set_boot_order(dha, shelf_blades_dict)
 
-    dha.reset_to_factory_defaults()
+    deploy.power_on_blades(dha, shelf_blades_dict)
 
-    dha.set_boot_order()
-
-    dha.power_on_blades()
-
-    dha.get_blade_mac_addresses()
+    macs = dha.get_blade_mac_addresses()
 
     deploy.wait_for_discovered_blades(dea.get_no_of_blades())
+
 
     controllers = []
     compute_hosts = []
     deploy.assign_cluster_node_ids(dha, dea, controllers, compute_hosts)
 
+
+
     deploy.configure_environment(dea)
+
+    deploy.deploy(dea)
 
 
 

@@ -1,6 +1,10 @@
 ---
 name: ENV-1
-server_type: esxi
+server:
+ type: hp
+ mgmt_ip: 10.118.32.197
+ username: opnfv
+ password: E///@work
 shelf:
  - id: 1
    blade:
@@ -12,15 +16,22 @@ shelf:
     - id: 4
     - id: 5
     - id: 6
-networking:
- switch_type: esxi
- switch_mgmt_ip: 192.168.0.1/24
- vlan:
-  - name: traffic
-    tag: 100
-  - name: storage
-    tag: 102
-  - name: control
-    tag: 101
+network:
   - name: management
+    cidr: 192.168.0.0/24
+    start: 192.168.0.1
+    end: 192.168.0.253
+  - name: private
+    vlan:
+    cidr: 192.168.11.0/24
+    start: 192.168.11.1
+    end: 192.168.11.253
+  - name: storage
+    vlan:
+    cidr: 192.168.12.0/24
+    start: 192.168.12.1
+    end: 192.168.12.253
+  - name: public
+    vlan:
 ...
+
