@@ -33,8 +33,16 @@ class opnfv {
       		before => Stage['setup'],
     	}
 
+      class { '::ntp':
+        stage => presetup,
+      }
+
     	class { "opnfv::repo":
      		stage => presetup,
     	}
+      ->
+      package { "python-rados":
+        ensure => latest,
+      }
    }
 }
