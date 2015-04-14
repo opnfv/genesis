@@ -1,0 +1,9 @@
+#########################################################################
+# Contributors/version/date
+# jonas.bjurel@ericsson.com 0.2 2015.04.14
+#########################################################################
+Following items needs to be done to achieve an OPNFV/BGS ARNO Fuel Stack:
+1) Add support for CentOS 6.5 - REMAINING
+2) Add Autodeployment "deploy.sh" for Jenkins
+3) Dry-run Funktest (Jenkins/Robot/etc.)
+4) Finalize Documentation
