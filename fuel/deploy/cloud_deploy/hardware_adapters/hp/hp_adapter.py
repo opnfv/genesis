@@ -1,16 +1,11 @@
 import re
 import time
 from netaddr import EUI, mac_unix
-import logging
+from cloud import common
 
 from run_oa_command import RunOACommand
 
-
-LOG = logging.getLogger(__name__)
-out_hdlr = logging.FileHandler(__file__.split('.')[0] + '.log', mode='w')
-out_hdlr.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-LOG.addHandler(out_hdlr)
-LOG.setLevel(logging.DEBUG)
+LOG = common.LOG
 
 class HpAdapter(object):
 
@@ -66,8 +61,38 @@ class HpAdapter(object):
         right = EUI(right, dialect=self.mac_dhcp)
         return [str(left), str(right)]
 
-    def get_blade_hardware_info(self, shelf, blade=None):
+    def get_blades_mac_addresses(self, shelf, blade_list):
+        macs_per_blade_dict = {}
+        LOG.debug("Getting MAC addresses for shelf %s, blades %s"
+                  % (shelf, blade_list))
+        self.oa_error_message = ''
+        oa = RunOACommand(self.mgmt_ip, self.username, self.password)
 
+        LOG.debug("Connect to active OA for shelf %d" % shelf)
+        try:
+            res = oa.connect_to_active()
+        except:
+            raise self.InternalConnectError(oa.error_message)
+        if res is None:
+            raise self.InternalConnectError(oa.error_message)
+        if not oa.connected():
+            raise self.NoInfoFoundError(oa.error_message)
+        try:
+            for blade in blade_list:
+                LOG.debug("Send command to OA: %s" % cmd)
+                cmd = ("show server info %s" % blade)
+                printout = oa.send_command(cmd)
+                left, right = self.find_mac(printout, shelf, blade)
+                left = EUI(left, dialect=self.mac_dhcp)
+                right = EUI(right, dialect=self.mac_dhcp)
+                macs_per_blade_dict[blade] = [str(left), str(right)]
+        except:
+            raise self.NoInfoFoundError(oa.error_message)
+        finally:
+            oa.close()
+        return macs_per_blade_dict
+
+    def get_blade_hardware_info(self, shelf, blade=None):
         if blade:
             LOG.debug("Entering: get_hp_info(%d,%d)" % (shelf, blade))
         else:
@@ -118,6 +143,9 @@ class HpAdapter(object):
     def power_on_blades(self, shelf, blade_list):
         return self.set_state(shelf, 'unlocked', blade_list=blade_list)
 
+    def set_boot_order_blades(self, shelf, blade_list):
+        return self.set_boot_order(shelf, blade_list=blade_list)
+
     def power_off_blade(self, shelf, blade):
         return self.set_state(shelf, 'locked', one_blade=blade)
 
@@ -127,16 +155,11 @@ class HpAdapter(object):
     def set_boot_order_blade(self, shelf, blade):
         return self.set_boot_order(shelf, one_blade=blade)
 
-    def set_boot_order_blades(self, shelf, blade_list):
-        return self.set_boot_order(shelf, blade_list=blade_list)
-
-
-
     # Search HP's OA server info for MAC for left and right control
-    def find_mac(self, serverinfo, shelf, blade):
+    def find_mac(self, printout, shelf, blade):
         left = False
         right = False
-        for line in serverinfo:
+        for line in printout:
             if ("No Server Blade Installed" in line or
                     "Invalid Arguments" in line):
                 raise self.NoInfoFoundError("Blade %d in shelf %d "
@@ -160,7 +183,6 @@ class HpAdapter(object):
     # Return True to indicate that power state succesfully updated
     # state: locked, unlocked
     def set_state(self, shelf, state, one_blade=None, blade_list=None):
-
         if state not in ['locked', 'unlocked']:
             return None
 

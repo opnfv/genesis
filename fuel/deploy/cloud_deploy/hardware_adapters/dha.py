@@ -1,4 +1,5 @@
-from hardware_adapters.hp.hp_adapter import HpAdapter
+from hp.hp_adapter import HpAdapter
+from libvirt.libvirt_adapter import LibvirtAdapter
 
 class DeploymentHardwareAdapter(object):
     def __new__(cls, server_type, *args):
@@ -55,8 +56,6 @@ class EsxiAdapter(HardwareAdapter):
     def get_blade_mac_addresses(self, shelf, blade):
         return self.environment[shelf][blade]['mac']
 
-class LibvirtAdapter(HardwareAdapter):
-    pass
 
 class DellAdapter(HardwareAdapter):
     pass

@@ -1,0 +1,62 @@
+import common
+import yaml
+import io
+
+N = common.N
+E = common.E
+R = common.R
+RO = common.RO
+exec_cmd = common.exec_cmd
+parse = common.parse
+err = common.err
+check_file_exists = common.check_file_exists
+LOG = common.LOG
+
+class ConfigureNetwork(object):
+
+    def __init__(self, yaml_config_dir, env_id, dea):
+        self.yaml_config_dir = yaml_config_dir
+        self.env_id = env_id
+        self.dea = dea
+        self.required_networks = []
+
+    def download_network_config(self):
+        LOG.debug('Download network config for environment %s\n' % self.env_id)
+        exec_cmd('fuel network --env %s --download --dir %s'
+                 % (self.env_id, self.yaml_config_dir))
+
+    def upload_network_config(self):
+        LOG.debug('Upload network config for environment %s\n' % self.env_id)
+        exec_cmd('fuel network --env %s --upload --dir %s'
+                 % (self.env_id, self.yaml_config_dir))
+
+    def config_network(self):
+        LOG.debug('Configure network\n')
+        self.download_network_config()
+        self.modify_network_config()
+        self.upload_network_config()
+
+    def modify_network_config(self):
+        LOG.debug('Modify network config for environment %s\n' % self.env_id)
+        network_yaml = (self.yaml_config_dir + '/network_%s.yaml'
+                        % self.env_id)
+        check_file_exists(network_yaml)
+
+        network_config = self.dea.get_networks()
+
+
+        with io.open(network_yaml) as stream:
+            network = yaml.load(stream)
+
+        net_names = self.dea.get_network_names()
+        net_id = {}
+        for net in network['networks']:
+            if net['name'] in net_names:
+                net_id[net['name']] = {'id': net['id'],
+                                       'group_id': net['group_id']}
+
+        for network in network_config['networks']:
+            network.update(net_id[network['name']])
+
+        with io.open(network_yaml, 'w') as stream:
+            yaml.dump(network_config, stream, default_flow_style=False)

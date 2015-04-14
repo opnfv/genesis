@@ -1,12 +1,9 @@
 import socket
 import paramiko
-import logging
 
-LOG = logging.getLogger(__name__)
-out_hdlr = logging.FileHandler(__file__.split('.')[0] + '.log', mode='w')
-out_hdlr.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-LOG.addHandler(out_hdlr)
-LOG.setLevel(logging.DEBUG)
+from cloud import common
+
+LOG = common.LOG
 
 class RunOACommand:
 
