@@ -1,20 +1,20 @@
 :Authors: Jonas Bjurel (Ericsson)
 :Version: 0.1
 
-======================================================================
-OPNFV Release Note for "Arno-SRx release" - < Component denomination >
-======================================================================
+================================================================
+OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV
+================================================================
 
 Abstract
 ========
 
-This document provides the release notes for <RELEASE> of <COMPONENT>.
+This document provides the release notes for ARNO-RC2 release candidate of Fuel@OPNFV.
 
 License
 =======
-<WORK'S NAME> (c) by <AUTHOR'S NAME>
+Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
 
-<WORK'S NAME> is licensed under a Creative Commons Attribution 4.0 Unported License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Unported License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
 **Contents**
@@ -40,54 +40,48 @@ License
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-04-14         | 0.1.0              | Jonas Bjurel       | First draft        |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
-|                    | 0.1.1              |                    |                    |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
-|                    | 1.0                |                    |                    |
+| 2015-04-16         | 0.1.0              | Jonas Bjurel       | First draft        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
 2   Important notes
 ===================
 
-<STATE IMPORTANT NOTES/DEVIATIONS SINCE PREVIOUS ITERATIVE RELEASE AND OTHER IMPORTANT NOTES FOR THIS RELEASE>
+This is the first OPNFV Arno pre-release that implements the deploy stage of the OPNFV CI pipeline.
 
-<EXAMPLE>:
-
-**Attention:** Please be aware that since LSV3 a pre-deploy script must be ran on the Fuel master – see the OPNFV@Fuel SW installation instructions
+Carefully follow the installation-instructions and pay special attention to the pre-deploy script that needs to be ran befor deployment is started.
 
 3   Summary
 ===========
 
-<SUMMARIZE THE RELEASE - THE CONTENT - AND OTHER IMPORTANT HIGH LEVEL PROPERTIES>
+Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but adds OPNFV unique components such as OpenDaylight version: Helium as well as other OPNFV unique configurations.
 
-<EXAMPLE>:
+This Arno pre-release of Fuel@OPNFV adds the deploy stage of the OPNFV CI pipeline
 
-Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but adds OPNFV unique components such as OpenDaylight version: Helium as well as other OPNFV unique configurations......
+- Documentation is built by Jenkins
+- .iso image is built by Jenkins
+- Jenkins deploy an Fuel@OPNFV stack instance on a nested hypervisor environment (KVM)
+
+Automatic test of the deployed system is not part of this pre-release.
 
 4   Release Data
 ================
-<STATE RELEVANT RELEASE DATA/RECORDS>
-
-<EXAMPLE>:
 
 +--------------------------------------+--------------------------------------+
-| **Project**                          | E.g. Arno/genesis/fuel@opnfv         |
+| **Project**                          | Arno/genesis/fuel                    |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/commit-ID**                   | E.g. genesis/adf634a0d4.....         |
+| **Repo/tag**                         | genesis/arno-rc2                     |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | E.g. Arno RC2                        |
+| **Release designation**              | Arno RC2                             |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release date**                     | E.g. 2015-04-16                      |
+| **Release date**                     | 2015-04-16                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Purpose of the delivery**          | E.g. OPNFV Internal quality assurance|
+| **Purpose of the delivery**          | OPNFV Internal quality assurance     |
+|                                      | and CI Pipline dry-run               |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -96,40 +90,34 @@ Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but 
 
 4.1.1   Module version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<STATE WHAT UPSTREAM, - AS WELL AS OPNFV MODULE VERSIONS HAVE CHANGED>
+This is the first tracked version of genesis/fuel. It is based on following upstream versions:
 
-<EXAMPLE>:
+- Fuel 6.0.1 (Juno release)
 
-- Fuel have changed from 5.1 to 6.0.1
+- OpenDaylight Helium-SR2
 
-- OpenDaylight has changed from Helium-SR1 to Helium-SR2
+- Ubuntu 12.04.5
 
 4.1.2   Document version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<STATE WHAT RELATED DOCUMENTS THAT CHANGES WITH THIS RELEASE>
+This is the first tracked version of genesis/fuel. It comes with the following documentation:
 
-<EXAMPLE>:
-
-- The Fuel@OPNFV installation guide version has changed from version 0.1 to to 0.2
+- OPNFV Installation instructions for - Fuel@OPNFV - ver. 0.0.1
+- OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV - ver. 0.1 (this document)
 
 4.2 Reason for version
 ----------------------
 4.2.1 Feature additions
 ~~~~~~~~~~~~~~~~~~~~~~~
-<STATE ADDED FEATURES BY REFERENCE TO JIRA>
-
-<EXAMPLE>:
-
-**JIRA BACK-LOG:**
 
 +--------------------------------------+--------------------------------------+
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| BGS-123                              | ADD OpenDaylight ml2 integration     |
+| JIRA:                                | Baselining Fuel 6.0.1 for OPNFV      |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| BGS-456                              | Add auto-deployment of Fuel@OPNFV    |
+| JIRA:                                | Integration of OpenDaylight          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -142,10 +130,7 @@ Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but 
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| BGS-888                              | Fuel doesn't deploy                  |
 |                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| BGS-999                              | Floating IP doesn't work             |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -154,26 +139,18 @@ Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but 
 
 4.3.1   Software deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-<STATE WHAT SOFTWARE DELIVERABLES THAT ARE RELATED TO THIS VERSION, AND WHERE THOSE CAN BE RETRIEVED>
-
-<EXAMPLE>:
+Fuel@OPNFV .iso file
 
 4.3.2   Documentation deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-<STATE WHAT DOCUMENTATION DELIVERABLES THAT ARE RELATED TO THIS VERSION, AND WHERE THOSE CAN BE RETRIEVED>
-
-<EXAMPLE>:
+- OPNFV Installation instructions for - Fuel@OPNFV - ver. 0.0.1
+- OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV - ver. 0.1 (this document)
 
 5  Known Limitations, Issues and Workarounds
 ============================================
 
 5.1    System Limitations
 -------------------------
-<STATE ALL RELEVANT SYSTEM LIMITATIONS>
-
-<EXAMPLE>:
 
 **Max number of blades:**   1 Fuel master, 3 Controllers, 20 Compute blades
 
@@ -187,9 +164,6 @@ Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but 
 
 5.2    Known issues
 -------------------
-<STATE ALL KNOWN ISSUES WITH JIRA REFERENCE>
-
-<EXAMPLE>:
 
 **JIRA TICKETS:**
 
@@ -197,30 +171,17 @@ Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but 
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| BGS-987                              | Nova-compute process does            |
-|                                      | not re-spawn when killed             |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| BGS-654                              | MOS 5.1 : neutron net-list returns   |
-|                                      | "400 Bad request"                    |
+| JIRA:                                | CentOS is not supported              |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
 5.3    Workarounds
 ------------------
+**-**
 
-<STATE ALL KNOWN WORKAROUNDS TO THE ISSUES STATED ABOVE>
-
-<EXAMPLE>:
-
-- In case the contact with a compute is lost - restart the compute host
-- In case the disk is full on a controller - delete all files in /tmp
 
 6  Test Result
 ==============
-<STATE THE QA COVERAGE AND RESULTS>
-
-<EXAMPLE>:
 
 Fuel@OPNFV Arno RC2 has undergone QA test runs with the following results:
 
@@ -228,24 +189,12 @@ Fuel@OPNFV Arno RC2 has undergone QA test runs with the following results:
 | **TEST-SUITE**                       | **Results:**                         |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| Tempest test suite 123               | Following tests failed:              |
-|                                      |                                      |
-|                                      | 1. Image resizing....                |
-|                                      |                                      |
-|                                      | 2. Heat deploy....                   |
+| **-**                                | **-**                                |
 +--------------------------------------+--------------------------------------+
-| Robot test suite 456                 | Following tests failed:              |
-|                                      |                                      |
-|                                      | 1.......                             |
-|                                      |                                      |
-|                                      | 2.......                             |
-+--------------------------------------+--------------------------------------+
+
 
 7  References
 =============
-<STATE RELEVANT REFERENCES FOR THIS RELEASE/VERSION>
-
-<EXAMPLE>:
 
 For more information on the OPNFV Arno release, please see:
 

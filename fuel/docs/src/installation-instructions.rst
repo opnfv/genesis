@@ -1,20 +1,20 @@
-:Authors: Jonas Bjurel (Ericsson)
-:Version: 0.1
+:Authors: Jonas Bjurel (Ericsson AB)
+:Version: 0.0.1
 
-================================================================
-OPNFV Installation instructions for - < Component denomination >
-================================================================
+================================================
+OPNFV Installation instructions for - Fuel@OPNFV
+================================================
 
 Abstract
 ========
 
-This document describes how to install <Component>, it's dependencies and required system resources.
+This document describes how to install Fuel@OPNFV, it's dependencies and required system resources.
 
 License
 =======
-<WORK'S NAME> (c) by <AUTHOR'S NAME>
+Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
 
-<WORK'S NAME> is licensed under a Creative Commons Attribution 4.0 Unported License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Unported License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
 **Contents**
@@ -44,54 +44,51 @@ License
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-04-14         | 0.1.0              | Jonas Bjurel       | First draft        |
-|                    |                    |                    |                    |
+| 2015-04-15         | 0.0.1              | Jonas Bjurel       | First draft        |
+|                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
-|                    | 0.1.1              |                    |                    |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
-|                    | 1.0                |                    |                    |
-|                    |                    |                    |                    |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
+
 
 2   Introduction
 ================
-<INTRODUCTION TO THE SCOPE AND INTENTION OF THIS DOCUMENT AS WELL AS TO THE SYSTEM TO BE INSTALLED>
 
-<EXAMPLE>:
+This document describes the supported software and hardware configurations for the Fuel@OPNFV reference platform as well as providing guidelines on how to install and configure such reference system.
 
-This document describes the supported software and hardware configurations for the Fuel OPNFV reference platform as well as providing guidelines on how to install and
-configure such reference system.
-
-Although the available installation options gives a high degree of freedom in how the system is set-up, with what architecture, services and features, etc., not nearly all of those permutations provides a OPNFV compliant reference architecture. Following the guidelines in this document ensures
-a result that is OPNFV compliant.
+Although the available installation options gives a high degree of freedom in how the system is set-up, with what architecture, services and features, etc., not nearly all of those permutations provides a OPNFV compliant reference architecture. Following the guidelines in this document ensures a result that is OPNFV R1 (Arno) compliant.
 
 The audience of this document is assumed to have good knowledge in network and Unix/Linux administration.
 
 3   Preface
 ===========
-<DESCRIBE NEEDED PREREQUISITES, PLANNING, ETC.>
-
-<EXAMPLE>:
 
 Before starting the installation of Fuel@OPNFV, some planning must preceed.
 
 First of all, the Fuel@OPNFV .iso image needs to be retrieved, the Latest stable Arno release of Fuel@OPNFV can be found here: <www.opnfv.org/abc/def>
 
 Alternatively, you may build the .iso from source by cloning the opnfv/genesis git repository:
+
 <git clone https://<linux foundation uid>@gerrit.opnf.org/gerrit/genesis>
+
 Check-out the Arno release:
+
 <cd genesis; git checkout arno>
+
 Goto the fuel directory and build the .iso
+
 <cd fuel/build; make all>
 
-Familiarize yourself with the Fuel 6.0.1 version by reading the following documents:
-- abc <http://wiki.openstack.org/abc>
-- def <http://wiki.openstack.org/def>
-- ghi <http://wiki.openstack.org/ghi>
+For more information on how to build, please see "OPNF Build instructions for - FUel@OPNFV <http://www.opnfv.org/xyz
 
-Secondly, a number of deployment specific parameters must be collected, those are:
+Next, familiarize yourself with the Fuel 6.0.1 version by reading the following documents:
+
+- Fuel planning guide <http://docs.mirantis.com/openstack/fuel/fuel-6.0/planning-guide.html#planning-guide>
+
+- Fuel user guide <http://docs.mirantis.com/openstack/fuel/fuel-6.0/user-guide.html#user-guide>
+
+- Fuel operations guide <http://docs.mirantis.com/openstack/fuel/fuel-6.0/operations.html#operations-guide>
+
+
+A number of deployment specific parameters must be collected, those are:
 
 1.     Provider sub-net and gateway information
 
@@ -105,49 +102,46 @@ This information will be needed for the configuration procedures provided in thi
 
 4   Hardware requirements
 =========================
-<PROVIDE A LIST OF MINIMUM HARDWARE REQUIREMENTS NEEDED FOR THE INSTALL>
-
-<EXAMPLE>:
 
 Following minimum hardware requirements must be met for installation of Fuel@OPNFV:
 
-+--------------------+----------------------------------------------------+
-| **HW Aspect**      | **Requirement**                                    |
-|                    |                                                    |
-+--------------------+----------------------------------------------------+
-| **# of servers**   | Minimum 5 (3 for non redundant deployment)         |
-|                    | 1 Fuel deployment master (may be virtualized)      |
-|                    | 3(1) Controllers                                   |
-|                    | 1 Compute                                          |
-+--------------------+----------------------------------------------------+
-| **CPU**            | Minimum 1 socket x86_AMD64 Ivy bridge 1.6 GHz      |
-|                    |                                                    |
-+--------------------+----------------------------------------------------+
-| **RAM**            | Minimum 16GB/server (Depending on VNF work load)   |
-|                    |                                                    |
-+--------------------+----------------------------------------------------+
-| **Disk**           | Minimum 256GB 10kRPM spinning disks                |
-|                    |                                                    |
-+--------------------+----------------------------------------------------+
-| **NICs**           | 2(1)x10GE Niantec for Private/Public (Redundant)   |
-|                    |                                                    |
-|                    | 2(1)x10GE Niantec for SAN (Redundant)              |
-|                    |                                                    |
-|                    | 2(1)x1GE for admin (PXE) and control (RabitMQ,etc) |
-|                    |                                                    |
-+--------------------+----------------------------------------------------+
++--------------------+------------------------------------------------------+
+| **HW Aspect**      | **Requirement**                                      |
+|                    |                                                      |
++--------------------+------------------------------------------------------+
+| **# of servers**   | Minimum 5 (3 for non redundant deployment):          |
+|                    |                                                      |
+|                    | - 1 Fuel deployment master (may be virtualized)      |
+|                    |                                                      |
+|                    | - 3(1) Controllers                                   |
+|                    |                                                      |
+|                    | - 1 Compute                                          |
++--------------------+------------------------------------------------------+
+| **CPU**            | Minimum 1 socket x86_AMD64 Ivy bridge 1.6 GHz        |
+|                    |                                                      |
++--------------------+------------------------------------------------------+
+| **RAM**            | Minimum 16GB/server (Depending on VNF work load)     |
+|                    |                                                      |
++--------------------+------------------------------------------------------+
+| **Disk**           | Minimum 256GB 10kRPM spinning disks                  |
+|                    |                                                      |
++--------------------+------------------------------------------------------+
+| **NICs**           | - 2(1)x10GE Niantec for Private/Public (Redundant)   |
+|                    |                                                      |
+|                    | - 2(1)x10GE Niantec for SAN (Redundant)              |
+|                    |                                                      |
+|                    | - 2(1)x1GE for admin (PXE) and control (RabitMQ,etc) |
+|                    |                                                      |
++--------------------+------------------------------------------------------+
 
 5   Top of the rack (TOR) Configuration requirements
 ====================================================
-<DESCRIBE NEEDED NETWORK TOPOLOGY SETUP IN THE TORs>
 
-<EXAMPLE>:
+The switching infrastructure provides connectivity for the OPNFV infra-structure operations, tenant networks (East/West) and provider connectivity (North/South bound connectivity); it als provides needed connectivity for the strage Area Network (SAN). To avoid traffic congestion, it is strongly sugested that three physcally separated networks are used, that is: 1 physical network for administration and control, one physical network for tenant private and public networks, and one physical network for SAN. The switching connectivity can (but does not need to) be fully redundant, in such case it and comprises a redundant 10GE switch pair for each of the three physcally separated networks.
 
-The switching infrastructure provides connectivity for the OPNFV infra-structure operations as well as for the tenant networks (East/West) and provider connectivity (North/South bound connectivity). The switching connectivity can (but does not need to) be fully redundant, in case it and comprises a redundant 10GE switch pair for “Traffic/Payload/SAN” purposes as well as a 1GE switch pair for “infrastructure control-, management and administration”
+The physical TOR switches are **not** automatically configured from the OPNFV reference platform. All the networks involved in the OPNFV infra-structure as well as the provider networks and the private tenant VLANs needs to be manually configured.
 
-The switches are **not** automatically configured from the OPNFV reference platform. All the networks involved in the OPNFV infra-structure as well as the provider networks and the private tenant VLANs needs to be manually configured.
-
-This following sections guides through required black-box switch configurations.
+The following sections guides through required black-box switch configurations.
 
 5.1 VLAN considerations and blue-print
 --------------------------------------
@@ -157,30 +151,205 @@ This following sections guides through required black-box switch configurations.
 
 6   OPNFV Software installation and deployment
 ==============================================
-<DESCRIBE THE FULL PROCEDURES FOR THE INSTALLATION OF THE OPNFV COMPONENT INSTALLATION AND DEPLOYMENT>
-
-<EXAMPLE>:
 
 This section describes the installation of the Fuel@OPNFV installation server (Fuel master) as well as the deployment of the full OPNFV reference platform stack across a server cluster.
-Etc.
 
 6.1 Install Fuel master
 -----------------------
+1. Mount the built .iso file (release/opnfv-<version>.iso) as a boot device to the fuel server.
+
+2. Reboot the fuel server.
+
+   - The system now boots from the ISO image.
+
+3. Change the grub boot parameters
+
+   - When the grub boot menu shows up - Press Tab to edit the kernel parameters
+
+   - Change <showmenu=no> to <showmenu=yes>.
+
+   - Change <netmask=255.255.255.0> to <netmask=255.255.0.0>.
+
+   - Press [Enter].
+
+4  Wait until screen Fuel setup is shown (Note: This can take up to 30 minutes).
+
+5. Select PXE Setup and change the following fields to appropriate values (example below):
+
+   - Static Pool Start 10.20.0.3
+
+   - Static Pool End 10.20.0.254
+
+   - DHCP Pool Start 10.20.128.3
+
+   - DHCP Pool End 10.20.128.254
+
+6. Select DNS & Hostname and change the following fields to appropriate values:
+
+   - Hostname <CEE Region name>-fuel
+
+   - Domain <Domain Name>
+
+   - Search Domain <Search Domain Name>
+
+   - Hostname to test DNS <Hostname to test DNS>
+
+7. Select Time Sync and change the following fields to appropriate values:
+
+   - NTP Server 1 <Customer NTP server 1>
+
+   - NTP Server 2 <Customer NTP server 2>
+
+   - NTP Server 3<Customer NTP server 3>
+
+   **Note: This step is only to pass the network sanity test, the actual ntp parameters will be set with the pre-deploy script.**
+
+8. Start the installation.
+
+   - Select Quit Setup and press Save and Quit.
+
+   - Installation starts, wait until a screen with logon credentials is shown.
+
+   Note: This will take about 15 minutes.
 
 6.2 Create an OPNV (Fuel Environment)
 -------------------------------------
 
+9. Connect to Fuel with a browser towards port 8000
+
+10. Create and name a new OpenStack environment, to be installed.
+
+11. Select <Juno on Ubuntu> or <Juno on CentOS> as per your which in the "OpenStack Release" field.
+
+12. Select deployment mode.
+
+    - Select the Multi-node with HA.
+
+13. Select compute node mode.
+
+    - Select KVM as hypervisor (unless you're not deploying bare metal or nested KVM/ESXI).
+
+14. Select network mode.
+
+    - Select Neutron with VLAN segmentation 
+    
+    ** Note: This will later be overridden to VXLAN by OpenDaylight.**
+
+15. Select Storage Backends.
+
+    - Select Ceph for Cinder and default for glance.
+
+16. Select additional services.
+
+    - Check option <Install Celiometer (OpenStack Telemetry)>.
+
+17. Create the new environment.
+
 6.3 Configure the OPNFV environment
 -----------------------------------
 
+18. Enable PXE booting
+
+    - For every controller- and compute server: enable PXE Booting as the first boot device in the BIOS boot order menu, and hard disk as the second boot device in the same menu.
+
+19. Reboot all the controller- and compute blades.
+
+20. Wait for the availability of nodes showing up in the Fuel GUI.
+
+    - Wait until all nodes are displayed in top right corner of the Fuel GUI: <total number of server> TOTAL NODES and <total number of servers> UNALLOCATED NODES.
+
+21. Open the environment you previously created.
+
+22. Open the networks tab.
+
+23. Update the public network configuration.
+
+    Change the following fields to appropriate values:
+
+    - IP Range Start to <Public IP Address start>
+
+    - IP Range End to <Public IP Address end>
+
+    - CIDR to <CIDR for Public IP Addresses>
+
+    - Gateway to <Gateway for Public IP Addresses>
+
+    - Check  VLAN tagging.
+
+    - Set appropriate VLAN id.
+
+24. Update the management network configuration.
+
+    - Set CIDR to 172.16.255.128/25 (or as per your which).
+
+    - Check VLAN tagging.
+
+    - Set appropriate  VLAN id.
+
+25. Update the Neutron L2 configuration.
+
+    - Set VLAN ID range.
+
+26. Update the Neutron L3 configuration.
+
+    - Set Internal network CIDR to an appropriate value
+
+    - Set Internal network gateway to an appropriate value
+
+    - Set Floating IP ranges.
+
+    - Set DNS Servers
+
+27. Save Settings.
+
+28. Click "verify network" to check the network set-up consistency and connectivity
+
+29. Update the storage configuration.
+
+30. Open the nodes tab.
+
+31. Assign roles.
+
+    - Check <Controller and Telemetry MongoDB>.
+    
+    - Check the three servers you want to be installed as Controllesr in pane <Assign Role>.
+
+    - Click <Apply Changes>.
+ 
+    - Check <Compute>.
+ 
+    - Check nodes to be installed as Compute nodes in pane Assign Role.
+
+    - Click <Apply Changes>.
+
+32. Configure interfaces.
+
+    - Check Select <All> to select all nodes with Control, Telemetry . MongoDB and Compute node roles.
+
+    - Click <Configure Interfaces>
+    
+    - Screen Configure interfaces on number of <number of nodes> nodes is shown.
+    - Assign interfaces (bonded) for mgmt-, admin-, private-, public- and storage networks
+
 6.4 Deploy the OPNFV environment
 --------------------------------
+**NOTE: Before the deployment is performed, the OPNFV pre-deploy script must be ran**
+
+35. Run the pre-deploy script.
+    Log on as root to the Fuel node.
+    Print Fuel environment Id (fuel env)
+    #> id | status | name | mode | release_id | changes <id>| new | <CEE Region name>| ha_compact | 2 | <ite specific information>
+
+36. Run the pre-deployment script (/opt/opnfv/pre-deploy.sh <id>)
+    As prompted for-, set the DNS servers to go into /etc/resolv.conf.
+    As prompted for-, set any Hosts file additions for controllers and compute nodes. You will be prompted for name, FQDN and IP for each entry. Press return when prompted for a name when you have completed your input.
+    As prompted for-, set NTP upstream configuration for controllers. You will be prompted for a NTP server each entry. Press return when prompted for a NTP server when you have completed your input.
+
+37. Deploy the environment.
+    In the Fuel GUI, click Deploy Changes.
 
 7   Installation health-check
-============================
-<DESCRIBE ANY MEANS TO DO VERIFY THE INTEGRITY AND HEALTHYNESS OF THE INSTALL>
-
-<EXAMPLE>:
+=============================
 
 Now that the OPNFV environment has been created, and before the post installation configurations is started, perform a system health check from the Fuel GUI:
 
@@ -192,19 +361,10 @@ All test cases except the following should pass:
 
 8  Post installation and deployment actions
 ============================================
-<DESCRIBE ANY POST INSTALLATION ACTIONS/CONFIGURATIONS NEEDED>
-
-<EXAMPLE>:
-After the OPNFV deployment is completed, the following manual changes needs to be performed in order for the system to work according OPNFV standards.
-
-**Change host OS password:**
-Change the Host OS password by......
+**-**
 
 9  References
 =============
-<PROVIDE NEEDED/USEFUL REFERENCES>
-
-<EXAMPLES>:
 
 9.1    OPNFV
 -------------
