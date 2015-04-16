@@ -82,17 +82,19 @@ isofile=$deployiso
 . ${functions}/install_iso.sh
 . ${functions}/deploy_env.sh
 
-echo "Waiting for two minutes for deploy to stabilize"
-sleep 2m
+echo "Waiting for five minutes for deploy to stabilize"
+sleep 5m
 
 echo "Verifying node status after deployment"
-set -o pipefail
 # Any node with non-ready status?
-ssh root@10.20.0.2 fuel node | tail -n +3 | cut -d "|" -f 2 | \
+ssh root@10.20.0.2 fuel node 2>/dev/null | tail -n +3 | cut -d "|" -f 2 | \
   sed 's/ //g' | grep -v ready | wc -l | grep -q "^0$"
 if [ $? -ne 0 ]; then
-  error_exit "Deployment failed verification"
+  echo "Deploy failed to verify"
+  ssh root@10.20.0.2 fuel node 2>/dev/null
+  error_exit "Exiting with error status"
 else
+  ssh root@10.20.0.2 fuel node 2>/dev/null
   echo "Deployment verified"
 fi
 
