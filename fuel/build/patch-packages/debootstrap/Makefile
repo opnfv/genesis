@@ -8,19 +8,21 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-SUBDIRS := python-nova debootstrap
-SUBCLEAN = $(addsuffix .clean,$(SUBDIRS))
+TOP := $(shell pwd)
 
-.PHONY: $(SUBDIRS) $(SUBCLEAN) clean
-$(SUBDIRS):
-	@mkdir -p release/packages
-	ORIGISO=$(ORIGISO) REVSTATE=$(REVSTATE) $(MAKE) -C $@ -f Makefile release
+.PHONY: all
+all:
 
-release: $(SUBDIRS)
-	@echo $(ORIGISO)
+.PHONY: clean
+clean:
+	@rm -rf udebPackage
+	@rm -rf *.udeb
+	@rm -rf patch-replacements
+	@rm -rf .udebpackage
 
-clean: $(SUBCLEAN)
-	@rm -Rf release
-
-$(SUBCLEAN): %.clean:
-	$(MAKE) -C $* -f Makefile clean
+.PHONY: release
+release:
+	../tools/udeb_unpack debootstrap-udeb_1.0.4*.udeb $(ORIGISO)
+	patch -s -p0 < debootstrap.patch
+	../tools/udeb_pack $(REVSTATE)
+	@cp *.udeb $(UDEB_DEST)
