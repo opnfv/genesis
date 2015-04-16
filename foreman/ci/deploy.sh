@@ -41,6 +41,28 @@ function find_ip {
   ip addr show $1 | grep -Eo '^\s+inet\s+[\.0-9]+' | awk '{print $2}'
 }
 
+##finds subnet of ip and netmask
+##params: ip, netmask
+function find_subnet {
+  IFS=. read -r i1 i2 i3 i4 <<< "$1"
+  IFS=. read -r m1 m2 m3 m4 <<< "$2"
+  printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
+}
+
+##finds netmask of interface
+##params: interface
+##returns long format 255.255.x.x
+function find_netmask {
+  ifconfig $1 | grep -Eo 'netmask\s+[\.0-9]+' | awk '{print $2}'
+}
+
+##finds short netmask of interface
+##params: interface
+##returns short format, ex: /21
+function find_short_netmask {
+  echo "/$(ip addr show $1 | grep -Eo '^\s+inet\s+[\/\.0-9]+' | awk '{print $2}' | cut -d / -f2)"
+}
+
 ##increments next IP
 ##params: ip
 ##assumes a /24 subnet
@@ -253,7 +275,12 @@ for interface in ${output}; do
     continue
   fi
   interface_ip_arr[$if_counter]=$new_ip
-  sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\''/' Vagrantfile
+  subnet_mask=$(find_netmask $interface)
+  if [ "$if_counter" -eq 1 ]; then
+    private_subnet_mask=$subnet_mask
+    private_short_subnet_mask=$(find_short_netmask $interface)
+  fi
+  sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
   ((if_counter++))
 done
 
@@ -291,8 +318,6 @@ else
   sed -i 's/^.*default_gw =.*$/  default_gw = '\""$defaultgw"\"'/' Vagrantfile
 fi
 
-sed -i 's/^.*default_gw:.*$/default_gw:'" $defaultgw"'/' opnfv_ksgen_settings.yml
-
 if [ $base_config ]; then
   if ! cp -f $base_config opnfv_ksgen_settings.yml; then
     echo "{red}ERROR: Unable to copy $base_config to opnfv_ksgen_settings.yml${reset}"
@@ -311,6 +336,8 @@ echo "${blue}Gathering network parameters for Target System...this may take a fe
 ##if single node deployment all the variables will have the same ip
 ##interface names will be enp0s3, enp0s8, enp0s9 in chef/centos7
 
+sed -i 's/^.*default_gw:.*$/default_gw:'" $defaultgw"'/' opnfv_ksgen_settings.yml
+
 ##replace private interface parameter
 ##private interface will be of hosts, so we need to know the provisioned host interface name
 ##we add biosdevname=0, net.ifnames=0 to the kickstart to use regular interface naming convention on hosts
@@ -328,7 +355,7 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
 
   if [ "$deployment_type" == "three_network" ]; then
     sed -i 's/^.*storage_iface:.*$/  storage_iface: eth1/' opnfv_ksgen_settings.yml
-    sed -i 's/^.*network_type:.*$/  network_type: three_network/' opnfv_ksgen_settings.yml
+    sed -i 's/^.*network_type:.*$/network_type: three_network/' opnfv_ksgen_settings.yml
   else
     sed -i 's/^.*storage_iface:.*$/  storage_iface: eth3/' opnfv_ksgen_settings.yml
   fi
@@ -378,10 +405,9 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
   done
 
   ##replace private_subnet param
-  network=.0
-  baseaddr="$(echo $next_private_ip | cut -d. -f1-3)"
-  private_subnet=$baseaddr$network
-  sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $private_subnet"''"\/24"'/' opnfv_ksgen_settings.yml
+  private_subnet=$(find_subnet $next_private_ip $private_subnet_mask)
+  private_subnet=$private_subnet'\'$private_short_subnet_mask
+  sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $private_subnet"'/' opnfv_ksgen_settings.yml
 else
   printf '%s\n' 'deploy.sh: Unknown network type: $deployment_type' >&2
   exit 1
