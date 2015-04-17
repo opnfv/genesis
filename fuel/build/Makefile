@@ -27,6 +27,7 @@ export NEWISO = $(shell pwd)/release/opnfv-${REVSTATE}.iso
 #Build variables
 export BUILD_BASE := $(shell pwd)
 export DEB_DEST := $(BUILD_BASE)/release/packages/ubuntu/pool/main
+export UDEB_DEST := $(BUILD_BASE)/release/packages/ubuntu/pool/debian-installer
 export PUPPET_DEST := $(BUILD_BASE)/release/puppet/modules
 export CACHE_DIR := $(BUILD_BASE)/cache
 export VERSION_FILE := $(BUILD_BASE)/.versions
@@ -108,7 +109,7 @@ umount-origiso:
 
 .PHONY: $(SUBDIRS)
 $(SUBDIRS):
-	@mkdir -p release/packages/ubuntu/pool/main release/puppet/modules release/isoroot
+	@mkdir -p release/packages/ubuntu/pool/main release/packages/ubuntu/pool/debian-installer release/puppet/modules release/isoroot
 	$(MAKE) -C $@ -f Makefile release
 
 .PHONY: patch-packages

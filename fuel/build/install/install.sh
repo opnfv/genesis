@@ -257,6 +257,14 @@ make_iso() {
 
 copy_packages() {
     echo "Copying Debian packages..."
+    cd $TOP/release/packages/ubuntu/pool/debian-installer
+
+    for udeb in `ls -1 | grep '\.udeb$'`
+    do
+        echo "   $udeb"
+        cp $udeb $REPO/pool/debian-installer
+    done
+
     cd $TOP/release/packages/ubuntu/pool/main
     for deb in `ls -1 | grep '\.deb$'`
     do
@@ -401,8 +409,10 @@ copy_packages() {
     # The below methods are from 15B
     APT_REL_CONF="$TOP/install/apt-ftparchive-release.conf"
     APT_DEB_CONF="$TOP/install/apt-ftparchive-deb.conf"
+    APT_UDEB_CONF="$TOP/install/apt-ftparchive-udeb.conf"
 
     apt-ftparchive -c "${APT_REL_CONF}" generate "${APT_DEB_CONF}"
+    apt-ftparchive generate "${APT_UDEB_CONF}"
 
     # Fuel also needs this index file
     cat dists/precise/main/binary-amd64/Packages | \
