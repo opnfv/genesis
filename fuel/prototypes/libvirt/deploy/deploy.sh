@@ -21,8 +21,13 @@ deployiso=${tmpdir}/deploy.iso
 
 exit_handler() {
   # Remove safety catch
-  kill $killpid
+  kill -9 `ps -p $killpid -o pid --no-headers` \
+        `ps --ppid $killpid -o pid --no-headers`\
+  > /dev/null 2>&1
 }
+
+# Set maximum allowed deploy time (default three hours)
+MAXDEPLOYTIME=${MAXDEPLOYTIME-3h}
 
 ####### MAIN ########
 
@@ -59,13 +64,13 @@ if [ ! -f $deafile ]; then
 fi
 
 
-# Enable safety catch at three hours
-(sleep 3h; kill $$) &
+# Enable safety catch
+echo "Enabling auto-kill if deployment exceeds $MAXDEPLOYTIME"
+(sleep $MAXDEPLOYTIME; echo "Auto-kill of deploy after a timeout of $MAXDEPLOYTIME"; kill $$) &
 killpid=$!
 
 # Enable exit handler
 trap exit_handler exit
-
 
 # Stop all VMs
 for node in controller1 controller2 controller3 compute4 compute5 fuel-master
