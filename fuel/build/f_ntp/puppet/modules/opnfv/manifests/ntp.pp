@@ -31,6 +31,15 @@ class opnfv::ntp(
   $file='/etc/ntp.conf'
 ) {
 
+  case $::operatingsystem {
+        centos, redhat: {
+          $service_name = 'ntpd'
+        }
+        debian, ubuntu: {
+          $service_name = 'ntp'
+        }
+  }
+
   if $::fuel_settings['role'] {
     if ($::fuel_settings['opnfv'] and
     $::fuel_settings['opnfv']['ntp']) {
@@ -63,9 +72,9 @@ class opnfv::ntp(
 
     service { 'ntp':
       ensure  => running,
+      name    => $service_name,
       enable  => true,
       require => [ Package['ntp'], File[$file]]
     }
   }
 }
-
