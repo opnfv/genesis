@@ -48,16 +48,26 @@ class opnfv::resolver()
             mode    => '0644',
             content => template('opnfv/resolv.conf.erb'),
       }
-# /etc/resolv.conf is re-generated at each boot by resolvconf, so we
-# need to store there as well.
-      file { '/etc/resolvconf/resolv.conf.d/head':
+
+      # /etc/resolv.conf is re-generated at each boot by resolvconf, so we
+      # need to store there as well.
+
+      case $::operatingsystem {
+        'ubuntu': {
+          file { '/etc/resolvconf/resolv.conf.d/head':
             owner   => root,
             group   => root,
             mode    => '0644',
             content => template('opnfv/resolv.conf.erb'),
+          }
+        }
+        'centos': {
+          exec { 'for file in ifcfg-eth*; do grep -q -F "PEERDNS=" $file || echo "PEERDNS=no" >> $file; done ':
+            provider => 'shell',
+            cwd      => '/etc/sysconfig/network-scripts',
+          }
+        }
       }
     }
   }
 }
-
-
