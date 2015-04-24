@@ -100,6 +100,7 @@ INCLUDE_DIR=../include
 #
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 LOCK_FILE="${SCRIPT_DIR}/.build.lck"
+CACHE_TMP="${SCRIPT_DIR}/tmp"
 TEST_SUCCEED=0
 TEST_FAIL=0
 UNIT_TEST=0
@@ -290,11 +291,11 @@ echo $$ > ${LOCK_FILE}
 
 if [ ! -z ${BUILD_CACHE_URI} ]; then
     if [ ${POPULATE_CACHE} -ne 1 ]; then
-	rm -rf /tmp/cache
-	mkdir /tmp/cache
+	rm -rf ${CACHE_TMP}/cache
+	mkdir -p ${CACHE_TMP}/cache
 	echo "Downloading cach file ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME} ..."
 	set +e
-	${REMOTE_ACCESS_METHD} -o /tmp/cache/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz
+	${REMOTE_ACCESS_METHD} -o ${CACHE_TMP}/cache/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz
 	tar -tzf ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz >/dev/null
 	rc=$?
 	set -e
@@ -303,8 +304,8 @@ if [ ! -z ${BUILD_CACHE_URI} ]; then
 		POPULATE_CACHE=1
 	else
 	    echo "Unpacking cache file ..."
-	    tar -C /tmp/cache -xvf /tmp/cache/${LOCAL_CACHE_ARCH_NAME}.tgz
-	    cp /tmp/cache/cache/.versions ${BUILD_BASE}/.
+	    tar -C ${CACHE_TMP}/cache -xvf ${CACHE_TMP}/cache/${LOCAL_CACHE_ARCH_NAME}.tgz
+	    cp ${CACHE_TMP}/cache/cache/.versions ${BUILD_BASE}/.
 	    set +e
        	    make -C ${BUILD_BASE} validate-cache;
 	    rc=$?
@@ -314,9 +315,9 @@ if [ ! -z ${BUILD_CACHE_URI} ]; then
 		echo "Cache invalid - a new cache will be built "
 		POPULATE_CACHE=1
 	    else
-		cp -rf /tmp/cache/cache/. ${BUILD_BASE}
+		cp -rf ${CACHE_TMP}/cache/cache/. ${BUILD_BASE}
 	    fi
-	    rm -rf /tmp/cache
+	    rm -rf ${CACHE_TMP}/cache
 	fi
     fi
 fi

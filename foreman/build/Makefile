@@ -16,13 +16,17 @@ SHELL = /bin/bash
 #Input args
 export UNIT_TEST = FALSE
 export INTERACTIVE = TRUE
-export ISOSRC = file:$(shell pwd)/CentOS-7.0-1406-x86_64-Minimal.iso
+export CENTDNLD = http://mirrors.cat.pdx.edu/centos/7.1.1503/isos/x86_64/CentOS-7-x86_64-DVD-1503-01.iso
+export ISOSRC = file:$(shell pwd)/CentOS-7-x86_64-DVD-1503-01.iso
 export ISOCACHE = $(shell pwd)/$(shell basename $(ISOSRC))
 export PRODNO = "OPNFV_BGS"
 export REVSTATE = "P0000"
 export NEWISO = $(shell pwd)/release/OPNFV-CentOS-7-x86_64-${REVSTATE}.iso
-export VBOXRPM = $(shell pwd)/VirtualBox-4.3-4.3.26_98988_fedora18-1.x86_64.rpm
+export VBOXDNLD = http://download.virtualbox.org/virtualbox/rpm/el/7.1/x86_64/VirtualBox-4.3-4.3.26_98988_el7-1.x86_64.rpm
+export VBOXRPM = $(shell pwd)/VirtualBox-4.3-4.3.26_98988_el7-1.x86_64.rpm
+export VAGRANTDNLD = https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.rpm
 export VAGRANTRPM = $(shell pwd)/vagrant_1.7.2_x86_64.rpm
+export GENESISRPM = $(shell pwd)/x86_64/opnfv-genesis-0.1-1.x86_64.rpm
 
 # Note! Invoke with "make REVSTATE=RXXXX all" to make release build!
 # Invoke with ICOCACHE=/full/path/to/iso if cached ISO is in non-standard location.
@@ -57,7 +61,13 @@ include cache.mk
 #############################################################################
 
 $(ISOCACHE):
-	#cp ~/Downloads/opnfv_iso/CentOS-7.0-1406-x86_64-Minimal.iso $(ISOCACHE)
+	test -s $(ISOCACHE) || { wget -nv $(CENTDNLD) ; }
+
+$(VBOXRPM):
+	test -s $(VBOXRPM) || { wget -nv $(VBOXDNLD) ; }
+
+$(VAGRANTRPM):
+	test -s $(VAGRANTRPM) || { wget -nv $(VAGRANTDNLD) ; }
 
 .PHONY: mount-centiso umount-centiso
 mount-centiso: $(ISOCACHE)
@@ -90,21 +100,33 @@ clean:  clean-cache $(SUBCLEAN)
 $(SUBCLEAN): %.clean:
 	$(MAKE) -C $* -f Makefile clean
 
+.PHONY: rpm-clean
+rpm-clean:
+	rpmbuild --clean opnfv-genesis.spec -D '_topdir %(echo `pwd`)' -D '_builddir %(echo `pwd`)' -D '_sourcedir %(echo `pwd`)' -D '_rpmdir %(echo `pwd`)' -D '_specdir %(echo `pwd`)' -D '_srcrpmdir %(echo `pwd`)'
+
+.PHONY: rpm
+rpm:
+	pushd ../../ && git archive --format=tar --prefix=opnfv-genesis-0.1/ HEAD | gzip > foreman/build/opnfv-genesis.tar.gz
+	rpmbuild -ba opnfv-genesis.spec -D '_topdir %(echo `pwd`)' -D '_builddir %(echo `pwd`)' -D '_sourcedir %(echo `pwd`)' -D '_rpmdir %(echo `pwd`)' -D '_specdir %(echo `pwd`)' -D '_srcrpmdir %(echo `pwd`)' 
+	@make rpm-clean
+
+
 # Todo: Make things smarter - we shouldn't need to clean everything
 # betwen make invocations.
 .PHONY: iso
-iso:	build-clean mount-centiso $(ISOCACHE) $(VBOXRPM) $(VAGRANTRPM)
+iso:	build-clean $(ISOCACHE) $(VBOXRPM) $(VAGRANTRPM) rpm
+	@make mount-centiso
 	@mkdir centos release
 	cp -r $(CENTDIR)/* centos
 	@make umount-centiso
 	# modify the installer iso's contents
-	@rm -rf centos/repodata
 	@cp -f isolinux.cfg centos/isolinux/isolinux.cfg
 	@cp $(VBOXRPM) centos/Packages
 	@cp $(VAGRANTRPM) centos/Packages
+	@cp $(GENESISRPM) centos/Packages
 	# regenerate yum repo data
 	@echo "Generating new yum metadata"
-	createrepo centos/Packages -g ../../c7-opnfv-x86_64-comps.xml -o centos
+	createrepo --update -g ../c7-opnfv-x86_64-comps.xml centos
 	# build the iso
 	@echo "Building OPNFV iso"
 	mkisofs -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -V "OPNFV CentOS 7 x86_64" -R -J -v -T -o $(NEWISO) centos
