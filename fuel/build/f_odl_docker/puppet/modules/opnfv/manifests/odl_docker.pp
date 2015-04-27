@@ -54,12 +54,6 @@ class opnfv::odl_docker
           package {'docker-io':
             ensure => latest,
           }
-
-          service {'docker':
-            ensure  => running,
-            enable  => true,
-            require => Package['docker-io'],
-          }
         }
       }
     }
