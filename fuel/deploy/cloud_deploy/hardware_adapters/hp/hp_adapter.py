@@ -2,432 +2,287 @@ import re
 import time
 from netaddr import EUI, mac_unix
 from cloud import common
-
-from run_oa_command import RunOACommand
+from ssh_client import SSHClient
 
 LOG = common.LOG
+err = common.err
+
+S = {'bay': 0, 'ilo_name': 1, 'ilo_ip': 2, 'status': 3, 'power': 4,
+     'uid_partner': 5}
 
 class HpAdapter(object):
-
-    # Exception thrown at any kind of failure to get the requested
-    # information.
-    class NoInfoFoundError(Exception):
-        pass
-
-    # Totally failed to connect so a re-try with other HW should
-    # be done. This exception should never escape this class.
-    class InternalConnectError(Exception):
-        pass
-
-    # Format MAC so leading zeroes are displayed
-    class mac_dhcp(mac_unix):
-        word_fmt = "%.2x"
 
     def __init__(self, mgmt_ip, username, password):
         self.mgmt_ip = mgmt_ip
         self.username = username
         self.password = password
-        self.oa_error_message = ''
 
-    def get_blade_mac_addresses(self, shelf, blade):
+    class mac_dhcp(mac_unix):
+        word_fmt = '%.2x'
 
-        LOG.debug("Entering: get_mac_addr_hp(%d,%d)" % (shelf, blade))
-        self.oa_error_message = ''
-        oa = RunOACommand(self.mgmt_ip, self.username, self.password)
+    def next_ip(self):
+        digit_list = self.mgmt_ip.split('.')
+        digit_list[3] = str(int(digit_list[3]) + 1)
+        self.mgmt_ip = '.'.join(digit_list)
 
-        LOG.debug("Connect to active OA for shelf %d" % shelf)
+    def connect(self):
+        verified_ips = [self.mgmt_ip]
+        ssh = SSHClient(self.mgmt_ip, self.username, self.password)
         try:
-            res = oa.connect_to_active()
-        except:
-            raise self.InternalConnectError(oa.error_message)
-        if res is None:
-            raise self.InternalConnectError(oa.error_message)
-        if not oa.connected():
-            raise self.NoInfoFoundError(oa.error_message)
+            ssh.open()
+        except Exception:
+            self.next_ip()
+            verified_ips.append(self.mgmt_ip)
+            ssh = SSHClient(self.mgmt_ip, self.username, self.password)
+            try:
+                ssh.open()
+            except Exception as e:
+                err('Could not connect to HP Onboard Administrator through '
+                    'these IPs: %s, reason: %s' % (verified_ips, e))
 
-        cmd = ("show server info " + str(blade))
+        lines = self.clean_lines(ssh.execute('show oa status'))
+        for line in lines:
+            if 'Role:   Standby' in line:
+                ssh.close()
+                if self.mgmt_ip != verified_ips[0]:
+                    err('Can only talk to OA %s which is the standby OA\n'
+                        % self.mgmt_ip)
+                else:
+                    LOG.debug('%s is the standby OA, trying next OA\n'
+                              % self.mgmt_ip)
+                    self.next_ip()
+                    verified_ips.append(self.mgmt_ip)
+                    ssh = SSHClient(self.mgmt_ip, self.username, self.password)
+                    try:
+                        ssh.open()
+                    except Exception as e:
+                        err('Could not connect to HP Onboard Administrator'
+                            ' through these IPs: %s, reason: %s'
+                            % (verified_ips, e))
 
-        LOG.debug("Send command to OA: %s" % cmd)
-        try:
-            serverinfo = oa.send_command(cmd)
-        except:
-            raise self.NoInfoFoundError(oa.error_message)
-        finally:
-            oa.close()
-
-        (left, right) = self.find_mac(serverinfo, shelf, blade)
-
-        left = EUI(left, dialect=self.mac_dhcp)
-        right = EUI(right, dialect=self.mac_dhcp)
-        return [str(left), str(right)]
+            elif 'Role:   Active' in line:
+                return ssh
+        err('Could not reach Active OA through these IPs %s' % verified_ips)
 
     def get_blades_mac_addresses(self, shelf, blade_list):
         macs_per_blade_dict = {}
-        LOG.debug("Getting MAC addresses for shelf %s, blades %s"
+        LOG.debug('Getting MAC addresses for shelf %s, blades %s'
                   % (shelf, blade_list))
-        self.oa_error_message = ''
-        oa = RunOACommand(self.mgmt_ip, self.username, self.password)
+        ssh = self.connect()
+        for blade in blade_list:
+            lines = self.clean_lines(
+                ssh.execute('show server info %s' % blade))
+            left, right = self.find_mac(lines, shelf, blade)
 
-        LOG.debug("Connect to active OA for shelf %d" % shelf)
-        try:
-            res = oa.connect_to_active()
-        except:
-            raise self.InternalConnectError(oa.error_message)
-        if res is None:
-            raise self.InternalConnectError(oa.error_message)
-        if not oa.connected():
-            raise self.NoInfoFoundError(oa.error_message)
-        try:
-            for blade in blade_list:
-                LOG.debug("Send command to OA: %s" % cmd)
-                cmd = ("show server info %s" % blade)
-                printout = oa.send_command(cmd)
-                left, right = self.find_mac(printout, shelf, blade)
-                left = EUI(left, dialect=self.mac_dhcp)
-                right = EUI(right, dialect=self.mac_dhcp)
-                macs_per_blade_dict[blade] = [str(left), str(right)]
-        except:
-            raise self.NoInfoFoundError(oa.error_message)
-        finally:
-            oa.close()
+            left = EUI(left, dialect=self.mac_dhcp)
+            right = EUI(right, dialect=self.mac_dhcp)
+            macs_per_blade_dict[blade] = [str(left), str(right)]
+        ssh.close()
         return macs_per_blade_dict
 
-    def get_blade_hardware_info(self, shelf, blade=None):
-        if blade:
-            LOG.debug("Entering: get_hp_info(%d,%d)" % (shelf, blade))
-        else:
-            LOG.debug("Entering: get_hp_info(%d)" % shelf)
-
-        self.oa_error_message = ''
-        oa = RunOACommand(self.mgmt_ip, self.username, self.password)
-
-        LOG.debug("Connect to active OA for shelf %d" % shelf)
-
-        try:
-            res = oa.connect_to_active()
-        except:
-            self.oa_error_message = oa.error_message
-            return None
-        if res is None:
-            self.oa_error_message = oa.error_message
-            return None
-        if not oa.connected():
-            self.oa_error_message = oa.error_message
-            return None
-
-        # If no blade specified we're done we know this is an HP at this point
-        if not blade:
-            oa.close()
-            return "HP"
-
-        check = "show server info %d" % blade
-        LOG.debug("Send command to OA: %s" % check)
-        output = oa.send_command("%s" % check)
-        oa.close()
-
-        match = r"Product Name:\s+(.+)\Z"
-        if re.search(match, str(output[:])) is None:
-            self.oa_error_message = ("Blade %d in shelf %d does not exist\n"
-                                     % (blade, shelf))
-            return None
-
-        for line in output:
-            seobj = re.search(match, line)
-            if seobj:
-                return "HP %s" % seobj.group(1)
-        return False
-
-    def power_off_blades(self, shelf, blade_list):
-        return self.set_state(shelf, 'locked', blade_list=blade_list)
-
-    def power_on_blades(self, shelf, blade_list):
-        return self.set_state(shelf, 'unlocked', blade_list=blade_list)
-
-    def set_boot_order_blades(self, shelf, blade_list):
-        return self.set_boot_order(shelf, blade_list=blade_list)
-
-    def power_off_blade(self, shelf, blade):
-        return self.set_state(shelf, 'locked', one_blade=blade)
-
-    def power_on_blade(self, shelf, blade):
-        return self.set_state(shelf, 'unlocked', one_blade=blade)
-
-    def set_boot_order_blade(self, shelf, blade):
-        return self.set_boot_order(shelf, one_blade=blade)
-
-    # Search HP's OA server info for MAC for left and right control
     def find_mac(self, printout, shelf, blade):
         left = False
         right = False
         for line in printout:
-            if ("No Server Blade Installed" in line or
-                    "Invalid Arguments" in line):
-                raise self.NoInfoFoundError("Blade %d in shelf %d "
-                                            "does not exist." % (blade, shelf))
-            seobj = re.search(r"LOM1:1-a\s+([0-9A-F:]+)", line, re.I)
+            if ('No Server Blade Installed' in line or
+                'Invalid Arguments' in line):
+                err('Blade %d in shelf %d does not exist' % (blade, shelf))
+
+            seobj = re.search(r'LOM1:1-a\s+([0-9A-F:]+)', line, re.I)
             if seobj:
                 left = seobj.group(1)
             else:
-                seobj = re.search(r"LOM1:2-a\s+([0-9A-F:]+)", line, re.I)
+                seobj = re.search(r'LOM1:2-a\s+([0-9A-F:]+)', line, re.I)
                 if seobj:
                     right = seobj.group(1)
             if left and right:
                 return left, right
-        raise self.NoInfoFoundError("Could not find MAC for blade %d "
-                                    "in shelf %d." % (blade, shelf))
 
-    # Do power on or off on all configured blades in shelf
-    # Return None to indicate that no connection do OA succeeded,
-    # Return False to indicate some connection to OA succeeded,
-    # or config error
-    # Return True to indicate that power state succesfully updated
-    # state: locked, unlocked
-    def set_state(self, shelf, state, one_blade=None, blade_list=None):
-        if state not in ['locked', 'unlocked']:
-            return None
+    def get_hardware_info(self, shelf, blade=None):
+        ssh = self.connect()
+        if ssh and not blade:
+            ssh.close()
+            return 'HP'
 
-        if one_blade:
-            LOG.debug("Entering: set_state_hp(%d,%s,%d)" %
-                      (shelf, state, one_blade))
-        else:
-            LOG.debug("Entering: set_state_hp(%d,%s)" % (shelf, state))
+        lines = self.clean_lines(ssh.execute('show server info %s' % blade))
+        ssh.close()
 
-        self.oa_error_message = ''
-
-        oa = RunOACommand(self.mgmt_ip, self.username, self.password)
-
-        LOG.debug("Connect to active OA for shelf %d" % shelf)
-
-        try:
-            res = oa.connect_to_active()
-        except:
-            self.oa_error_message = oa.error_message
-            return None
-        if res is None:
-            self.oa_error_message = oa.error_message
-            return None
-        if not oa.connected():
-            self.oa_error_message = oa.error_message
+        match = r'Product Name:\s+(.+)\Z'
+        if not re.search(match, str(lines[:])):
+            LOG.debug('Blade %s in shelf %s does not exist\n' % (blade, shelf))
             return False
 
-        if one_blade:
-            blades = [one_blade]
-        else:
-            blades = sorted(blade_list)
+        for line in lines:
+            seobj = re.search(match, line)
+            if seobj:
+                return 'HP %s' % seobj.group(1)
+        return False
 
-        LOG.debug("Check if blades are present")
+    def power_off_blades(self, shelf, blade_list):
+        return self.set_state(shelf, 'locked', blade_list)
 
-        check = "show server list"
+    def power_on_blades(self, shelf, blade_list):
+        return self.set_state(shelf, 'unlocked', blade_list)
 
-        LOG.debug("Send command to OA: %s" % check)
-        output = oa.send_command(check)
-        first = True
-        bladelist = ''
-        for blade in blades:
-            prog = re.compile(r"\s+" + str(blade) + r"\s+\[Absent\]",
-                              re.MULTILINE)
-            if prog.search(str(output[:])) is not None:
-                oa.close()
-                self.oa_error_message = ("Blade %d in shelf %d "
-                                         % (blade, shelf))
-                if one_blade:
-                    self.oa_error_message += ("does not exist.\n"
-                                         "Set state %s not performed.\n"
-                                         % state)
-                else:
-                    self.oa_error_message += (
-                        "specified but does not exist.\nSet "
-                        "state %s not performed on shelf %d\n"
-                        % (state, shelf))
-                return False
-            if not first:
-                bladelist += ","
-            else:
-                first = False
-            bladelist += str(blade)
+    def set_boot_order_blades(self, shelf, blade_list):
+        return self.set_boot_order(shelf, blade_list=blade_list)
 
-        if blade_list:
-            LOG.debug("All blades present")
+    def parse(self, lines):
+        parsed_list = []
+        for l in lines[5:-2]:
+             parsed = []
+             cluttered = [e.strip() for e in l.split(' ')]
+             for p in cluttered:
+                 if p:
+                     parsed.append(p)
+             parsed_list.append(parsed)
+        return parsed_list
+
+    def set_state(self, shelf, state, blade_list):
+        if state not in ['locked', 'unlocked']:
+            LOG.debug('Incorrect state: %s' % state)
+            return None
+
+        LOG.debug('Setting state %s for blades %s in shelf %s'
+                  % (state, blade_list, shelf))
+
+        blade_list = sorted(blade_list)
+        ssh = self.connect()
+
+        LOG.debug('Check if blades are present')
+        server_list = self.parse(
+            self.clean_lines(ssh.execute('show server list')))
+
+        for blade in blade_list:
+            if server_list[S['status']] == 'Absent':
+                LOG.debug('Blade %s in shelf %s is missing. '
+                          'Set state %s not performed\n'
+                          % (blade, shelf, state))
+                blade_list.remove(blade)
+
+        bladelist = ','.join(blade_list)
 
         # Use leading upper case on On/Off so it can be reused in match
-        extra = ""
-        if state == "locked":
-            powerstate = "Off"
-            extra = "force"
+        force = ''
+        if state == 'locked':
+            powerstate = 'Off'
+            force = 'force'
         else:
-            powerstate = "On"
+            powerstate = 'On'
+        cmd = 'power%s server %s' % (powerstate, bladelist)
+        if force:
+            cmd += ' %s' % force
 
-        cmd = "power%s server %s" % (powerstate, bladelist)
-
-        if extra != "":
-            cmd += " %s" % extra
-
-        LOG.debug("Send command to OA: %s" % cmd)
-
-        try:
-            oa.send_command(cmd)
-        except:
-            self.oa_error_message = oa.error_message
-            oa.close()
-            return False
+        LOG.debug(cmd)
+        ssh.execute(cmd)
 
         # Check that all blades reach the state which can take some time,
         # so re-try a couple of times
-        LOG.debug("Check if state %s successfully set" % state)
-        recheck = 2
-        while True:
-            LOG.debug("Send command to OA: %s" % check)
-            try:
-                output = oa.send_command(check)
-            except:
-                self.oa_error_message = oa.error_message
-                oa.close()
-                return False
-            for blade in blades:
-                match = (r"\s+" + str(blade) +
-                         r"\s+\w+\s+\w+.\w+.\w+.\w+\s+\w+\s+%s" %
-                         powerstate)
-                prog = re.compile(match, re.MULTILINE)
-                if prog.search(str(output[:])) is None:
-                    recheck -= 1
-                    if recheck >= 0:
-                        # Re-try
-                        time.sleep(3)
+        LOG.debug('Check if state %s successfully set' % state)
+
+        WAIT_LOOP = 2
+        SLEEP_TIME = 3
+
+        set_blades = []
+
+        for i in range(WAIT_LOOP):
+            server_list = self.parse(
+                self.clean_lines(ssh.execute('show server list')))
+
+            for blade in blade_list:
+                for server in server_list:
+                    if (server[S['bay']] == blade and
+                        server[S['power']] == powerstate):
+                        set_blades.append(blade)
                         break
-                    oa.close()
-                    self.oa_error_message = (
-                        "Could not set state %s on blade %d in shelf %d\n"
-                        % (state, one_blade, shelf))
-                    for line in output:
-                        self.oa_error_message += line
-                    return False
-            else:
-                # state reached for all blades, exit the infinite loop
+
+            all_set = set(blade_list) == set(set_blades)
+            if all_set:
                 break
-
-        if one_blade:
-            LOG.debug("State %s successfully set on blade %d in shelf %d"
-                      % (state, one_blade, shelf))
-        else:
-            LOG.debug("State %s successfully set on blades %s in shelf %d"
-                      % (state, blade_list, shelf))
-        oa.close()
-        return True
-
-    # Change boot order on all blades in shelf
-    # Return None to indicate that no connection do OA succeeded,
-    # Return False to indicate some connection to OA succeeded,
-    # or config error,
-    # Return True to indicate that boot order succesfully changed
-    def set_boot_order(self, shelf, one_blade=None, blade_list=None):
-
-        if one_blade:
-            LOG.debug("Entering: set_bootorder_hp(%d,%d)" % (shelf, one_blade))
-        else:
-            LOG.debug("Entering: set_bootorder_hp(%d)" % shelf)
-
-        self.oa_error_message = ''
-
-        oa = RunOACommand(self.mgmt_ip, self.username, self.password)
-
-        LOG.debug("Connect to active OA for shelf %d" % shelf)
-
-        try:
-            res = oa.connect_to_active()
-        except:
-            self.oa_error_message = oa.error_message
-            return None
-        if res is None:
-            self.oa_error_message = oa.error_message
-            return None
-        if not oa.connected():
-            self.oa_error_message = oa.error_message
-            return False
-
-        if one_blade:
-            blades = [one_blade]
-        else:
-            blades = sorted(blade_list)
-
-        LOG.debug("Check if blades are present")
-
-        check = "show server list"
-
-        LOG.debug("Send command to OA: %s" % check)
-
-        output = oa.send_command(check)
-        first = True
-        bladelist = ''
-        for blade in blades:
-            prog = re.compile(r"\s+" + str(blade) + r"\s+\[Absent\]",
-                              re.MULTILINE)
-            if prog.search(str(output[:])) is not None:
-                oa.close()
-                self.oa_error_message = ("Blade %d in shelf %d "
-                                         % (blade, shelf))
-                if one_blade:
-                    self.oa_error_message += (
-                        "does not exist.\nChange boot order not performed.\n")
-                else:
-                    self.oa_error_message += (
-                        "specified but does not exist.\n"
-                        "Change boot order not performed on shelf %d\n"
-                        % shelf)
-                return False
-            if not first:
-                bladelist += ','
             else:
-                first = False
-            bladelist += str(blade)
+                time.sleep(SLEEP_TIME)
 
-        if blade_list:
-            LOG.debug("All blades present")
+        ssh.close()
 
-        # Boot origins are pushed so first set boot from hard disk, then PXE
-        # NB! If we want to support boot from SD we must add USB to the "stack"
-        cmd1 = "set server boot first hdd %s" % bladelist
-        cmd2 = "set server boot first pxe %s" % bladelist
-        for cmd in [cmd1, cmd2]:
+        if all_set:
+            LOG.debug('State %s successfully set on blades %s in shelf %d'
+                      % (state, set_blades, shelf))
+            return True
+        else:
+            LOG.debug('Could not set state %s on blades %s in shelf %s\n'
+                      % (state, set(blade_list) - set(set_blades), shelf))
+        return False
 
-            LOG.debug("Send command to OA: %s" % cmd)
-            try:
-                output = oa.send_command(cmd)
-            except:
-                self.oa_error_message = oa.error_message
-                for line in output:
-                    self.oa_error_message += line
-                oa.close()
-                return False
 
-        # Check that all blades got the correct boot order
-        # Needs updating if USB is added
-        LOG.debug("Check if boot order successfully set")
-        match = (r"^.*Boot Order\):\',\s*\'(\\t)+PXE NIC 1\',\s*\'(\\t)"
-                 r"+Hard Drive")
-        prog = re.compile(match)
-        for blade in blades:
+    def clean_lines(self, printout):
+        lines = []
+        for p in [l.strip() for l in printout.splitlines()]:
+            if p:
+                lines.append(p)
+        return lines
 
-            check = "show server boot %d" % blade
 
-            LOG.debug("Send command to OA: %s" % check)
-            try:
-                output = oa.send_command(check)
-            except:
-                self.oa_error_message = oa.error_message
-                oa.close()
-                return False
-            if prog.search(str(output[:])) is None:
-                oa.close()
-                self.oa_error_message = ("Failed to set boot order on blade "
-                                         "%d in shelf %d\n" % (blade, shelf))
-                for line in output:
-                    self.oa_error_message += line
-                return False
-            LOG.debug("Boot order successfully set on blade %d in shelf %d"
-                      % (blade, shelf))
+    def set_boot_order_blades(self, shelf, blade_list, boot_dev_list=None):
 
-        if blade_list:
-            LOG.debug("Boot order successfully set on all configured blades "
-                      "in shelf %d" % (shelf))
-        oa.close()
-        return True
+        boot_dict = {'Hard Drive': 'hdd',
+                     'PXE NIC': 'pxe',
+                     'CD-ROM': 'cd',
+                     'USB': 'usb',
+                     'Diskette Driver': 'disk'}
+
+        boot_options = [b for b in boot_dict.itervalues()]
+        diff = list(set(boot_dev_list) - set(boot_options))
+        if diff:
+            err('The following boot options %s are not valid' % diff)
+
+        blade_list = sorted(blade_list)
+        LOG.debug('Setting boot order %s for blades %s in shelf %s'
+                  % (boot_dev_list, blade_list, shelf))
+
+        ssh = self.connect()
+
+        LOG.debug('Check if blades are present')
+        server_list = self.parse(
+            self.clean_lines(ssh.execute('show server list')))
+
+        for blade in blade_list:
+            if server_list[S['status']] == 'Absent':
+                LOG.debug('Blade %s in shelf %s is missing. '
+                          'Change boot order %s not performed.\n'
+                          % (blade, shelf, boot_dev_list))
+                blade_list.remove(blade)
+
+        bladelist = ','.join(blade_list)
+
+        for boot_dev in reversed(boot_dev_list):
+            ssh.execute('set server boot first %s %s' % (boot_dev, bladelist))
+
+        LOG.debug('Check if boot order is successfully set')
+
+        success_list = []
+        boot_keys = [b for b in boot_dict.iterkeys()]
+        for blade in blade_list:
+            lines = self.clean_lines(ssh.execute('show server boot %s'
+                                                 % blade))
+            boot_order = lines[lines.index('IPL Devices (Boot Order):')+1:]
+            boot_list = []
+            success = False
+            for b in boot_order:
+                for k in boot_keys:
+                    if k in b:
+                        boot_list.append(boot_dict[k])
+                        break
+                if boot_list == boot_dev_list:
+                    success = True
+                    break
+
+            success_list.append(success)
+            if success:
+                LOG.debug('Boot order %s successfully set on blade %s in '
+                          'shelf %s\n' % (boot_dev_list, blade, shelf))
+            else:
+                LOG.debug('Failed to set boot order %s on blade %s in '
+                          'shelf %s\n' % (boot_dev_list, blade, shelf))
+
+        ssh.close()
+        return all(success_list)
