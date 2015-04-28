@@ -7,13 +7,15 @@ class DeploymentEnvironmentAdapter(object):
         self.blade_ids_per_shelves = {}
         self.blades_per_shelves = {}
         self.shelf_ids = []
-        self.networks = {}
+        self.info_per_shelves = {}
+        self.network_names = []
 
     def parse_yaml(self, yaml_path):
         with io.open(yaml_path) as yaml_file:
             self.dea_struct = yaml.load(yaml_file)
         self.collect_shelf_and_blade_info()
-        self.collect_network_info()
+        self.collect_shelf_info()
+        self.collect_network_names()
 
     def get_no_of_blades(self):
         no_of_blades = 0
@@ -21,14 +23,16 @@ class DeploymentEnvironmentAdapter(object):
             no_of_blades += len(shelf['blade'])
         return no_of_blades
 
-    def get_server_type(self):
-        return self.dea_struct['server']['type']
+    def collect_shelf_info(self):
+        self.info_per_shelves = {}
+        for shelf in self.dea_struct['shelf']:
+            self.info_per_shelves[shelf['id']] = shelf
 
-    def get_server_info(self):
-        return (self.dea_struct['server']['type'],
-                self.dea_struct['server']['mgmt_ip'],
-                self.dea_struct['server']['username'],
-                self.dea_struct['server']['password'])
+    def get_shelf_info(self, shelf):
+        return (self.info_per_shelves[shelf]['type'],
+                self.info_per_shelves[shelf]['mgmt_ip'],
+                self.info_per_shelves[shelf]['username'],
+                self.info_per_shelves[shelf]['password'])
 
     def get_environment_name(self):
         return self.dea_struct['name']
@@ -54,19 +58,29 @@ class DeploymentEnvironmentAdapter(object):
                  blade_ids.append(blade['id'])
                  blades[blade['id']] = blade
 
-    def is_controller(self, shelf_id, blade_id):
-        blade = self.blades[shelf_id][blade_id]
-        return (True if 'role' in blade and blade['role'] == 'controller'
+    def has_role(self, role, shelf, blade):
+        blade = self.blades_per_shelves[shelf][blade]
+        if role == 'compute':
+            return True if 'roles' not in blade else False
+        return (True if 'roles' in blade and role in blade['roles']
                 else False)
 
-    def is_compute_host(self, shelf_id, blade_id):
-        blade = self.blades[shelf_id][blade_id]
-        return True if 'role' not in blade else False
-
-    def collect_network_info(self):
-        self.networks = {}
-        for network in self.dea_struct['network']:
-            self.networks[network['name']] = network
+    def collect_network_names(self):
+        self.network_names = []
+        for network in self.dea_struct['networks']['networks']:
+            self.network_names.append(network['name'])
 
     def get_networks(self):
-        return self.networks
+        return self.dea_struct['networks']
+
+    def get_network_names(self):
+        return self.network_names
+
+    def get_settings(self):
+        return self.dea_struct['settings']
+
+    def get_network_scheme(self, node_type):
+        return self.dea_struct[node_type]
+
+    def get_interfaces(self):
+        return self.dea_struct['interfaces']
