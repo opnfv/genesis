@@ -1,5 +1,5 @@
 :Authors: Jonas Bjurel (Ericsson)
-:Version: 0.1
+:Version: 0.2
 
 ================================================================
 OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV
@@ -14,7 +14,7 @@ License
 =======
 Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
 
-Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Unported License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
 **Contents**
@@ -40,7 +40,10 @@ Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Unported L
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-04-16         | 0.1.0              | Jonas Bjurel       | First draft        |
+| 2015-04-16         | 0.1                | Jonas Bjurel       | First draft        |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-04-23         | 0.2                | Jonas Bjurel       | Minor change       |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 

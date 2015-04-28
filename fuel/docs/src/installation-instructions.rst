@@ -1,5 +1,5 @@
 :Authors: Jonas Bjurel (Ericsson AB)
-:Version: 0.0.1
+:Version: 0.0.2
 
 ================================================
 OPNFV Installation instructions for - Fuel@OPNFV
@@ -14,7 +14,7 @@ License
 =======
 Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
 
-Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Unported License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
 **Contents**
@@ -45,6 +45,9 @@ Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Unported L
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 | 2015-04-15         | 0.0.1              | Jonas Bjurel       | First draft        |
+|                    |                    | (Ericsson AB)      |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-04-23         | 0.0.2              | Jonas Bjurel       | Minor changes      |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
@@ -231,8 +234,8 @@ This section describes the installation of the Fuel@OPNFV installation server (F
 
 14. Select network mode.
 
-    - Select Neutron with VLAN segmentation 
-    
+    - Select Neutron with VLAN segmentation
+
     ** Note: This will later be overridden to VXLAN by OpenDaylight.**
 
 15. Select Storage Backends.
@@ -311,13 +314,13 @@ This section describes the installation of the Fuel@OPNFV installation server (F
 31. Assign roles.
 
     - Check <Controller and Telemetry MongoDB>.
-    
+
     - Check the three servers you want to be installed as Controllesr in pane <Assign Role>.
 
     - Click <Apply Changes>.
- 
+
     - Check <Compute>.
- 
+
     - Check nodes to be installed as Compute nodes in pane Assign Role.
 
     - Click <Apply Changes>.
@@ -327,7 +330,7 @@ This section describes the installation of the Fuel@OPNFV installation server (F
     - Check Select <All> to select all nodes with Control, Telemetry . MongoDB and Compute node roles.
 
     - Click <Configure Interfaces>
-    
+
     - Screen Configure interfaces on number of <number of nodes> nodes is shown.
     - Assign interfaces (bonded) for mgmt-, admin-, private-, public- and storage networks
 
