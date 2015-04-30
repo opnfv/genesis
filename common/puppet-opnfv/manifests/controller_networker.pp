@@ -30,7 +30,6 @@ class opnfv::controller_networker {
 
   ##Mandatory Common variables
   if $admin_email == '' { fail('admin_email is empty') }
-  if $ovs_tunnel_if == '' { fail('ovs_tunnel_if is empty') }
 
   ##Most users will only care about a single user/password for all services
   ##so lets create one variable that can be used instead of separate usernames/passwords
@@ -73,7 +72,10 @@ class opnfv::controller_networker {
     if !$nova_admin_vip { fail('nova_admin_vip is empty') }
     if !$nova_private_vip { fail('nova_private_vip is empty') }
     if !$nova_public_vip { fail('nova_public_vip is empty') }
+    if $private_network == '' { fail('private_network is empty') }
 
+    ##Find private interface
+    $ovs_tunnel_if = get_nic_from_network("$private_network")
 
     ##Optional HA variables
     if !$amqp_username  { $amqp_username = $single_username }
@@ -102,7 +104,11 @@ class opnfv::controller_networker {
     if !$pcmk_server_addrs {$pcmk_server_addrs = $controllers_ip_array}
     if !$pcmk_server_names {$pcmk_server_names = ["pcmk-${controllers_hostnames_array[0]}", "pcmk-${controllers_hostnames_array[1]}", "pcmk-${controllers_hostnames_array[2]}"] }
     if !$rbd_secret_uuid { $rbd_secret_uuid = '3b519746-4021-4f72-957e-5b9d991723be' }
-    if !$storage_iface { $storage_iface = $ovs_tunnel_if }
+    if !$storage_network {
+          $storage_iface = $ovs_tunnel_if
+    } else {
+          $storage_iface = get_nic_from_network("$storage_network")
+    }
 
     ##we assume here that if not provided, the first controller is where ODL will reside
     ##this is fine for now as we will replace ODL with ODL HA when it is ready
@@ -273,7 +279,7 @@ class opnfv::controller_networker {
     }
 
   } else {
-
+    if $ovs_tunnel_if == '' { fail('ovs_tunnel_if is empty') }
     if $public_ip == '' { fail('public_ip is empty') }
     if $private_ip == '' { fail('private_ip is empty') }
 
