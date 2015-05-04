@@ -39,6 +39,30 @@ dha_f_run()
   fi
 }
 
+
+dha_f_ipmi()
+{
+
+    local nodeId
+    local ipmiIp
+    local ipmiUser
+    local ipmiPass
+
+    nodeId=$1
+    shift
+
+    ipmiIp=$($DHAPARSE $DHAFILE getNodeProperty $nodeId ipmiIp)
+    ipmiUser=$($DHAPARSE $DHAFILE getNodeProperty $nodeId ipmiUser)
+    ipmiPass=$($DHAPARSE $DHAFILE getNodeProperty $nodeId ipmiPass)
+
+    test -n "$ipmiIp" || error_exit "Could not get IPMI IP"
+    test -n "$ipmiUser" || error_exit "Could not get IPMI username"
+    test -n "$ipmiPass" || error_exit "Could not get IPMI password"
+
+    ipmitool -I lanplus -A password -H $ipmiIp -U $ipmiUser -P $ipmiPass \
+	$@
+}
+
 # Internal functions END
 ########################################################################
 
@@ -55,7 +79,7 @@ dha_getApiVersion ()
 # API: Get the name of this adapter
 dha_getAdapterName ()
 {
-    echo "libvirt"
+    echo "ipmi"
 }
 
 # API: ### Node identity functions ###
@@ -114,8 +138,109 @@ dha_useFuelCustomInstall()
 # API: Argument 1: Full path to ISO file to install
 dha_fuelCustomInstall()
 {
+    if [ ! -e $1 ]; then
+	error_exit "Could not access ISO file $1"
+    fi
+
     dha_useFuelCustomInstall || dha_f_err 1 "dha_fuelCustomInstall not supported"
-    date
+
+    fuelIp=`dea getFuelIp` || error_exit "Could not get fuel IP"
+    fuelNodeId=`dha getFuelNodeId` || error_exit "Could not get fuel node id"
+    virtName=`$DHAPARSE $DHAFILE getNodeProperty $fuelNodeId libvirtName`
+
+    # Power off the node
+    virsh destroy $virtName
+    sleep 5
+
+    # Zero the MBR
+    fueldisk=`virsh dumpxml $virtName | \
+     grep "<source file" | grep raw | sed "s/.*'\(.*\)'.*/\1/"`
+    disksize=`ls -l $fueldisk | awk '{ print $5 }'`
+    rm -f $fueldisk
+    fallocate -l $disksize $fueldisk
+
+    # Set the boot order
+    for order in disk iso
+    do
+        if [ "$order" == "pxe" ]; then
+            bootline+="<boot dev='network'\/>\n"
+        elif [ "$order" == "disk" ]; then
+            bootline+="<boot dev='hd'/\>\n"
+        elif [ "$order" == "iso" ]; then
+            bootline+="<boot dev='cdrom'/\>\n"
+        else
+            error_exit "Unknown boot type: $order"
+        fi
+    done
+
+    virsh dumpxml $virtName | grep -v "<boot dev.*>" | \
+        sed "/<\/os>/i\
+    ${bootline}" > $tmpdir/vm.xml || error_exit "Could not set bootorder"
+    virsh define $tmpdir/vm.xml || error_exit "Could not set bootorder"
+
+
+    # Get name of CD device
+    cdDev=`virsh domblklist $virtName | tail -n +3 | awk '{ print $1 }' | grep ^hd`
+
+    # Eject and insert ISO
+    virsh change-media $virtName --config --eject $cdDev
+    sleep 5
+    virsh change-media $virtName --config --insert $cdDev $1 || error_exit "Could not insert CD $1"
+    sleep 5
+
+    virsh start $virtName || error_exit "Could not start $virtName"
+    sleep 5
+
+    # wait for node up
+    echo "Waiting for Fuel master to accept SSH"
+    while true
+    do
+	ssh root@${fuelIp} date 2>/dev/null
+	if [ $? -eq 0 ]; then
+	    break
+	fi
+	sleep 10
+    done
+
+    # Wait until fuelmenu is up
+    echo "Waiting for fuelmenu to come up"
+    menuPid=""
+    while [ -z "$menuPid" ]
+    do
+	menuPid=`ssh root@${fuelIp} "ps -ef" 2>&1 | grep fuelmenu | grep -v grep | awk '{ print $2 }'`
+	sleep 10
+    done
+
+    # This is where we inject our own astute.yaml settings
+    scp -q $deafile root@${fuelIp}:. || error_exit "Could not copy DEA file to Fuel"
+    echo "Uploading build tools to Fuel server"
+    ssh root@${fuelIp} rm -rf tools || error_exit "Error cleaning old tools structure"
+    scp -qrp $topdir/tools root@${fuelIp}:. || error_exit "Error copying tools"
+    echo "Running transplant #0"
+    ssh root@${fuelIp} "cd tools; ./transplant0.sh ../`basename $deafile`" \
+	|| error_exit "Error running transplant sequence #0"
+
+
+
+    # Let the Fuel deployment continue
+    echo "Found menu as PID $menuPid, now killing it"
+    ssh root@${fuelIp} "kill $menuPid" 2>/dev/null
+
+    # Wait until installation complete
+    echo "Waiting for bootstrap of Fuel node to complete"
+    while true
+    do
+	ssh root@${fuelIp} "ps -ef" 2>/dev/null \
+	    | grep -q /usr/local/sbin/bootstrap_admin_node
+	if [ $? -ne 0 ]; then
+	    break
+	fi
+	sleep 10
+    done
+
+    echo "Waiting for one minute for Fuel to stabilize"
+    sleep 1m
+
 }
 
 # API: Get power on strategy from DHA
@@ -138,18 +263,19 @@ dha_getPowerOnStrategy()
     fi
 }
 
-
 # API: Power on node
 # API: Argument 1: node id
 dha_nodePowerOn()
 {
-    local state
-    local virtName
+    local nodeId
 
-    virtName=`$DHAPARSE $DHAFILE getNodeProperty $1 libvirtName`
-    state=`virsh domstate $virtName`
-    if [ "$state" == "shut off" ]; then
-        dha_f_run virsh start $virtName
+    nodeId=$1
+    state=$(dha_f_ipmi $1 chassis power status) || error_exit "Could not get IPMI power status"
+    echo "state $state"
+
+
+    if [ "$(echo $state | sed 's/.* //')" == "off" ]; then
+        dha_f_ipmi $1 chassis power on
     fi
 }
 
@@ -157,13 +283,15 @@ dha_nodePowerOn()
 # API: Argument 1: node id
 dha_nodePowerOff()
 {
-    local state
-    local virtName
+    local nodeId
 
-    virtName=`$DHAPARSE $DHAFILE getNodeProperty $1 libvirtName`
-    state=`virsh domstate $virtName`
-    if [ "$state" != "shut off" ]; then
-        dha_f_run virsh destroy $virtName
+    nodeId=$1
+    state=$(dha_f_ipmi $1 chassis power status) || error_exit "Could not get IPMI power status"
+    echo "state $state"
+
+
+    if [ "$(echo $state | sed 's/.* //')" != "off" ]; then
+        dha_f_ipmi $1 chassis power off
     fi
 }
 
@@ -171,10 +299,16 @@ dha_nodePowerOff()
 # API: Argument 1: node id
 dha_nodeReset()
 {
-    local virtName
+    local nodeId
 
-    virtName=`$DHAPARSE $DHAFILE getNodeProperty $1 libvirtName`
-    dha_f_run virsh reset $virtName
+    nodeId=$1
+    state=$(dha_f_ipmi $1 chassis power reset) || error_exit "Could not get IPMI power status"
+    echo "state $state"
+
+
+    if [ "$(echo $state | sed 's/.* //')" != "off" ]; then
+        dha_f_ipmi $1 chassis power reset
+    fi
 }
 
 # Boot order and ISO boot file
@@ -184,42 +318,31 @@ dha_nodeReset()
 # API: Returns 0 if true, 1 if false
 dha_nodeCanSetBootOrderLive()
 {
-  return $false
+  return $true
 }
 
 # API: Set node boot order
 # API: Argument 1: node id
 # API: Argument 2: Space separated line of boot order - boot ids are "pxe", "disk" and "iso"
+# Strategy for IPMI: Always set boot order to persistent except in the case of CDROM.
 dha_nodeSetBootOrder()
 {
     local id
-    local bootline
-    local virtName
     local order
 
     id=$1
-    virtName=`$DHAPARSE $DHAFILE getNodeProperty $1 libvirtName`
     shift
+    order=$1
 
-    for order in $@
-    do
-        if [ "$order" == "pxe" ]; then
-            bootline+="<boot dev='network'\/>\n"
-        elif [ "$order" == "disk" ]; then
-            bootline+="<boot dev='hd'/\>\n"
-        elif [ "$order" == "iso" ]; then
-            bootline+="<boot dev='cdrom'/\>\n"
-        else
-            error_exit "Unknown boot type: $order"
-        fi
-    done
-    echo $bootline
-
-    virsh dumpxml $virtName | grep -v "<boot dev.*>" | \
-        sed "/<\/os>/i\
-    ${bootline}" > $tmpdir/vm.xml || error_exit "Could not set bootorder"
-    virsh define $tmpdir/vm.xml || error_exit "Could not set bootorder"
-
+    if [ "$order" == "pxe" ]; then
+	dha_f_ipmi $id chassis bootdev pxe options=persistent || error_exit "Could not get IPMI power status"
+    elif [ "$order" == "iso" ]; then
+	dha_f_ipmi $id chassis bootdev cdrom || error_exit "Could not get IPMI power status"
+    elif [ "$order" == "disk" ]; then
+	dha_f_ipmi $id chassis bootdev disk options=persistent  || error_exit "Could not get IPMI power status"
+    else
+        error_exit "Unknown boot type: $order"
+    fi
 }
 
 # API: Is the node able to operate on ISO media?
@@ -227,7 +350,7 @@ dha_nodeSetBootOrder()
 # API: Returns 0 if true, 1 if false
 dha_nodeCanSetIso()
 {
-  return $true
+  return $false
 }
 
 # API: Is the node able to insert add eject ISO files without power toggle?
@@ -235,7 +358,7 @@ dha_nodeCanSetIso()
 # API: Returns 0 if true, 1 if false
 dha_nodeCanHandeIsoLive()
 {
-  return $true
+  return $false
 }
 
 # API: Insert ISO into virtualDVD
@@ -243,24 +366,14 @@ dha_nodeCanHandeIsoLive()
 # API: Argument 2: iso file
 dha_nodeInsertIso()
 {
-    local virtName
-    local isoFile
-
-    virtName=`$DHAPARSE $DHAFILE getNodeProperty $1 libvirtName`
-    isoFile=$2
-    virsh change-media $virtName --insert hdc $isoFile
+    error_exit "Node can not handle InsertIso"
 }
 
 # API: Eject ISO from virtual DVD
 # API: Argument 1: node id
 dha_nodeEjectIso()
 {
-    local virtName
-    local isoFile
-
-    virtName=`$DHAPARSE $DHAFILE getNodeProperty $1 libvirtName`
-    isoFile=$2
-    virsh change-media $virtName --eject hdc
+    error_exit "Node can not handle InsertIso"
 }
 
 # API: Wait until a suitable time to change the boot order to
@@ -269,27 +382,20 @@ dha_nodeEjectIso()
 # API: We should make a smart trigger for this somehow...
 dha_waitForIsoBoot()
 {
-    echo "waitForIsoBoot: No delay necessary for libvirt"
+    echo "waitForIsoBoot: Not used by ipmi"
 }
 
 # API: Is the node able to reset its MBR?
 # API: Returns 0 if true, 1 if false
 dha_nodeCanZeroMBR()
 {
-    return $true
+    return $false
 }
 
 # API: Reset the node's MBR
 dha_nodeZeroMBR()
 {
-    local fueldisk
-    local disksize
-
-    fueldisk=`virsh dumpxml $(dha_getNodeProperty $1 libvirtName) | \
-     grep "<source file" | grep raw | sed "s/.*'\(.*\)'.*/\1/"`
-    disksize=`ls -l $fueldisk | awk '{ print $5 }'`
-    rm -f $fueldisk
-    fallocate -l $disksize $fueldisk
+    error_exit "Node $1 does not support ZeroMBR"
 }
 
 

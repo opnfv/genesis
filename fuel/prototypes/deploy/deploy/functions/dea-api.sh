@@ -101,7 +101,7 @@ dea_getFuelDns()
 # API: Convert a normal MAC to a Fuel short mac for --node-id
 dea_convertMacToShortMac()
 {
-    echo $1 | sed 's/.*..:..:..:..:\(..:..\).*/\1/'
+    echo $1 | sed 's/.*..:..:..:..:\(..:..\).*/\1/' | tr [A-Z] [a-z]
 }
 
 

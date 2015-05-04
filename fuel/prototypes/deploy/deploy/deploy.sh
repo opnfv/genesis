@@ -107,18 +107,20 @@ fuelGateway=`dea getFuelGateway` || error_exit "Could not get Fuel Gateway"
 fuelHostname=`dea getFuelHostname` || error_exit "Could not get Fuel hostname"
 fuelDns=`dea getFuelDns` || error_exit "Could not get Fuel DNS"
 fuelNodeId=`dha getFuelNodeId` || error_exit "Could not get fuel node id"
+dha useFuelCustomInstall
+fuelCustom=$?
 
 # Stop all VMs
 for id in `dha getAllNodeIds`
 do
-  if [ $nofuel -eq 0 ]; then
+  if [ $nofuel -eq 0 -o $fuelCustom -eq 0 ]; then
       if  [ $fuelNodeId -ne $id ]; then
           echo "Powering off id $id"
           dha nodePowerOff $id
       fi
   else
-          echo "Powering off id $id"
-          dha nodePowerOff $id
+      echo "Powering off id $id"
+      dha nodePowerOff $id
   fi
 done
 
@@ -135,7 +137,7 @@ if [ $nofuel -eq 1 ]; then
     isofile=$deployiso
     if dha useFuelCustomInstall; then
         echo "Custom Fuel install"
-        dha fuelCustomInstall || error_exit "Failed to run Fuel custom install"
+        dha fuelCustomInstall $isofile || error_exit "Failed to run Fuel custom install"
     else
         echo "Ordinary Fuel install"
         . ${functions}/install_iso.sh || error_exit "Failed to install Fuel"
