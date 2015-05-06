@@ -77,6 +77,7 @@ sed -i "s/ hostname=[^ ]*/ hostname=$fuelHostname/" isolinux/isolinux.cfg
 sed -i "s/ showmenu=[^ ]*/ showmenu=yes/" isolinux/isolinux.cfg
 echo "isolinux.cfg after: `grep netmask isolinux/isolinux.cfg`"
 
+rm -vf $newiso
 echo "Creating iso $newiso"
 mkisofs -quiet -r  \
   -J -R -b isolinux/isolinux.bin \

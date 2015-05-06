@@ -11,7 +11,7 @@
 
 error_exit()
 {
-  echo "Erroxxxr: $@"
+  echo "Error: $@" >&2
   exit 1
 }
 
@@ -77,7 +77,7 @@ do
     else
         libvirtName=""
     fi
-    
+
     if [ $id == "`dha getFuelNodeId`" ]; then
         echo "$id: `dha getNodeProperty $id pxeMac` $libvirtName  <--- Fuel master"
     else
@@ -121,6 +121,5 @@ if dha nodeCanZeroMBR; then
 else
   echo "no"
 fi
-
 
 echo "Done"

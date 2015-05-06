@@ -14,6 +14,10 @@ echo "Uploading build tools to Fuel server"
 ssh root@${fuelIp} rm -rf tools || error_exit "Error cleaning old tools structure"
 scp -qrp $topdir/tools root@${fuelIp}:. || error_exit "Error copying tools"
 
+echo "Uploading templating tols to Fuel server"
+ssh root@${fuelIp} rm -rf create_templates || error_exit "Error cleaning old create_templates structure"
+scp -qrp $topdir/../create_templates root@${fuelIp}:. || error_exit "Error copying create_templates"
+
 # Refuse to run if environment already present
 envcnt=`fuel env | tail -n +3 | grep -v '^$' | wc -l`
 if [ $envcnt -ne 0 ]; then

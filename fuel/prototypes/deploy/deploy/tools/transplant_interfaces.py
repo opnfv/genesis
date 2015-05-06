@@ -63,11 +63,14 @@ for interface in doc1:
   assigned = []
   nw = {}
   interface["assigned_networks"] = []
-  for nwname in nodeInfo["interfaces"][interface["name"]]:
-    iface = {}
-    iface["id"] = nwlookup[nwname]
-    iface["name"] = nwname
-    interface["assigned_networks"].append(iface)
+  try:
+    for nwname in nodeInfo["interfaces"][interface["name"]]:
+      iface = {}
+      iface["id"] = nwlookup[nwname]
+      iface["name"] = nwname
+      interface["assigned_networks"].append(iface)
+  except:
+    print "No match for interface " + interface["name"]
 
 f3 = open(infile, 'w')
 f3.write(yaml.dump(doc1, default_flow_style=False))
