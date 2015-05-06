@@ -26,7 +26,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Other applicable upstream project Licenses relevant for Fuel@OPNFV
+Other applicable upstream project Licenses
 ==================================================================
 You may not use the content of this software bundle except in compliance with the
 Licenses as listed below:
@@ -58,20 +58,29 @@ Licenses as listed below:
 | Linux          | GPLv3                                               |
 |                | https://www.gnu.org/copyleft/gpl.html               |
 +----------------+-----------------------------------------------------+
+| Ceph           | GPL v2                                              |
+|                | https://www.gnu.org/licenses/gpl-2.0.html           |
++----------------+-----------------------------------------------------+
+| Puppet         | Apache License 2.0                                  |
+|                | https://www.apache.org/licenses/LICENSE-2.0         |
++----------------+-----------------------------------------------------+
+
+Other applicable upstream project Licenses used by Fuel ISO
+==================================================================
+You may not use the content of this software bundle except in compliance with the
+Licenses as listed below:
+
++----------------+-----------------------------------------------------+
+| **Component**  | **Licence**                                         |
++----------------+-----------------------------------------------------+
 | Docker         | Apache License 2.0                                  |
-|                | https://www.apache.org/licenses/LICENSE-2.0
+|                | https://www.apache.org/licenses/LICENSE-2.0         |
 +----------------+-----------------------------------------------------+
 | Fuel           | Apache License 2.0                                  |
 |                | https://www.apache.org/licenses/LICENSE-2.0         |
 +----------------+-----------------------------------------------------+
 | OpenJDK/JRE    | GPL v2                                              |
 |                | https://www.gnu.org/licenses/gpl-2.0.html           |
-+----------------+-----------------------------------------------------+
-| Ceph           | GPL v2                                              |
-|                | https://www.gnu.org/licenses/gpl-2.0.html           |
-+----------------+-----------------------------------------------------+
-| Puppet         | Apache License 2.0                                  |
-|                | https://www.apache.org/licenses/LICENSE-2.0         |
 +----------------+-----------------------------------------------------+
 | Cobbler        | GPL v2                                              |
 |                | https://www.gnu.org/licenses/gpl-2.0.html           |
@@ -83,3 +92,25 @@ Licenses as listed below:
 |                | https://www.apache.org/licenses/LICENSE-2.0         |
 +----------------+-----------------------------------------------------+
 
+Other applicable upstream project Licenses used by Foreman ISO
+==================================================================
+You may not use the content of this software bundle except in compliance with the
+Licenses as listed below:
+
++----------------+-----------------------------------------------------+
+| **Component**  | **Licence**                                         |
++----------------+-----------------------------------------------------+
+| Foreman        | Creative Commons Attribution-ShareAlike 3.0         |
+|                | http://creativecommons.org/licenses/by-sa/3.0/      |
++----------------+-----------------------------------------------------+
+| VirtualBox     | GPL v2                                              |
+|                | https://www.gnu.org/licenses/gpl-2.0.html           |
++----------------+-----------------------------------------------------+
+| Vagrant        | The MIT License
++----------------+-----------------------------------------------------+
+| Ansible        | GPL v3                                              |
+|                | https://www.gnu.org/licenses/gpl-3.0.html           |
++----------------+-----------------------------------------------------+
+| Khaleesi       | GPL v3                                              |
+|                | https://www.gnu.org/licenses/gpl-3.0.html           |
++----------------+-----------------------------------------------------+
