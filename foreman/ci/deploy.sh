@@ -24,6 +24,7 @@ blue=`tput setaf 4`
 red=`tput setaf 1`
 green=`tput setaf 2`
 
+declare -A interface_arr
 ##END VARS
 
 ##FUNCTIONS
@@ -206,6 +207,14 @@ else
   printf '%s\n' 'deploy.sh: Skipping kernel module for virtualbox.  Already Installed'
 fi
 
+##install Ansible
+if ! yum list installed | grep -i ansible; then
+  if ! yum -y install ansible; then
+    printf '%s\n' 'deploy.sh: Unable to install Ansible package' >&2
+    exit 1
+  fi
+fi
+
 ##install Vagrant
 if ! rpm -qa | grep vagrant; then
   if ! rpm -Uvh https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.rpm; then
@@ -252,7 +261,7 @@ cd bgs_vagrant
 echo "${blue}Detecting network configuration...${reset}"
 ##detect host 1 or 3 interface configuration
 #output=`ip link show | grep -E "^[0-9]" | grep -Ev ": lo|tun|virbr|vboxnet" | awk '{print $2}' | sed 's/://'`
-output=`ifconfig | grep -E "^[a-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet:" | awk '{print $1}' | sed 's/://'`
+output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
 
 if [ ! "$output" ]; then
   printf '%s\n' 'deploy.sh: Unable to detect interfaces to bridge to' >&2
@@ -274,6 +283,7 @@ for interface in ${output}; do
   if [ ! "$new_ip" ]; then
     continue
   fi
+  interface_arr[$interface]=$if_counter
   interface_ip_arr[$if_counter]=$new_ip
   subnet_mask=$(find_netmask $interface)
   if [ "$if_counter" -eq 1 ]; then
@@ -310,15 +320,47 @@ fi
 echo "${blue}Network detected: ${deployment_type}! ${reset}"
 
 if route | grep default; then
-  defaultgw=$(route | grep default | awk '{print $2}')
-  echo "${blue}Default gateway detected: $defaultgw ${reset}"
-  sed -i 's/^.*default_gw =.*$/  default_gw = '\""$defaultgw"\"'/' Vagrantfile
+  echo "${blue}Default Gateway Detected ${reset}"
+  host_default_gw=$(ip route | grep default | awk '{print $3}')
+  echo "${blue}Default Gateway: $host_default_gw ${reset}"
+  default_gw_interface=$(ip route get $host_default_gw | awk '{print $3}')
+  case "${interface_arr[$default_gw_interface]}" in
+           0)
+             echo "${blue}Default Gateway Detected on Admin Interface!${reset}"
+             sed -i 's/^.*default_gw =.*$/  default_gw = '\""$host_default_gw"\"'/' Vagrantfile
+             node_default_gw=$host_default_gw
+             ;;
+           1)
+             echo "${red}Default Gateway Detected on Private Interface!${reset}"
+             echo "${red}Private subnet should be private and not have Internet access!${reset}"
+             exit 1
+             ;;
+           2)
+             echo "${blue}Default Gateway Detected on Public Interface!${reset}"
+             sed -i 's/^.*default_gw =.*$/  default_gw = '\""$host_default_gw"\"'/' Vagrantfile
+             echo "${blue}Will setup NAT from Admin -> Public Network on VM!${reset}"
+             sed -i 's/^.*nat_flag =.*$/  nat_flag = true/' Vagrantfile
+             echo "${blue}Setting node gateway to be VM Admin IP${reset}"
+             node_default_gw=${interface_ip_arr[0]}
+             ;;
+           3)
+             echo "${red}Default Gateway Detected on Storage Interface!${reset}"
+             echo "${red}Storage subnet should be private and not have Internet access!${reset}"
+             exit 1
+             ;;
+           *)
+             echo "${red}Unable to determine which interface default gateway is on..Exiting!${reset}"
+             exit 1
+             ;;
+  esac
 else
-  defaultgw=`echo ${interface_arr_ip[0]} | cut -d. -f1-3`
+  #assumes 24 bit mask
+  defaultgw=`echo ${interface_ip_arr[0]} | cut -d. -f1-3`
   firstip=.1
   defaultgw=$defaultgw$firstip
   echo "${blue}Unable to find default gateway.  Assuming it is $defaultgw ${reset}"
   sed -i 's/^.*default_gw =.*$/  default_gw = '\""$defaultgw"\"'/' Vagrantfile
+  node_default_gw=$defaultgw
 fi
 
 if [ $base_config ]; then
@@ -339,7 +381,7 @@ echo "${blue}Gathering network parameters for Target System...this may take a fe
 ##if single node deployment all the variables will have the same ip
 ##interface names will be enp0s3, enp0s8, enp0s9 in chef/centos7
 
-sed -i 's/^.*default_gw:.*$/default_gw:'" $defaultgw"'/' opnfv_ksgen_settings.yml
+sed -i 's/^.*default_gw:.*$/default_gw:'" $node_default_gw"'/' opnfv_ksgen_settings.yml
 
 ##replace private interface parameter
 ##private interface will be of hosts, so we need to know the provisioned host interface name
