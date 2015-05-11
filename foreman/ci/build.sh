@@ -296,7 +296,6 @@ if [ ! -z ${BUILD_CACHE_URI} ]; then
 	echo "Downloading cach file ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME} ..."
 	set +e
 	${REMOTE_ACCESS_METHD} -o ${CACHE_TMP}/cache/${LOCAL_CACHE_ARCH_NAME}.tgz ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz
-	tar -tzf ${BUILD_CACHE_URI}/${REMOTE_CACHE_ARCH_NAME}.tgz >/dev/null
 	rc=$?
 	set -e
 	if [ $rc -ne 0 ]; then
