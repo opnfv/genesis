@@ -1,20 +1,20 @@
 :Authors: Jonas Bjurel (Ericsson)
-:Version: 0.2
+:Version: 0.3
 
-================================================================
-OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV
-================================================================
+=====================================================================================
+OPNFV Release Note for the Arno release of OPNFV when using Fuel as a deployment tool
+=====================================================================================
 
 Abstract
 ========
 
-This document provides the release notes for ARNO-RC2 release candidate of Fuel@OPNFV.
+This document compiles the release notes for the ARNO release, when using Fuel as a deployment tool.
 
 License
 =======
-Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
+Arno release with th Fuel deployment tool Docs (c) by Jonas Bjurel (Ericsson AB)
 
-Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Arno release with the Fuel deployment tool Docs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
 **Contents**
@@ -46,45 +46,44 @@ Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Internatio
 | 2015-04-23         | 0.2                | Jonas Bjurel       | Minor change       |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-05-12         | 0.3                | Chris Price        | Minor edits       |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
 
 2   Important notes
 ===================
 
-This is the first OPNFV Arno pre-release that implements the deploy stage of the OPNFV CI pipeline.
+This is the first OPNFV release of Arno using Fuel as the deploment stage of the OPNFV CI pipeline.  The intention of this release is to establish a foundation platform to accelerate the development of the OPNFV infrastructure.
 
-Carefully follow the installation-instructions and pay special attention to the pre-deploy script that needs to be ran befor deployment is started.
+Carefully follow the installation-instructions and pay special attention to the pre-deploy script that needs to be run befor deployment is started.
 
 3   Summary
 ===========
 
-Arno Fuel@OPNFV is based the OpenStack Fuel upstream project version 6.0.1, but adds OPNFV unique components such as OpenDaylight version: Helium as well as other OPNFV unique configurations.
+Arno release with the Fuel deployment tool uses the OpenStack Fuel upstream project version 6.0.1, but adds OPNFV unique components such as OpenDaylight version: Helium as well as other OPNFV unique configurations.
 
-This Arno pre-release of Fuel@OPNFV adds the deploy stage of the OPNFV CI pipeline
+This Arno release artefact provides the Fuel deployment tool as the deploy stage of the OPNFV CI pipeline including:
 
-- Documentation is built by Jenkins
-- .iso image is built by Jenkins
-- Jenkins deploy an Fuel@OPNFV stack instance on a nested hypervisor environment (KVM)
+- Documentation built by Jenkins
+- The Arno .iso image built by Jenkins
+- Automated deployment of the Arno release with the Fuel deployment tool stack instance on bare metal or a nested hypervisor environment (KVM)
+- Automated validation of the Arno deployment
 
-Automatic test of the deployed system is not part of this pre-release.
 
 4   Release Data
 ================
 
 +--------------------------------------+--------------------------------------+
-| **Project**                          | Arno/genesis/fuel                    |
+| **Project**                          | Arno/genesis/fuel                |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/tag**                         | genesis/arno-rc2                     |
+| **Repo/tag**                         | genesis/arno                     |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | Arno RC2                             |
+| **Release designation**              | Arno                             |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release date**                     | 2015-04-16                           |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| **Purpose of the delivery**          | OPNFV Internal quality assurance     |
-|                                      | and CI Pipline dry-run               |
+| **Release date**                     | 2015-Spring                      |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -93,20 +92,18 @@ Automatic test of the deployed system is not part of this pre-release.
 
 4.1.1   Module version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This is the first tracked version of genesis/fuel. It is based on following upstream versions:
+This is the first tracked release of genesis/fuel. It is based on following upstream versions:
 
 - Fuel 6.0.1 (Juno release)
 
 - OpenDaylight Helium-SR2
 
-- Ubuntu 12.04.5
-
 4.1.2   Document version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This is the first tracked version of genesis/fuel. It comes with the following documentation:
 
-- OPNFV Installation instructions for - Fuel@OPNFV - ver. 0.0.1
-- OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV - ver. 0.1 (this document)
+- OPNFV Installation instructions for the Arno release with the Fuel deployment tool - ver. 0.0.1
+- OPNFV Release Notes for Arno release with the Fuel deployment tool - ver. 0.1 (this document)
 
 4.2 Reason for version
 ----------------------
@@ -146,8 +143,8 @@ Fuel@OPNFV .iso file
 
 4.3.2   Documentation deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- OPNFV Installation instructions for - Fuel@OPNFV - ver. 0.0.1
-- OPNFV Release Note for "Arno-RC2 release candidate" - Fuel@OPNFV - ver. 0.1 (this document)
+- OPNFV Installation instructions for Arno release with the Fuel deployment tool - ver. 0.0.1
+- OPNFV Release Note for Arno release with the Fuel deployment tool - ver. 0.1 (this document)
 
 5  Known Limitations, Issues and Workarounds
 ============================================
@@ -186,7 +183,7 @@ Fuel@OPNFV .iso file
 6  Test Result
 ==============
 
-Fuel@OPNFV Arno RC2 has undergone QA test runs with the following results:
+Arno release with the Fuel deployment tool has undergone QA test runs with the following results:
 
 +--------------------------------------+--------------------------------------+
 | **TEST-SUITE**                       | **Results:**                         |
