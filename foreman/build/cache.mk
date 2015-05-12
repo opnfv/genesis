@@ -57,7 +57,7 @@ $(CACHEFILES):
 	fi
 
 .PHONY: validate-cache
-validate-cache: prepare $(CACHEVALIDATE)
+validate-cache: $(CACHEVALIDATE)
 	@if [[ $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") != $(shell cat $(VERSION_FILE) | grep config.mk | awk '{print $$NF}') ]]; then\
 	   echo "Cache does not match current config.mk definition, cache must be rebuilt";\
 	   exit 1;\
