@@ -44,7 +44,7 @@ for interface in doc:
   networks = []
   for network in interface["assigned_networks"]:
     networks.append(network["name"])
-    if network["name"] == "management":
+    if network["name"] == "fuelweb_admin":
       dhaMac = interface["mac"]
   if networks:
     node["interfaces"][interface["name"]] = networks

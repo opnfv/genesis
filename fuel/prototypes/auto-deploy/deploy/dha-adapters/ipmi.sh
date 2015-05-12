@@ -47,6 +47,7 @@ dha_f_ipmi()
     local ipmiIp
     local ipmiUser
     local ipmiPass
+    local i
 
     nodeId=$1
     shift
@@ -59,8 +60,16 @@ dha_f_ipmi()
     test -n "$ipmiUser" || error_exit "Could not get IPMI username"
     test -n "$ipmiPass" || error_exit "Could not get IPMI password"
 
+    # Repeat three times for good measure (some hardware seems
+    # weird)
+    for i in 1 2
+    do
+        ipmitool -I lanplus -A password -H $ipmiIp -U $ipmiUser -P $ipmiPass \
+            $@ >/dev/null 2>&1
+        sleep 1
+    done
     ipmitool -I lanplus -A password -H $ipmiIp -U $ipmiUser -P $ipmiPass \
-	$@
+        $@
 }
 
 # Internal functions END

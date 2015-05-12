@@ -179,6 +179,11 @@ powerOnStrategy: sequence
 fuelCustomInstall: false
 EOF
 
+# Cleanup due to a currently unknown Fuel behavior adding this
+# output at certain stages, this information should not be present:
+sed -i '/ management_vip: ' $deafile
+sed -i '/ public_vip: ' $deafile
+
 
 echo "DEA file is available at $deafile"
 echo "DHA file is available at $dhafile (this is just a template)"
