@@ -21,7 +21,7 @@ ME=$(basename $0)
 
 trap my_exit EXIT
 
-REV=$1
+REV="$(echo $1 | tr '_' '-')"
 if [ -z "$REV" ]; then
   echo "$ME: Error - no revision info provided"
   exit 1
