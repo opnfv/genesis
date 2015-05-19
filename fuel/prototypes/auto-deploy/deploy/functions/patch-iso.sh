@@ -9,13 +9,10 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
-# This is a temporary script - this should be rolled into a separate
-# build target "make ci-iso" instead!
-
 exit_handler() {
     rm -Rf $tmpnewdir
     fusermount -u $tmporigdir 2>/dev/null
-    test -d $tmporigdir && mdir $tmporigdir
+    test -d $tmporigdir && rmdir $tmporigdir
 }
 
 trap exit_handler exit
@@ -39,8 +36,8 @@ fuelGateway=$6
 fuelHostname=$7
 fuelDns=$8
 
-tmporigdir=/${tmpdir}/origiso
-tmpnewdir=/${tmpdir}/newiso
+tmporigdir=${tmpdir}/origiso
+tmpnewdir=${tmpdir}/newiso
 
 test -f $origiso || error_exit "Could not find origiso $origiso"
 test -d $tmpdir || error_exit "Could not find tmpdir $tmpdir"
@@ -51,15 +48,15 @@ if [ "`whoami`" != "root" ]; then
 fi
 
 echo "Copying..."
-rm -Rf $tmporigdir $tmpnewdir
+rm -Rf $tmpnewdir || error_exit "Failed deleting old ISO copy dir"
 mkdir -p $tmporigdir $tmpnewdir
-fuseiso $origiso $tmporigdir || error_exit "Failed fuseiso"
+fuseiso $origiso $tmporigdir || error_exit "Failed to FUSE mount ISO"
 cd $tmporigdir
-find . | cpio -pd $tmpnewdir
+find . | cpio -pd $tmpnewdir || error_exit "Failed to copy FUSE ISO with cpio"
 cd $tmpnewdir
-fusermount -u $tmporigdir
-rmdir $tmporigdir
-chmod -R 755 $tmpnewdir
+fusermount -u $tmporigdir || error_exit "Failed to FUSE unmount ISO"
+rmdir $tmporigdir || error_exit "Failed to delete original FUSE ISO directory"
+chmod -R 755 $tmpnewdir || error_exit "Failed to set protection on new ISO dir"
 
 echo "Patching..."
 cd $tmpnewdir

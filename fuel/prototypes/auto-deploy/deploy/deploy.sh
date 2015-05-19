@@ -13,7 +13,6 @@
 topdir=$(dirname $(readlink -f $BASH_SOURCE))
 exampledir=$(cd $topdir/../examples; pwd)
 functions=${topdir}/functions
-tmpdir=$HOME/fueltmp
 
 # Define common functions
 . ${functions}/common.sh
@@ -61,7 +60,23 @@ if [ $# -ne 3 ]; then
     exit 1
 fi
 
-# Setup tmpdir
+# Setup tmpdir - if TMPDIR env variable is set, use that one
+# else create in $HOME/fueltmp
+if [ -n "${TMPDIR}" ]; then
+    if [ -d ${TMPDIR} ]; then
+        tmpdir=${TMPDIR}/fueltmp
+        echo "Using TMPDIR=${TMPDIR}, so tmpdir=${tmpdir}"
+    else
+        error_exit "No such directory for TMPDIR: ${TMPDIR}"
+    fi
+else
+    tmpdir=${HOME}/fueltmp
+    echo "Default: tmpdir=$tmpdir"
+fi
+
+# Umask must be changed so files created are readable by qemu
+umask 0022
+
 if [ -d $tmpdir ]; then
   rm -Rf $tmpdir || error_exit "Could not remove tmpdir $tmpdir"
 fi
@@ -74,9 +89,9 @@ dhafile=$(cd `dirname $3`; echo `pwd`/`basename $3`)
 if [ ! -f $isofile ]; then
   error_exit "Could not find ISO file $isofile"
 elif [ ! -f $deafile ]; then
-  error-exit "Could not find DEA file $deafile"
+  error_exit "Could not find DEA file $deafile"
 elif [ ! -f $dhafile ]; then
-  error-exit "Could not find DHA file $dhafile"
+  error_exit "Could not find DHA file $dhafile"
 fi
 
 # Connect adapter
