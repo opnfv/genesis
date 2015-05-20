@@ -1,16 +1,12 @@
 <domain type='kvm'>
-  <name>fuel-master</name>
+  <name>controller1</name>
   <memory unit='KiB'>2097152</memory>
   <currentMemory unit='KiB'>2097152</currentMemory>
   <vcpu placement='static'>2</vcpu>
-  <resource>
-    <partition>/machine</partition>
-  </resource>
   <os>
     <type arch='x86_64' machine='pc-1.0'>hvm</type>
+    <boot dev='network'/>
     <boot dev='hd'/>
-    <boot dev='cdrom'/>
-    <bootmenu enable='no'/>
   </os>
   <features>
     <acpi/>
@@ -50,23 +46,28 @@
   <on_crash>restart</on_crash>
   <devices>
     <emulator>/usr/bin/kvm</emulator>
-    <disk type='block' device='cdrom'>
-      <driver name='qemu' type='raw'/>
-      <target dev='hdc' bus='ide'/>
-      <readonly/>
-    </disk>
     <disk type='file' device='disk'>
       <driver name='qemu' type='raw'/>
       <source file='disk.raw'/>
       <target dev='vda' bus='virtio'/>
     </disk>
-    <controller type='ide' index='0'>
-    </controller>
     <controller type='usb' index='0'>
     </controller>
     <controller type='pci' index='0' model='pci-root'/>
     <interface type='network'>
       <source network='fuel1'/>
+      <model type='virtio'/>
+    </interface>
+    <interface type='network'>
+      <source network='fuel2'/>
+      <model type='virtio'/>
+    </interface>
+    <interface type='network'>
+      <source network='fuel3'/>
+      <model type='virtio'/>
+    </interface>
+    <interface type='network'>
+      <source network='fuel4'/>
       <model type='virtio'/>
     </interface>
     <serial type='pty'>
@@ -77,9 +78,7 @@
     </console>
     <input type='mouse' bus='ps2'/>
     <input type='keyboard' bus='ps2'/>
-    <graphics type='vnc' port='-1' autoport='yes' listen='127.0.0.1' keymap='sv'>
-      <listen type='address' address='127.0.0.1'/>
-    </graphics>
+    <graphics type='vnc' port='-1' autoport='yes' keymap='sv'/>
     <sound model='ich6'>
     </sound>
     <video>
@@ -88,6 +87,4 @@
     <memballoon model='virtio'>
     </memballoon>
   </devices>
-  <seclabel type='dynamic' model='apparmor' relabel='yes'/>
 </domain>
-
