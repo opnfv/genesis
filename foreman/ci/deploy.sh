@@ -51,6 +51,15 @@ function find_subnet {
   printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
 }
 
+##increments subnet by a value
+##params: ip, value
+##assumes low value
+function increment_subnet {
+  IFS=. read -r i1 i2 i3 i4 <<< "$1"
+  printf "%d.%d.%d.%d\n" "$i1" "$i2" "$i3" "$((i4 | $2))"
+}
+
+
 ##finds netmask of interface
 ##params: interface
 ##returns long format 255.255.x.x
@@ -312,6 +321,10 @@ for interface in ${output}; do
     private_subnet_mask=$subnet_mask
     private_short_subnet_mask=$(find_short_netmask $interface)
   fi
+  if [ "$if_counter" -eq 2 ]; then
+    public_subnet_mask=$subnet_mask
+    public_short_subnet_mask=$(find_short_netmask $interface)
+  fi
   if [ "$if_counter" -eq 3 ]; then
     storage_subnet_mask=$subnet_mask
   fi
@@ -364,6 +377,7 @@ if route | grep default; then
              sed -i 's/^.*nat_flag =.*$/  nat_flag = true/' Vagrantfile
              echo "${blue}Setting node gateway to be VM Admin IP${reset}"
              node_default_gw=${interface_ip_arr[0]}
+             public_gateway=$default_gw
              ;;
            3)
              echo "${red}Default Gateway Detected on Storage Interface!${reset}"
@@ -422,6 +436,8 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
     sed -i 's/^.*network_type:.*$/network_type: three_network/' opnfv_ksgen_settings.yml
   fi
 
+  sed -i 's/^.*deployment_type:.*$/  deployment_type: '"$deployment_type"'/' opnfv_ksgen_settings.yml
+
   ##get ip addresses for private network on controllers to make dhcp entries
   ##required for controllers_ip_array global param
   next_private_ip=${interface_ip_arr[1]}
@@ -468,6 +484,9 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
     fi
   done
 
+  ##replace public_network param
+  public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+  sed -i 's/^.*public_network:.*$/  public_network:'" $public_subnet"'/' opnfv_ksgen_settings.yml
   ##replace private_network param
   private_subnet=$(find_subnet $next_private_ip $private_subnet_mask)
   sed -i 's/^.*private_network:.*$/  private_network:'" $private_subnet"'/' opnfv_ksgen_settings.yml
@@ -480,9 +499,35 @@ elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_ne
     sed -i 's/^.*storage_network:.*$/  storage_network:'" $storage_subnet"'/' opnfv_ksgen_settings.yml
   fi
 
+  ##replace public_subnet param
+  public_subnet=$public_subnet'\'$public_short_subnet_mask
+  sed -i 's/^.*public_subnet:.*$/  public_subnet:'" $public_subnet"'/' opnfv_ksgen_settings.yml
   ##replace private_subnet param
   private_subnet=$private_subnet'\'$private_short_subnet_mask
   sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $private_subnet"'/' opnfv_ksgen_settings.yml
+
+  ##replace public_dns param to be foreman server
+  sed -i 's/^.*public_dns:.*$/  public_dns: '${interface_ip_arr[2]}'/' opnfv_ksgen_settings.yml
+
+  ##replace public_gateway
+  if [ -z "$public_gateway" ]; then
+    ##if unset then we assume its the first IP in the public subnet
+    public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+    public_gateway=$(increment_subnet $public_subnet 1)
+  fi
+  sed -i 's/^.*public_gateway:.*$/  public_gateway:'" $public_gateway"'/' opnfv_ksgen_settings.yml
+
+  ##we have to define an allocation range of the public subnet to give
+  ##to neutron to use as floating IPs
+  ##we should control this subnet, so this range should work .150-200
+  ##but generally this is a bad idea and we are assuming at least a /24 subnet here
+  public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+  public_allocation_start=$(increment_subnet $public_subnet 150)
+  public_allocation_end=$(increment_subnet $public_subnet 200)
+
+  sed -i 's/^.*public_allocation_start:.*$/  public_allocation_start:'" $public_allocation_start"'/' opnfv_ksgen_settings.yml
+  sed -i 's/^.*public_allocation_end:.*$/  public_allocation_end:'" $public_allocation_end"'/' opnfv_ksgen_settings.yml
+
 else
   printf '%s\n' 'deploy.sh: Unknown network type: $deployment_type' >&2
   exit 1

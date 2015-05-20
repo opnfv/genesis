@@ -34,6 +34,14 @@ global_params:
   nova_admin_vip:
   nova_private_vip:
   nova_public_vip:
+  external_network_flag: "true"
+  public_gateway:
+  public_dns:
+  public_network:
+  public_subnet:
+  public_allocation_start:
+  public_allocation_end:
+  deployment_type:
 network_type: multi_network
 default_gw:
 foreman:
