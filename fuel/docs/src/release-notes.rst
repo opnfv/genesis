@@ -46,27 +46,30 @@ Arno release with the Fuel deployment tool Docs are licensed under a Creative Co
 | 2015-04-23         | 0.2                | Jonas Bjurel       | Minor change       |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-05-12         | 0.3                | Chris Price        | Minor edits       |
+| 2015-05-12         | 0.3                | Chris Price        | Minor edits        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
 2   Important notes
 ===================
 
-This is the first OPNFV release of Arno using Fuel as the deploment stage of the OPNFV CI pipeline.  The intention of this release is to establish a foundation platform to accelerate the development of the OPNFV infrastructure.
+For the first OPNFV release (Arno), these notes introduce use of `OpenStack Fuel <https://wiki.openstack.org/wiki/Fuel>`_ for the deployment stage of the OPNFV continuous integration (CI) pipeline.  The goal of the Arno release and this Fuel-based deployment process is to establish a foundational platform accelerating further development of the OPNFV infrastructure.
 
-Carefully follow the installation-instructions and pay special attention to the pre-deploy script that needs to be run befor deployment is started.
+Carefully follow the installation-instructions and pay special attention to the pre-deploy script that needs to be run before deployment is started.
 
 3   Summary
 ===========
 
-Arno release with the Fuel deployment tool uses the OpenStack Fuel upstream project version 6.0.1, but adds OPNFV unique components such as OpenDaylight version: Helium as well as other OPNFV unique configurations.
+For Arno, the typical use of Fuel as an OpenStack installer is supplemented with OPNFV unique components such as `OpenDaylight <http://www.opendaylight.org/software>`_ version Helium as well as OPNFV-unique configurations.
 
-This Arno release artefact provides the Fuel deployment tool as the deploy stage of the OPNFV CI pipeline including:
+This Arno artefact provides Fuel as the deployment stage tool in the OPNFV CI pipeline including:
 
 - Documentation built by Jenkins
-- The Arno .iso image built by Jenkins
-- Automated deployment of the Arno release with the Fuel deployment tool stack instance on bare metal or a nested hypervisor environment (KVM)
+  - this document (release notes)
+  - installation instructions
+  - build-instructions
+- The Arno Fuel installer image (.iso) built by Jenkins
+- Automated deployment of Arno with running on bare metal or a nested hypervisor environment (KVM)
 - Automated validation of the Arno deployment
 
 
@@ -74,16 +77,16 @@ This Arno release artefact provides the Fuel deployment tool as the deploy stage
 ================
 
 +--------------------------------------+--------------------------------------+
-| **Project**                          | Arno/genesis/fuel                |
+| **Project**                          | Arno/genesis/fuel                    |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/tag**                         | genesis/arno                     |
+| **Repo/tag**                         | genesis/arno                         |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | Arno                             |
+| **Release designation**              | Arno                                 |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release date**                     | 2015-Spring                      |
+| **Release date**                     | 2015-Spring                          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -95,15 +98,16 @@ This Arno release artefact provides the Fuel deployment tool as the deploy stage
 This is the first tracked release of genesis/fuel. It is based on following upstream versions:
 
 - Fuel 6.0.1 (Juno release)
-
 - OpenDaylight Helium-SR2
 
 4.1.2   Document version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This is the first tracked version of genesis/fuel. It comes with the following documentation:
 
-- OPNFV Installation instructions for the Arno release with the Fuel deployment tool - ver. 0.0.1
-- OPNFV Release Notes for Arno release with the Fuel deployment tool - ver. 0.1 (this document)
+- OPNFV Installation instructions for Arno with Fuel as deployment tool
+- OPNFV Release Notes for Arno use of Fuel as deployment tool
+- OPNFV Build instructions for Arno with Fuel as deployment tool
+
 
 4.2 Reason for version
 ----------------------
@@ -139,7 +143,7 @@ This is the first tracked version of genesis/fuel. It comes with the following d
 
 4.3.1   Software deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Fuel@OPNFV .iso file
+Fuel-based installer iso (opnfv.iso) file
 
 4.3.2   Documentation deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -196,6 +200,4 @@ Arno release with the Fuel deployment tool has undergone QA test runs with the f
 7  References
 =============
 
-For more information on the OPNFV Arno release, please see:
-
-http://wiki.opnfv.org/release/arno
+For more information on the OPNFV Arno release, please see http://wiki.opnfv.org/releases/arno.
