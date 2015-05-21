@@ -1,20 +1,20 @@
 :Authors: Jonas Bjurel (Ericsson AB)
-:Version: 0.0.2
+:Version: 0.0.3
 
-================================================
-OPNFV Installation instructions for - Fuel@OPNFV
-================================================
+==================================================================================================
+OPNFV Installation instructions for the Arno release of OPNFV when using Fuel as a deployment tool
+==================================================================================================
 
 Abstract
 ========
 
-This document describes how to install Fuel@OPNFV, it's dependencies and required system resources.
+This document describes how to install the Arno release of OPNFV when using Fuel as a deployment tool covering it's limitations, dependencies and required system resources.
 
 License
 =======
-Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
+Arno release of OPNFV when using Fuel as a deployment tool Docs (c) by Jonas Bjurel (Ericsson AB)
 
-Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Arno release of OPNFV when using Fuel as a deployment tool Docs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
 **Contents**
@@ -50,23 +50,26 @@ Fuel@OPNFV DOCs are licensed under a Creative Commons Attribution 4.0 Internatio
 | 2015-04-23         | 0.0.2              | Jonas Bjurel       | Minor changes      |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-05-16         | 0.0.3              | Christopher Price  | Minor changes      |
+|                    |                    | (Ericsson AB)      |                    |
++--------------------+--------------------+--------------------+--------------------+
 
 
 2   Introduction
 ================
 
-This document describes the supported software and hardware configurations for the Fuel@OPNFV reference platform as well as providing guidelines on how to install and configure such reference system.
+This document describes the supported software and hardware configurations for the Arno release of OPNFV when using Fuel as a deployment tool as well as providing guidelines on how to install and configure such reference system.
 
 Although the available installation options gives a high degree of freedom in how the system is set-up, with what architecture, services and features, etc., not nearly all of those permutations provides a OPNFV compliant reference architecture. Following the guidelines in this document ensures a result that is OPNFV R1 (Arno) compliant.
 
-The audience of this document is assumed to have good knowledge in network and Unix/Linux administration.
+The audience of this document is assumed to have good knowledge in networking and Unix/Linux administration.
 
 3   Preface
 ===========
 
-Before starting the installation of Fuel@OPNFV, some planning must preceed.
+Before starting the installation of Arno release of OPNFV when using Fuel as a deployment tool, some planning must preceed.
 
-First of all, the Fuel@OPNFV .iso image needs to be retrieved, the Latest stable Arno release of Fuel@OPNFV can be found here: <www.opnfv.org/abc/def>
+First of all, the Fuel@OPNFV .iso image needs to be retrieved, the Latest stable Arno release of OPNFV when using Fuel as a deployment tool can be found here: <www.opnfv.org/abc/def>
 
 Alternatively, you may build the .iso from source by cloning the opnfv/genesis git repository:
 
@@ -80,7 +83,7 @@ Goto the fuel directory and build the .iso
 
 <cd fuel/build; make all>
 
-For more information on how to build, please see "OPNF Build instructions for - FUel@OPNFV <http://www.opnfv.org/xyz
+For more information on how to build, please see "OPNFV Build instructions for - Arno release of OPNFV when using Fuel as a deployment tool <http://www.opnfv.org/xyz>
 
 Next, familiarize yourself with the Fuel 6.0.1 version by reading the following documents:
 
@@ -140,17 +143,12 @@ Following minimum hardware requirements must be met for installation of Fuel@OPN
 5   Top of the rack (TOR) Configuration requirements
 ====================================================
 
-The switching infrastructure provides connectivity for the OPNFV infra-structure operations, tenant networks (East/West) and provider connectivity (North/South bound connectivity); it als provides needed connectivity for the strage Area Network (SAN). To avoid traffic congestion, it is strongly sugested that three physcally separated networks are used, that is: 1 physical network for administration and control, one physical network for tenant private and public networks, and one physical network for SAN. The switching connectivity can (but does not need to) be fully redundant, in such case it and comprises a redundant 10GE switch pair for each of the three physcally separated networks.
+The switching infrastructure provides connectivity for the OPNFV infra-structure operations, tenant networks (East/West) and provider connectivity (North/South bound connectivity); it also provides needed connectivity for the storage Area Network (SAN). To avoid traffic congestion, it is strongly sugested that three physcally separated networks are used, that is: 1 physical network for administration and control, one physical network for tenant private and public networks, and one physical network for SAN. The switching connectivity can (but does not need to) be fully redundant, in such case it and comprises a redundant 10GE switch pair for each of the three physcally separated networks.
 
 The physical TOR switches are **not** automatically configured from the OPNFV reference platform. All the networks involved in the OPNFV infra-structure as well as the provider networks and the private tenant VLANs needs to be manually configured.
 
-The following sections guides through required black-box switch configurations.
+Manual configuration of the Arno hardware platform should be carried out according to the Pharos specification <link>.
 
-5.1 VLAN considerations and blue-print
---------------------------------------
-
-5.2 IP Address plan considerations and blue-print
--------------------------------------------------
 
 6   OPNFV Software installation and deployment
 ==============================================
@@ -159,9 +157,9 @@ This section describes the installation of the Fuel@OPNFV installation server (F
 
 6.1 Install Fuel master
 -----------------------
-1. Mount the built .iso file (release/opnfv-<version>.iso) as a boot device to the fuel server.
+1. Mount the built .iso file (release/opnfv-<version>.iso) as a boot device to the jump host server.
 
-2. Reboot the fuel server.
+2. Reboot the jump host to establish the Fuel server.
 
    - The system now boots from the ISO image.
 
