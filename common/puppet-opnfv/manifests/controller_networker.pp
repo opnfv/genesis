@@ -73,6 +73,12 @@ class opnfv::controller_networker {
     if !$nova_private_vip { fail('nova_private_vip is empty') }
     if !$nova_public_vip { fail('nova_public_vip is empty') }
     if $private_network == '' { fail('private_network is empty') }
+    if !$heat_admin_vip { fail('heat_admin_vip is empty') }
+    if !$heat_private_vip { fail('heat_private_vip is empty') }
+    if !$heat_public_vip { fail('heat_public_vip is empty') }
+    if !$heat_cfn_admin_vip { fail('heat_cfn_admin_vip is empty') }
+    if !$heat_cfn_private_vip { fail('heat_cfn_private_vip is empty') }
+    if !$heat_cfn_public_vip { fail('heat_cfn_public_vip is empty') }
 
     ##Find private interface
     $ovs_tunnel_if = get_nic_from_network("$private_network")
@@ -93,6 +99,7 @@ class opnfv::controller_networker {
     if !$cluster_control_ip { $cluster_control_ip = $controllers_ip_array[0] }
     if !$horizon_secret { $horizon_secret = $single_password }
     if !$glance_db_password { $glance_db_password = $single_password }
+    if !$glance_user_password { $glance_user_password = $single_password }
     if !$keystone_db_password { $keystone_db_password = $single_password }
     if !$keystone_user_password { $keystone_user_password = $single_password }
     if !$lb_backend_server_addrs { $lb_backend_server_addrs = $controllers_ip_array }
@@ -104,6 +111,10 @@ class opnfv::controller_networker {
     if !$pcmk_server_addrs {$pcmk_server_addrs = $controllers_ip_array}
     if !$pcmk_server_names {$pcmk_server_names = ["pcmk-${controllers_hostnames_array[0]}", "pcmk-${controllers_hostnames_array[1]}", "pcmk-${controllers_hostnames_array[2]}"] }
     if !$rbd_secret_uuid { $rbd_secret_uuid = '3b519746-4021-4f72-957e-5b9d991723be' }
+    if !$heat_user_password  { $heat_user_password = $single_password }
+    if !$heat_db_password  { $heat_db_password = $single_password }
+    if !$heat_cfn_user_password  { $heat_cfn_user_password = $single_password }
+    if !$heat_auth_encryption_key  { $heat_auth_encryption_key = 'octopus1octopus1' }
     if !$storage_network {
           $storage_iface = $ovs_tunnel_if
     } else {
@@ -118,6 +129,13 @@ class opnfv::controller_networker {
     $osd_ip = find_ip("",
                       "$storage_iface",
                       "")
+
+    if ($external_network_flag != '') and str2bool($external_network_flag) {
+      class { "opnfv::external_net_presetup":
+        stage   => presetup,
+        require => Class['opnfv::repo'],
+      }
+    }
 
     class { "opnfv::ceph_deploy":
       fsid                     => $ceph_fsid,
@@ -159,14 +177,25 @@ class opnfv::controller_networker {
       glance_private_vip       => $glance_private_vip,
       glance_public_vip        => $glance_public_vip,
       glance_user_password     => $glance_user_password,
-      heat_cfn_enabled         => 'false',
+      heat_auth_encryption_key => $heat_auth_encryption_key,
+      heat_cfn_admin_vip       => $heat_cfn_admin_vip,
+      heat_cfn_private_vip     => $heat_cfn_private_vip,
+      heat_cfn_public_vip      => $heat_cfn_public_vip,
+      heat_cfn_user_password   => $heat_cfn_user_password,
+      heat_cloudwatch_enabled  => 'true',
+      heat_cfn_enabled         => 'true',
+      heat_db_password         => $heat_db_password,
+      heat_admin_vip           => $heat_admin_vip,
+      heat_private_vip         => $heat_private_vip,
+      heat_public_vip          => $heat_public_vip,
+      heat_user_password       => $heat_user_password,
       horizon_admin_vip        => $horizon_admin_vip,
       horizon_private_vip      => $horizon_private_vip,
       horizon_public_vip       => $horizon_public_vip,
       include_ceilometer       => 'false',
       include_cinder           => 'true',
       include_glance           => 'true',
-      include_heat             => 'false',
+      include_heat             => 'true',
       include_horizon          => 'true',
       include_keystone         => 'true',
       include_neutron          => 'true',
@@ -217,8 +246,8 @@ class opnfv::controller_networker {
       admin_password      =>  $admin_password,
       admin_token         =>  $keystone_admin_token,
       cinder              =>  'true',
-      heat                =>  'false',
-      heat_cfn            =>  'false',
+      heat                =>  'true',
+      heat_cfn            =>  'true',
       keystonerc          =>  'true',
       use_syslog          =>  'true',
       verbose             =>  'true',
@@ -246,7 +275,10 @@ class opnfv::controller_networker {
       volume          => true,
     }
     ->
-    class { "quickstack::pacemaker::heat": }
+    class { "quickstack::pacemaker::heat":
+      use_syslog      => true,
+      verbose         => true,
+    }
     ->
     class { "quickstack::pacemaker::constraints": }
 
@@ -276,6 +308,10 @@ class opnfv::controller_networker {
       ovs_tunnel_iface         =>  $ovs_tunnel_if,
       ovs_tunnel_types         =>  ["vxlan"],
       verbose                  =>  'true',
+    }
+
+    if ($external_network_flag != '') and str2bool($external_network_flag) {
+      class { "opnfv::external_net_setup": }
     }
 
   } else {
@@ -320,6 +356,10 @@ class opnfv::controller_networker {
     if $swift_shared_secret == '' { fail('swift_shared_secret is empty') }
     if $swift_admin_password == '' { fail('swift_admin_password is empty') }
 
+    if !$amqp_username { $amqp_username = $single_username }
+    if !$amqp_password { $amqp_password = $single_password }
+
+
     class { "quickstack::neutron::controller_networker":
       admin_email                   => $admin_email,
       admin_password                => $admin_password,
@@ -343,8 +383,8 @@ class opnfv::controller_networker {
       mysql_root_password           => $mysql_root_password,
       #amqp_provider                 => $amqp_provider,
       amqp_host                     => $amqp_ip,
-      amqp_username                 => 'guest',
-      amqp_password                 => 'guest',
+      amqp_username                 => $amqp_username,
+      amqp_password                 => $amqp_password,
       #amqp_nssdb_password           => $quickstack::params::amqp_nssdb_password,
 
       keystone_admin_token          => $keystone_admin_token,

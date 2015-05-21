@@ -33,5 +33,35 @@ class opnfv::repo {
       gpgcheck => 0,
     }
 
+    exec {'disable selinux':
+        command => '/usr/sbin/setenforce 0',
+        unless => '/usr/sbin/getenforce | grep Permissive',
+    }
+    ->
+    service { "network":
+      ensure => "running",
+      enable => "true",
+      hasrestart => true,
+      restart => '/usr/bin/systemctl restart network',
+    }
+    ->
+    service { 'NetworkManager':
+      ensure => "stopped",
+      enable => "false",
+    }
+    ~>
+    exec { 'restart-network-presetup':
+      command => 'systemctl restart network',
+      path         => ["/usr/sbin/", "/usr/bin/"],
+      refreshonly  => 'true',
+    }
+    ->
+    package { 'openvswitch':
+     ensure  => installed,
+    }
+    ->
+    service {'openvswitch':
+     ensure  => 'running',
+    }
   }
 }
