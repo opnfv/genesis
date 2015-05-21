@@ -6,6 +6,7 @@ TIMEOUT = 600
 log = common.log
 err = common.err
 
+
 class SSHClient(object):
 
     def __init__(self, host, username, password):
@@ -18,7 +19,8 @@ class SSHClient(object):
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.client.connect(self.host, username=self.username,
-                            password=self.password, timeout=timeout)
+                            password=self.password, look_for_keys=False,
+                            timeout=timeout)
 
     def close(self):
         if self.client is not None:
@@ -60,16 +62,14 @@ class SSHClient(object):
             if chan.recv_ready():
                 data = chan.recv(1024)
                 while data:
-                    print data
+                    log(data.strip())
                     data = chan.recv(1024)
 
             if chan.recv_stderr_ready():
                 error_buff = chan.recv_stderr(1024)
                 while error_buff:
-                    print error_buff
+                    log(error_buff.strip())
                     error_buff = chan.recv_stderr(1024)
-        exit_status = chan.recv_exit_status()
-        log('Exit status %s' % exit_status)
 
     def scp_get(self, remote, local='.', dir=False):
         try:

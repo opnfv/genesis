@@ -19,7 +19,7 @@ class HpAdapter(IpmiAdapter):
         log('Set boot order %s on Node %s' % (boot_order_list, node_id))
         ip, username, password = self.get_access_info(node_id)
         ssh = SSHClient(ip, username, password)
-        for order, dev in enumerate(boot_order_list):
-            with ssh as s:
+        with ssh as s:
+            for order, dev in enumerate(boot_order_list):
                 s.exec_cmd('set %s/%s bootorder=%s'
                            % (ROOT, DEV[dev], order+1))

@@ -34,18 +34,15 @@ class HardwareAdapter(object):
         node_ids.sort()
         return node_ids
 
-    def use_fuel_custom_install(self):
-        return self.dha_struct['fuelCustomInstall']
-
     def get_node_property(self, node_id, property_name):
         for node in self.dha_struct['nodes']:
             if node['id'] == node_id and property_name in node:
                 return node[property_name]
 
-    def node_can_zero_mbr(self, node_id):
-        return self.get_node_property(node_id, 'nodeCanZeroMBR')
-
     def get_fuel_access(self):
         for node in self.dha_struct['nodes']:
             if 'isFuel' in node and node['isFuel']:
                 return node['username'], node['password']
+
+    def get_disks(self):
+        return self.dha_struct['disks']

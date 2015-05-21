@@ -53,7 +53,7 @@ class CloudDeploy(object):
 
     def set_boot_order(self, boot_order_list):
         for node_id in self.node_ids:
-            self.dha.node_set_boot_order(node_id, boot_order_list)
+            self.dha.node_set_boot_order(node_id, boot_order_list[:])
 
     def get_mac_addresses(self):
         macs_per_node = {}
@@ -67,8 +67,8 @@ class CloudDeploy(object):
         deploy_app = '%s/%s' % (self.work_dir, deploy_app)
         dea_file = '%s/%s' % (self.work_dir, os.path.basename(self.dea_file))
         macs_file = '%s/%s' % (self.work_dir, os.path.basename(self.macs_file))
-        with self.ssh:
-            self.ssh.run('python %s %s %s' % (deploy_app, dea_file, macs_file))
+        with self.ssh as s:
+            s.run('python %s %s %s' % (deploy_app, dea_file, macs_file))
 
     def deploy(self):
 

@@ -32,15 +32,6 @@ class InstallFuelMaster(object):
 
         self.dha.node_power_off(self.fuel_node_id)
 
-        self.zero_mbr_set_boot_order()
-
-        self.proceed_with_installation()
-
-    def custom_install(self):
-        log('Start Custom Fuel Installation')
-
-        self.dha.node_power_off(self.fuel_node_id)
-
         log('Zero the MBR')
         self.dha.node_zero_mbr(self.fuel_node_id)
 
@@ -68,7 +59,7 @@ class InstallFuelMaster(object):
 
         log('Let the Fuel deployment continue')
         log('Found FUEL menu as PID %s, now killing it' % fuel_menu_pid)
-        self.ssh_exec_cmd('kill %s' % fuel_menu_pid)
+        self.ssh_exec_cmd('kill %s' % fuel_menu_pid, False)
 
         log('Wait until installation complete')
         self.wait_until_installation_completed()
@@ -81,18 +72,6 @@ class InstallFuelMaster(object):
 
         log('Fuel Master installed successfully !')
 
-    def zero_mbr_set_boot_order(self):
-        if self.dha.node_can_zero_mbr(self.fuel_node_id):
-            log('Fuel Node %s capable of zeroing MBR so doing that...'
-                % self.fuel_node_id)
-            self.dha.node_zero_mbr(self.fuel_node_id)
-            self.dha.node_set_boot_order(self.fuel_node_id, ['disk', 'iso'])
-        elif self.dha.node_can_set_boot_order_live(self.fuel_node_id):
-            log('Node %s can change ISO boot order live' % self.fuel_node_id)
-            self.dha.node_set_boot_order(self.fuel_node_id, ['iso', 'disk'])
-        else:
-            err('No way to install Fuel node')
-
     def wait_for_node_up(self):
         WAIT_LOOP = 60
         SLEEP_TIME = 10
@@ -103,8 +82,8 @@ class InstallFuelMaster(object):
                 success = True
                 break
             except Exception as e:
-                log('EXCEPTION [%s] received when SSH-ing into Fuel VM %s ... '
-                    'sleeping %s seconds' % (e, self.fuel_ip, SLEEP_TIME))
+                log('Trying to SSH into Fuel VM %s ... sleeping %s seconds'
+                    % (self.fuel_ip, SLEEP_TIME))
                 time.sleep(SLEEP_TIME)
             finally:
                 self.ssh.close()
@@ -138,9 +117,9 @@ class InstallFuelMaster(object):
                 break
         return fuel_menu_pid
 
-    def ssh_exec_cmd(self, cmd):
+    def ssh_exec_cmd(self, cmd, check=True):
         with self.ssh:
-            ret = self.ssh.exec_cmd(cmd)
+            ret = self.ssh.exec_cmd(cmd, check=check)
         return ret
 
     def inject_own_astute_yaml(self):
@@ -159,7 +138,7 @@ class InstallFuelMaster(object):
                      self.work_dir, os.path.basename(self.dea_file)))
 
     def wait_until_installation_completed(self):
-        WAIT_LOOP = 180
+        WAIT_LOOP = 320
         SLEEP_TIME = 10
         CMD = 'ps -ef | grep %s | grep -v grep' % BOOTSTRAP_ADMIN
 
