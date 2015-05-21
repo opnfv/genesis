@@ -1,8 +1,8 @@
 title: Deployment Environment Adapter (DEA)
 # DEA API version supported
 version: 1.1
-created: Tue May 12 11:22:50 UTC 2015
-comment: 
+created: Thu May 21 13:34:13 CEST 2015
+comment: HA deployment with Ceph
 nodes:
 - id: 1
   interfaces:
@@ -205,7 +205,7 @@ network:
     gateway: 172.30.9.1
     ip_ranges:
     - - 172.30.9.70
-      - 172.30.9.79
+      - 172.30.9.70
     meta:
       assign_vip: true
       cidr: 172.16.0.0/24
