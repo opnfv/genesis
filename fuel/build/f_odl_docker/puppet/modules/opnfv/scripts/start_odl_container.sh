@@ -8,6 +8,8 @@
 #   Inputs:  odl_docker_image.tar
 #
 #   Usage:  ./start_odl_docker.sh
+echo "DEPRECATED - USE stage_odl.sh instead  - this will be removed shortly once automated deployment is working - SR1"
+
 
 # ENVS
 source ~/.bashrc
