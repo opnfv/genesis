@@ -35,6 +35,17 @@ class opnfv::odl_docker
         source => '/etc/puppet/modules/opnfv/scripts/start_odl_container.sh',
         mode   => 750,
       }
+      file { '/opt/opnfv/odl/stage_odl.sh':
+        ensure => present,
+        source => '/etc/puppet/modules/opnfv/scripts/stage_odl.sh',
+        mode   => 750,
+      }
+      file { '/opt/opnfv/odl/config_net.sh':
+        ensure => present,
+        source => '/etc/puppet/modules/opnfv/scripts/config_net.sh',
+        mode   => 750,
+      }
+
 
       # fix failed to find the cgroup root issue
       # https://github.com/docker/docker/issues/8791
