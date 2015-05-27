@@ -42,7 +42,7 @@ class opnfv::odl_docker
       }
       file { '/opt/opnfv/odl/config_net.sh':
         ensure => present,
-        source => '/etc/puppet/modules/opnfv/scripts/config_net.sh',
+        source => '/etc/puppet/modules/opnfv/scripts/config_net_odl.sh',
         mode   => 750,
       }
 
