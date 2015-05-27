@@ -106,7 +106,7 @@ Licenses as listed below:
 | VirtualBox     | GPL v2                                              |
 |                | https://www.gnu.org/licenses/gpl-2.0.html           |
 +----------------+-----------------------------------------------------+
-| Vagrant        | The MIT License
+| Vagrant        | The MIT License                                     |
 +----------------+-----------------------------------------------------+
 | Ansible        | GPL v3                                              |
 |                | https://www.gnu.org/licenses/gpl-3.0.html           |

@@ -1,29 +1,51 @@
 :Authors: Tim Rozet (trozet@redhat.com)
-:Version: 0.0.1
+:Version: 0.0.2
 
-====================================================
-OPNFV Installation Instructions - Foreman/QuickStack
-====================================================
+=======================================================================================================
+OPNFV Installation instructions for the Arno release of OPNFV when using Foreman as a deployment tool
+=======================================================================================================
 
 Abstract
 ========
 
-This document describes how to deploy a Foreman/QuickStack-based OPNFV system.
+This document describes how to install the Arno release of OPNFV when using Foreman/Quickstack as a deployment tool covering it's limitations, dependencies and required system resources.
+
+License
+=======
+Arno release of OPNFV when using Foreman as a deployment tool Docs (c) by Tim Rozet (RedHat)
+
+Arno release of OPNFV when using Foreman as a deployment tool Docs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+
+Version history
+===================
+
++--------------------+--------------------+--------------------+--------------------+
+| **Date**           | **Ver.**           | **Author**         | **Comment**        |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-05-07         | 0.0.1              | Tim Rozet          | First draft        |
+|                    |                    | (RedHat)           |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-05-27         | 0.0.2              | Christopher Price  | Minor changes &    |
+|                    |                    | (Ericsson AB)      | formatting         |
++--------------------+--------------------+--------------------+--------------------+
+
 
 .. contents:: Table of Contents
    :backlinks: none
 
+
 Introduction
 ============
 
-This document describes the steps to install an OPNFV R1 (Arno) reference platform, as defined by the Bootstrap/Getting-Started (BGS) Project using the Foreman/QuickStack installer.
+This document describes the steps to install an OPNFV Arno reference platform, as defined by the Bootstrap/Getting-Started (BGS) Project using the Foreman/QuickStack installer.
 
 The audience is assumed to have a good background in networking and Linux administration.
 
 Preface
 =======
 
-Foreman/QuickStack uses the Foreman Open Source project as a server management tool, which in turn manages and executes Genesis/QuickStack.  Genesis/QuickStack consists of layers of Puppet modules which are capable of provisioning the OPNFV Target System (3 controllers, n number of compute nodes).
+Foreman/QuickStack uses the Foreman Open Source project as a server management tool, which in turn manages and executes Genesis/QuickStack.  Genesis/QuickStack consists of layers of Puppet modules that are capable of provisioning the OPNFV Target System (3 controllers, n number of compute nodes).
 
 The Genesis repo contains the necessary tools to get install and deploy an OPNFV target system using Foreman/QuickStack.  These tools consist of the Foreman/QuickStack bootable ISO, and the automatic deployment script (``deploy.sh``).
 
@@ -111,7 +133,7 @@ Khaleesi will wait until these nodes are fully provisioned and then return a suc
 Installation High-Level Overview - VM Deployment
 ================================================
 
-The VM nodes deployment operates almost the same way as the bare metal deployment with a few differences.  ``deploy.sh`` still installs Foreman/QuickStack VM the exact same way, however the part of the Khaleesi Ansible playbook which IPMI reboots/PXE boots the servers is ignored.  Instead, ``deploy.sh`` brings up N number more Vagrant VMs (where N is 3 control nodes + n compute).  These VMs already come up with CentOS 7 so instead of re-provisioning the entire VM, ``deploy.sh`` initiates a small Bash script which will signal to Foreman that those nodes are built and install/configure Puppet on them.
+The VM nodes deployment operates almost the same way as the bare metal deployment with a few differences.  ``deploy.sh`` still installs Foreman/QuickStack VM the exact same way, however the part of the Khaleesi Ansible playbook which IPMI reboots/PXE boots the servers is ignored.  Instead, ``deploy.sh`` brings up N number more Vagrant VMs (where N is 3 control nodes + n compute).  These VMs already come up with CentOS 7 so instead of re-provisioning the entire VM, ``deploy.sh`` initiates a small Bash script that will signal to Foreman that those nodes are built and install/configure Puppet on them.
 
 To Foreman these nodes look like they have just built and register the same way as bare metal nodes.
 
@@ -156,7 +178,7 @@ You now need to take the MAC address/IPMI info gathered in section `Execution Re
 
 3.  The nodes dictionary contains each bare metal host you want to deploy.  You can have 1 or more compute nodes and must have 3 controller nodes (these are already defined for you).  It is optional at this point to add more compute nodes into the dictionary.  You must use a different name, hostname, short_name and dictionary keyname for each node.
 
-4.  Once you have decided on your node definitions you now need to modify the MAC address/IPMI info dependant to your hardware.  Edit the following values for each node:
+4.  Once you have decided on your node definitions you now need to modify the MAC address/IPMI info dependent on your hardware.  Edit the following values for each node:
 
     - ``mac_address``: change to MAC address of that node's admin NIC (defaults to 1st NIC)
     - ``bmc_ip``: change to IP Address of BMC (out-of-band)/IPMI IP
@@ -285,7 +307,7 @@ Follow the steps below to execute:
 
 4.  ``deploy.sh`` will now bring up your other nodes, look for logging messages like "Starting Vagrant Node <node name>", "<node name> VM is up!"  These are indicators of how far along in the process you are.  ``deploy.sh`` will start each Vagrant VM, then run provisioning scripts to inform Foreman they are built and initiate Puppet.
 
-5.  The speed at which nodes are provisioned is totally dependant on your Jumphost server specs.  When complete you will see "All VMs are UP!"
+5.  The speed at which nodes are provisioned is totally dependent on your Jumphost server specs.  When complete you will see "All VMs are UP!"
 
 Verifying the Setup - VMs
 -------------------------

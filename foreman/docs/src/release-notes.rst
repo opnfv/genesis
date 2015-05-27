@@ -1,9 +1,9 @@
 :Authors: Tim Rozet (trozet@redhat.com)
 :Version: 0.1
 
-================================================================
-OPNFV Release Note for "Arno-RC2 release candidate" - Foreman/QuickStack@OPNFV
-================================================================
+===========================================================================================
+OPNFV Release Note for  the Arno release of OPNFV when using Foreman as a deployment tool
+===========================================================================================
 
 Abstract
 ========
@@ -65,7 +65,7 @@ Automatic test of the deployed system is not part of this pre-release.
 ================
 
 +--------------------------------------+--------------------------------------+
-| **Project**                          | Arno/genesis/bgs                    |
+| **Project**                          | Arno/genesis/bgs                     |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 | **Repo/tag**                         | genesis/arno-rc2                     |
