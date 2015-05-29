@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,4 +16,19 @@
 # @author: David Blaisonneau <david.blaisonneau@orange.com>
 # @author: Arnaud Morin <arnaud1.morin@orange.com>
 
-#placeholder
+"""
+Template parser
+"""
+
+from string import Template
+
+class OpenSteakTemplateParser:
+
+    def __init__(self, filein, fileout, dictionary):
+        """
+        Parse the files with the dictionary
+        """
+        fin = open(filein)
+        fout = open(fileout,'w')
+        template = Template(fin.read())
+        fout.write(template.substitute(dictionary))

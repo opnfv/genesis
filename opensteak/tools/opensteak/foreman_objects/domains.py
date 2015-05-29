@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,4 +16,29 @@
 # @author: David Blaisonneau <david.blaisonneau@orange.com>
 # @author: Arnaud Morin <arnaud1.morin@orange.com>
 
-#placeholder
+from opensteak.foreman_objects.objects import ForemanObjects
+
+
+class Domains(ForemanObjects):
+    """
+    Domain class
+    """
+    objName = 'domains'
+    payloadObj = 'domain'
+
+    def load(self, id='0', name=''):
+        """ Function load
+        To be rewriten
+
+        @param id: The Domain ID
+        @return RETURN: DESCRIPTION
+        """
+
+        if name:
+            id = self.__getIdByName__(name)
+        self.data = self.foreman.get('domains', id)
+        if 'parameters' in self.data:
+            self.params = self.data['parameters']
+        else:
+            self.params = []
+        self.name = self.data['name']
