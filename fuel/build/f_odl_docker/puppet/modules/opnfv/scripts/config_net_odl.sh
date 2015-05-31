@@ -24,10 +24,10 @@ function update_ml2conf {
         cp $ML2_CONF $ML2_CONF.bak
         sed -i -e 's/mechanism_drivers =openvswitch/mechanism_drivers = opendaylight/g' $ML2_CONF
         sed -i -e 's/tenant_network_types = flat,vlan,gre,vxlan/tenant_network_types = vxlan/g' $ML2_CONF
-        cat "[ml2_odl]" >> $ML2_CONF
-        cat "password = admin" >> $ML2_CONF
-        cat "username = admin" >> $ML2_CONF
-        cat "url = http://${CONTROL_HOST}:8080/controller/nb/v2/neutron" >> $ML2_CONF
+        echo "[ml2_odl]" >> $ML2_CONF
+        echo "password = admin" >> $ML2_CONF
+        echo "username = admin" >> $ML2_CONF
+        echo "url = http://${CONTROL_HOST}:8080/controller/nb/v2/neutron" >> $ML2_CONF
 }
 
 function reset_neutrondb {
@@ -72,7 +72,7 @@ function verify_ML2_working {
 
 
 function set_mode {
-        if ls -l /var/lib/glance/images
+        if [ -d "/var/lib/glance/images" ]
         then
                 echo "Controller Mode"
                 MODE=0
@@ -133,7 +133,7 @@ function compute_setup {
         ifconfig br-mgmt `grep address /etc/network/interfaces.d/ifcfg-br-mgmt | awk -F" " '{print $2}'`/24
         ip link add link eth1 name br-storage type vlan id 301
         ifconfig br-storage `grep address /etc/network/interfaces.d/ifcfg-br-storage | awk -F" " '{print $2}'`/24
-        ifconfig eth1 `grep address /etc/network/interfaces.d/ifcfg-br-fw-mgmt | awk -F" " '{print $2}'`/24
+        ifconfig eth1 `grep address /etc/network/interfaces.d/ifcfg-br-fw-admin | awk -F" " '{print $2}'`/24
         echo "set manager, and route for ODL controller"
         ovs-vsctl set-manager tcp:192.168.0.2:6640
         route add 172.17.0.1 gw 192.168.0.2
