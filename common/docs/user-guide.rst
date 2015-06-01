@@ -29,7 +29,7 @@ Version history
 
 
 .. contents:: Table of Contents
-:backlinks: none
+   :backlinks: none
 
 
 Introduction
