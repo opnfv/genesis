@@ -17,8 +17,9 @@ fi
 
 systemctl disable firewalld
 
-##install iptables
-if ! yum -y install iptables-services; then
+# Install iptables
+# Major version is pinned to force some consistency for Arno
+if ! yum -y install iptables-services-1*; then
   printf '%s\n' 'nat_setup.sh: Unable to install iptables-services' >&2
   exit 1
 fi

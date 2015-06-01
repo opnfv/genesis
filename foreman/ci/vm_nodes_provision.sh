@@ -36,29 +36,22 @@ if ! ping www.google.com -c 5; then
   exit 1
 fi
 
-##install EPEL
-if ! yum repolist | grep "epel/"; then
-  if ! rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm; then
-    printf '%s\n' 'vm_provision_nodes.sh: Unable to configure EPEL repo' >&2
-    exit 1
-  fi
-else
-  printf '%s\n' 'vm_nodes_provision.sh: Skipping EPEL repo as it is already configured.'
-fi
+# Install EPEL repo for access to many other yum repos
+# Major version is pinned to force some consistency for Arno
+yum install -y epel-release-7*
 
-##install device-mapper-libs
-##needed for libvirtd on compute nodes
-if ! yum -y upgrade device-mapper-libs; then
+# Update device-mapper-libs, needed for libvirtd on compute nodes
+# Major version is pinned to force some consistency for Arno
+if ! yum -y upgrade device-mapper-libs-1*; then
    echo "${red} WARN: Unable to upgrade device-mapper-libs...nova-compute may not function ${reset}"
 fi
 
+# Install other required packages
+# Major version is pinned to force some consistency for Arno
 echo "${blue} Installing Puppet ${reset}"
-##install puppet
-if ! yum list installed | grep -i puppet; then
-  if ! yum -y install puppet; then
-    printf '%s\n' 'vm_nodes_provision.sh: Unable to install puppet package' >&2
-    exit 1
-  fi
+if ! yum install -y puppet-3*; then
+  printf '%s\n' 'vm_nodes_provision.sh: failed to install required packages' >&2
+  exit 1
 fi
 
 echo "${blue} Configuring puppet ${reset}"

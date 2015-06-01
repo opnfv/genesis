@@ -51,9 +51,10 @@ esac
 done
 
 
-##install ipmitool
+# Install ipmitool
+# Major version is pinned to force some consistency for Arno
 if ! yum list installed | grep -i ipmitool; then
-  if ! yum -y install ipmitool; then
+  if ! yum -y install ipmitool-1*; then
     echo "${red}Unable to install ipmitool!${reset}"
     exit 1
   fi
