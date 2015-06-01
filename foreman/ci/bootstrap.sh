@@ -20,25 +20,14 @@ green=`tput setaf 2`
 ##END VARS
 
 
-##install EPEL
-if ! yum repolist | grep "epel/"; then
-  if ! rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm; then
-    printf '%s\n' 'bootstrap.sh: Unable to configure EPEL repo' >&2
-    exit 1
-  fi
-else
-  printf '%s\n' 'bootstrap.sh: Skipping EPEL repo as it is already configured.'
-fi
+# Install EPEL repo for access to many other yum repos
+# Major version is pinned to force some consistency for Arno
+yum install -y epel-release-7*
 
-##install python,gcc,git
-if ! yum -y install python-pip python-virtualenv gcc git; then
-  printf '%s\n' 'bootstrap.sh: Unable to install python,gcc,git packages' >&2
-  exit 1
-fi
-
-##Install sshpass
-if ! yum -y install sshpass; then
-  printf '%s\n' 'bootstrap.sh: Unable to install sshpass' >&2
+# Install other required packages
+# Major version is pinned to force some consistency for Arno
+if ! yum -y install python-pip-1* python-virtualenv-1* gcc-4* git-1* sshpass-1* ansible-1* python-requests-1*; then
+  printf '%s\n' 'bootstrap.sh: failed to install required packages' >&2
   exit 1
 fi
 
@@ -52,17 +41,6 @@ if [ ! -d khaleesi ]; then
     exit 1
   fi
 fi
-
-if ! pip install ansible; then
-  printf '%s\n' 'bootstrap.sh: Unable to install ansible' >&2
-  exit 1
-fi
-
-if ! pip install requests; then
-  printf '%s\n' 'bootstrap.sh: Unable to install requests python package' >&2
-  exit 1
-fi
-
 
 cd khaleesi
 
