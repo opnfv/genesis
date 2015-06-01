@@ -186,18 +186,13 @@ done
 ##disable selinux
 /sbin/setenforce 0
 
-##install EPEL
-if ! yum repolist | grep "epel/"; then
-  if ! rpm -Uvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm; then
-    printf '%s\n' 'deploy.sh: Unable to configure EPEL repo' >&2
-    exit 1
-  fi
-else
-  printf '%s\n' 'deploy.sh: Skipping EPEL repo as it is already configured.'
-fi
+# Install EPEL repo for access to many other yum repos
+# Major version is pinned to force some consistency for Arno
+yum install -y epel-release-7*
 
-##install dependencies
-if ! yum -y install binutils gcc make patch libgomp glibc-headers glibc-devel kernel-headers kernel-devel dkms psmisc; then
+# Install other required packages
+# Major versions are pinned to force some consistency for Arno
+if ! yum install -y binutils-2* gcc-4* make-3* patch-2* libgomp-4* glibc-headers-2* glibc-devel-2* kernel-headers-3* kernel-devel-3* dkms-2* psmisc-22*; then
   printf '%s\n' 'deploy.sh: Unable to install depdency packages' >&2
   exit 1
 fi
@@ -240,7 +235,7 @@ fi
 
 ##install Ansible
 if ! yum list installed | grep -i ansible; then
-  if ! yum -y install ansible; then
+  if ! yum -y install ansible-1*; then
     printf '%s\n' 'deploy.sh: Unable to install Ansible package' >&2
     exit 1
   fi
