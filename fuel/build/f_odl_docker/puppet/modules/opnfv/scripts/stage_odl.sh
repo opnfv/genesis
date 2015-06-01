@@ -15,6 +15,7 @@ DNS=8.8.8.8
 HOST_IP=`ifconfig br-ex | grep -i "inet addr" | awk -F":" '{print $2}' | awk -F" " '{print $1}'`
 
 
+
 # DEBUG ECHOS
 echo $LOCALPATH
 echo $DOCKERBIN
@@ -23,6 +24,10 @@ echo $DNS
 echo $HOST_IP
 
 
+# Set DNS to someting external and default GW - ODL requires a connection to the internet
+sed -i -e 's/nameserver 10.20.0.2/nameserver 8.8.8.8/g' /etc/resolv.conf
+route delete default gw 10.20.0.2
+route add default gw 172.30.9.1
 
 # Start Docker daemon and in background
 echo "Starting Docker"
