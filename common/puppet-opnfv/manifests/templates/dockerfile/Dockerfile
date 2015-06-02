@@ -38,11 +38,11 @@ RUN bash -c 'echo "export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64" >> ~/.bas
 
 #Now lets got and fetch the ODL distribution
 RUN echo "Fetching ODL"
-RUN wget https://nexus.opendaylight.org/content/groups/public/org/opendaylight/integration/distribution-karaf/0.2.2-Helium-SR2/distribution-karaf-0.2.2-Helium-SR2.tar.gz -O /opt/odl_source/distribution-karaf-0.2.2-Helium-SR2.tar.gz
+RUN wget https://nexus.opendaylight.org/content/groups/public/org/opendaylight/integration/distribution-karaf/0.2.3-Helium-SR3/distribution-karaf-0.2.3-Helium-SR3.tar.gz -O /opt/odl_source/distribution-karaf-0.2.3-Helium-SR3.tar.gz
 
 RUN echo "Untarring ODL inplace"
 RUN mkdir -p /opt/odl
-RUN tar zxvf /opt/odl_source/distribution-karaf-0.2.2-Helium-SR2.tar.gz -C /opt/odl
+RUN tar zxvf /opt/odl_source/distribution-karaf-0.2.3-Helium-SR3.tar.gz -C /opt/odl
 
 RUN echo "Installing DLUX and other features into ODL"
 #COPY dockerfile/container_scripts/start_odl_docker.sh /etc/init.d/start_odl_docker.sh

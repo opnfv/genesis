@@ -45,6 +45,11 @@ class opnfv::odl_docker
         source => '/etc/puppet/modules/opnfv/scripts/config_net_odl.sh',
         mode   => 750,
       }
+      file { '/opt/opnfv/odl/change.sh':
+        ensure => present,
+        source => '/etc/puppet/modules/opnfv/scripts/change.sh',
+        mode   => 750,
+      }
 
 
       # fix failed to find the cgroup root issue
