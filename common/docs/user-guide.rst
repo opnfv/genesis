@@ -1,6 +1,3 @@
-:Authors: Christopher Price (christopher.price@ericsson.com)
-:Version: 0.0.1
-
 =====================================
 OPNFV User Guide for the Arno release
 =====================================
@@ -12,6 +9,7 @@ This document provides an overview of how to use the Arno release of OPNFV once 
 
 License
 =======
+
 OPNFV User Guide for the Arno release (c) by Christopher Price (christopher.price@ericsson.com)
 
 OPNFV User Guide for the Arno release is licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
@@ -24,6 +22,9 @@ Version history
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 | 2015-05-28         | 0.0.1              | Christopher Price  | Initial version    |
+|                    |                    | (Ericsson AB)      |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-06-02         | 0.0.2              | Christopher Price  | Minor Updates      |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
@@ -70,6 +71,11 @@ In order to deploy the Arno release on a Pharos compliant lab using the Foreman 
 
 In order to deploy the Arno release on a Pharos compliant lab using the Fuel deployment toolchain you should follow in the Fuel installation guide: http://artifacts.opnfv.org/genesis/fuel/docs/installation-instructions.html
 
+Enabling or disabling OpenDaylight and the native Neutron driver
+----------------------------------------------------------------
+
+You may find that you wish to adjust the system by enabling or disabling the native OpenStack Neutron driver depending on the tasks you are trying to achieve with the platform.  Each of the deployment tools has the option to deploy with or without OpenDaylight enabled.  Details of the available delpoyment options can be found in the associated installation-instructions, please note the platform validation procedures expect a fully deployed platform and results may vary depending on the options selected.
+
 Deployment Validation
 ---------------------
 
@@ -81,7 +87,7 @@ Operating the Arno platform
 The Arno release provides a platform for deploying software on virtual infrastructure.  The majority of operations to be executed on the platform revolve around deploying, managing and removing software (applications) on the platform itself.  Application deployment is covered in the following sections, however some platform operations you may want to perform include setting up a tenant, in OpenStack tenants are also known as projects in this document we will refer to them as tenants, and associated users for that tenant.
 
 OpenStack provides a good overview of how to create your first tenant for deploying your applications.  You should create a tenant for your applications, associate users with the tenant and assign quota's.
- - Open the OpenStack console (Horizon) you should find this by logging into your control node, for POD1 of the OPNFV lab this would be <172.30.9.70:80>
+- Open the OpenStack console (Horizon) you should find this by logging into your control node; for example to access the console of POD1 of the OPNFV lab you would browse to <172.30.9.70:80>
  - Create your tenant and users by following the instructions at: http://docs.openstack.org/openstack-ops/content/projects_users.html
 
 Further actions and activities for checking logs and status can be found in other areas of the operations document: http://docs.openstack.org/openstack-ops/content/openstack-ops_preface.html
@@ -98,6 +104,20 @@ Most actions you will want to perform can be executed from the OpenStack dashboa
 
 Frequently Asked Questions
 ==========================
+
+Does OPNFV provide support for the Arno release?
+------------------------------------------------
+
+The Arno release of OPNFV is intended to be a developmental release and is not considered suitable for production deployment or at scale testing activities.  As a developmental release, and in the spirit of collaborative development, we want as much feedback from the community as possible on your experiences with the platform and how the release can be improved.
+
+Support for Arno is provided in two ways:
+
+You can engage with the community to help us improve and further develop the OPNFV platform by raising Jira Bugs or Tasks, and pushing correction patches to our repositories.
+
+ - To access Jira for issue reporting or improvement proposals head to: https://jira.opnfv.org/
+ - To get started helping out developing the platform head to: https://wiki.opnfv.org/developer
+
+Alternatively if you are intending to invest your time as a user of the platform you can request support and help from our mailing list at: mailto://support@opnfv.org
 
 License
 =======
@@ -119,3 +139,13 @@ OpenDaylight
 
 Foreman
 -------
+
+:Authors: Christopher Price (christopher.price@ericsson.com)
+:Version: 0.0.2
+
+**Documentation tracking**
+
+Revision: _sha1_
+
+Build date:  _date_
+
