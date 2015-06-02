@@ -1,9 +1,11 @@
-:Authors: Tim Rozet (trozet@redhat.com)
-:Version: 0.0.2
-
 =======================================================================================================
 OPNFV Installation instructions for the Arno release of OPNFV when using Foreman as a deployment tool
 =======================================================================================================
+
+
+.. contents:: Table of Contents
+   :backlinks: none
+
 
 Abstract
 ========
@@ -29,10 +31,9 @@ Version history
 | 2015-05-27         | 0.0.2              | Christopher Price  | Minor changes &    |
 |                    |                    | (Ericsson AB)      | formatting         |
 +--------------------+--------------------+--------------------+--------------------+
-
-
-.. contents:: Table of Contents
-   :backlinks: none
+| 2015-06-02         | 0.0.3              | Christopher Price  | Minor changes &    |
+|                    |                    | (Ericsson AB)      | formatting         |
++--------------------+--------------------+--------------------+--------------------+
 
 
 Introduction
@@ -343,3 +344,13 @@ OpenDaylight
 
 Foreman
 -------
+
+:Authors: Tim Rozet (trozet@redhat.com)
+:Version: 0.0.3
+
+**Documentation tracking**
+
+Revision: _sha1_
+
+Build date:  _date_
+

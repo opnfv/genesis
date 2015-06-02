@@ -1,9 +1,10 @@
-:Authors: Jonas Bjurel (Ericsson AB)
-:Version: 0.0.4
-
 ==================================================================================================
 OPNFV Installation instructions for the Arno release of OPNFV when using Fuel as a deployment tool
 ==================================================================================================
+
+.. contents:: Table of Contents
+   :backlinks: none
+
 
 Abstract
 ========
@@ -35,10 +36,9 @@ Version history
 | 2015-05-27         | 0.0.4              | Christopher Price  | Minor changes      |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
-
-
-.. contents:: Table of Contents
-   :backlinks: none
+| 2015-06-02         | 0.0.5              | Christopher Price  | Minor changes      |
+|                    |                    | (Ericsson AB)      |                    |
++--------------------+--------------------+--------------------+--------------------+
 
 
 Introduction
@@ -365,3 +365,13 @@ OpenDaylight
 
 Fuel
 ----
+
+:Authors: Jonas Bjurel (Ericsson AB)
+:Version: 0.0.5
+
+**Documentation tracking**
+
+Revision: _sha1_
+
+Build date:  _date_
+

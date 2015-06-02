@@ -1,37 +1,25 @@
-:Authors: Tim Rozet (trozet@redhat.com)
-:Version: 0.1
-
 ===========================================================================================
 OPNFV Release Note for  the Arno release of OPNFV when using Foreman as a deployment tool
 ===========================================================================================
 
+
+.. contents:: Table of Contents
+   :backlinks: none
+
+
 Abstract
 ========
 
-This document provides the release notes for ARNO-RC2 release candidate of Foreman/QuickStack@OPNFV.
+This document provides the release notes for Arno release with the Foreman/QuickStack deployment toolchain.
 
 License
 =======
+
 All Foreman/QuickStack and "common" entities are protected by the Apache License ( http://www.apache.org/licenses/ )
 
-**Contents**
 
-1  Version History
-
-2  Important notes
-
-3  Summary
-
-4  Delivery Data
-
-5 Known Limitations, Issues and Workarounds
-
-6 Test Result
-
-7 References
-
-1   Version history
-===================
+Version history
+===============
 
 +--------------------+--------------------+--------------------+--------------------+
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
@@ -40,54 +28,52 @@ All Foreman/QuickStack and "common" entities are protected by the Apache License
 | 2015-04-16         | 0.1.0              | Tim Rozet          | First draft        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-06-02         | 0.1.1              | Chris Price        | Minor Edits        |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
 
-2   Important notes
-===================
+Important notes
+===============
 
-This is the first OPNFV Arno pre-release that implements the deploy stage of the OPNFV CI pipeline.
+This is the initial OPNFV Arno release that implements the deploy stage of the OPNFV CI pipeline.
 
 Carefully follow the installation-instructions which guide a user on how to deploy OPNFV using Foreman/QuickStack installer.
 
-3   Summary
-===========
+Summary
+=======
 
-Arno Foreman/QuickStack@OPNFV is an installer capable of setting up an OPNFV target system.  The current definition of an OPNFV target system is OpenStack Juno upstream project versioncombined with OpenDaylight version: Helium.  The system is deployed with OpenStack High Availability (HA) for most OpenStack services.  OpenDaylight is deployed in non-HA form as HA is not availble for Arno release.  Ceph storage is used as Cinder backend, and is the only supported storage for Arno.  Ceph is setup as 3 OSDs and 3 Monitors, one OSD+Mon per Controller node.
-
-This Arno pre-release of Foreman/QuickStack@OPNFV adds the deploy stage of the OPNFV CI pipeline
+Arno release with the Foreman/QuickStack deployment toolchain will establish an OPNFV target system on a Pharos compliant lab infrastructure.  The current definition of an OPNFV target system is and OpenStack Juno version combined with OpenDaylight version: Helium.  The system is deployed with OpenStack High Availability (HA) for most OpenStack services.  OpenDaylight is deployed in non-HA form as HA is not availble for Arno release.  Ceph storage is used as Cinder backend, and is the only supported storage for Arno.  Ceph is setup as 3 OSDs and 3 Monitors, one OSD+Mon per Controller node.
 
 - Documentation is built by Jenkins
 - .iso image is built by Jenkins
-- Jenkins deploys an Foreman/QuickStack@OPNFV stack to baremetal, which includes 3 control+network nodes, and 2 compute nodes.
+- Jenkins deploys an Arno release with the Foreman/QuickStack deployment toolchain baremetal, which includes 3 control+network nodes, and 2 compute nodes.
 
-Automatic test of the deployed system is not part of this pre-release.
-
-4   Release Data
-================
+Release Data
+============
 
 +--------------------------------------+--------------------------------------+
-| **Project**                          | Arno/genesis/bgs                     |
+| **Project**                          | genesis/bgs                          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/tag**                         | genesis/arno-rc2                     |
+| **Repo/tag**                         | genesis/arno_1.0.0                   |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | Arno RC2                             |
+| **Release designation**              | Arno 1.0.0                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release date**                     | 2015-04-23                           |
+| **Release date**                     | 2015-06-04                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Purpose of the delivery**          | OPNFV Internal quality assurance     |
-|                                      | and CI Pipline dry-run               |
+| **Purpose of the delivery**          | OPNFV Arno release                   |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
-4.1 Version change
-------------------
+Version change
+--------------
 
-4.1.1   Module version changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This is the first tracked version of genesis-Foreman/QuickStack. It is based on following upstream versions:
+Module version changes
+~~~~~~~~~~~~~~~~~~~~~~
+This is the first tracked version of the Arno release with the Foreman/QuickStack deployment toolchain. It is based on following upstream versions:
 
 - OpenStack (Juno release)
 
@@ -95,17 +81,16 @@ This is the first tracked version of genesis-Foreman/QuickStack. It is based on 
 
 - CentOS 7
 
-4.1.2   Document version changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This is the first tracked version of genesis-Foreman/QuickStack. It comes with the following documentation:
+Document version changes
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-- OPNFV Installation instructions for - Foreman/QuickStack@OPNFV - ver. 0.0.1
-- OPNFV Release Note for "Arno-RC2 release candidate" - Foreman/QuickStack@OPNFV - ver. 0.1 (this document)
+This is the first tracked version of Arno release with the Foreman/QuickStack deployment toolchain. The following documentation is provided with this release:
 
-4.2 Reason for version
-----------------------
-4.2.1 Feature additions
-~~~~~~~~~~~~~~~~~~~~~~~
+- OPNFV Installation instructions for the Arno release with the Foreman/QuickStack deployment toolchain - ver. 1.0.0
+- OPNFV Release Notes for the Arno release with the Foreman/QuickStack deployment toolchain - ver. 1.0.0 (this document)
+
+Feature additions
+~~~~~~~~~~~~~~~~~
 
 +--------------------------------------+--------------------------------------+
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
@@ -115,8 +100,8 @@ This is the first tracked version of genesis-Foreman/QuickStack. It comes with t
 |                                      | using Foreman/Quickstack.            |
 +--------------------------------------+--------------------------------------+
 
-4.2.2 Bug corrections
-~~~~~~~~~~~~~~~~~~~~~
+Bug corrections
+~~~~~~~~~~~~~~~
 
 **JIRA TICKETS:**
 
@@ -128,24 +113,24 @@ This is the first tracked version of genesis-Foreman/QuickStack. It comes with t
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
-4.3 Deliverables
-----------------
+Deliverables
+------------
 
-4.3.1   Software deliverables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Software deliverables
+~~~~~~~~~~~~~~~~~~~~~
 Foreman/QuickStack@OPNFV .iso file
 deploy.sh - Automatically deploys Target OPNFV System to Bare Metal
 
-4.3.2   Documentation deliverables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- OPNFV Installation instructions for - Foreman/QuickStack@OPNFV - ver. 0.0.1
-- OPNFV Release Note for "Arno-RC2 release candidate" - Foreman/QuickStack@OPNFV - ver. 0.1 (this document)
+Documentation deliverables
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- OPNFV Installation instructions for the Arno release with the Foreman/QuickStack deployment toolchain - ver. 1.0.0
+- OPNFV Release Notes for the Arno release with the Foreman/QuickStack deployment toolchain - ver. 1.0.0 (this document)
 
-5  Known Limitations, Issues and Workarounds
-============================================
+Known Limitations, Issues and Workarounds
+=========================================
 
-5.1    System Limitations
--------------------------
+System Limitations
+------------------
 
 **Max number of blades:**   1 Foreman/QuickStack master, 3 Controllers, 20 Compute blades
 
@@ -156,8 +141,8 @@ deploy.sh - Automatically deploys Target OPNFV System to Bare Metal
 **Min master requirements:** At least 2048 MB of RAM
 
 
-5.2    Known issues
--------------------
+Known issues
+------------
 
 **JIRA TICKETS:**
 
@@ -169,15 +154,15 @@ deploy.sh - Automatically deploys Target OPNFV System to Bare Metal
 |                                      | by puppet                            |
 +--------------------------------------+--------------------------------------+
 
-5.3    Workarounds
-------------------
+Workarounds
+-----------
 **-**
 
 
-6  Test Result
-==============
+Test Result
+===========
 
-Foreman/QuickStack@OPNFV Arno RC2 has undergone QA test runs with the following results:
+The Arno release with the Foreman/QuickStack deployment toolchain has undergone QA test runs with the following results:
 
 +--------------------------------------+--------------------------------------+
 | **TEST-SUITE**                       | **Results:**                         |
@@ -187,9 +172,19 @@ Foreman/QuickStack@OPNFV Arno RC2 has undergone QA test runs with the following 
 +--------------------------------------+--------------------------------------+
 
 
-7  References
-=============
+References
+==========
 
 For more information on the OPNFV Arno release, please see:
 
 http://wiki.opnfv.org/release/arno
+
+:Authors: Tim Rozet (trozet@redhat.com)
+:Version: 0.2
+
+**Documentation tracking**
+
+Revision: _sha1_
+
+Build date:  _date_
+
