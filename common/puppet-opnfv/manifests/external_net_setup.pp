@@ -73,5 +73,13 @@ class opnfv::external_net_setup {
     network_name      => 'provider_network',
     tenant_name       => 'admin',
   }
+  ->
+  neutron_router { 'provider_router':
+    ensure               => present,
+    name                 => 'provider_router',
+    admin_state_up       => true,
+    gateway_network_name => 'provider_network',
+    tenant_name          => 'admin',
+  }
  }
 }
