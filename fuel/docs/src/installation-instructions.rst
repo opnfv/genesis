@@ -55,21 +55,27 @@ Preface
 
 Before starting the installation of the Arno release of OPNFV when using Fuel as a deployment tool, some planning must be done.
 
-First of all, the Fuel deployment .iso image needs to be retrieved, the Latest stable Arno release of OPNFV when using Fuel as a deployment tool can be found here: <www.opnfv.org/abc/def>
+Retrieving the ISO image
+------------------------
 
-Alternatively, you may build the .iso from source by cloning the opnfv/genesis git repository:
+First of all, the Fuel deployment arnofuel.iso image needs to be retrieved, the .iso image of the Arno release of OPNFV when using Fuel as a deployment tool can be found here at http://artifacts.opnfv.org/arno.2015.1.0/fuel/arno.2015.1.0.fuel.iso
+
+Building the ISO image
+----------------------
+
+Alternatively, you may build the .iso from source by cloning the opnfv/genesis git repository.  To retrieve the repository for the Arno release use the following command.
 
 <git clone https://<linux foundation uid>@gerrit.opnf.org/gerrit/genesis>
 
-Check-out the Arno release:
+Check-out the Arno release tag to set the branch to the baseline required to replicate the Arno release.
 
-<cd genesis; git checkout arno>
+<cd genesis; git checkout arno.2015.1.0>
 
 Go to the fuel directory and build the .iso
 
 <cd fuel/build; make all>
 
-For more information on how to build, please see "OPNFV Build instructions for - Arno release of OPNFV when using Fuel as a deployment tool <http://www.opnfv.org/xyz>
+For more information on how to build, please see "OPNFV Build instructions for - Arno release of OPNFV when using Fuel as a deployment tool which you retrieves with the repository at </genesis/fuel/docs/src/build-instructions.rst>
 
 Next, familiarize yourself with the Fuel 6.0.1 version by reading the following documents:
 
@@ -78,7 +84,6 @@ Next, familiarize yourself with the Fuel 6.0.1 version by reading the following 
 - Fuel user guide <http://docs.mirantis.com/openstack/fuel/fuel-6.0/user-guide.html#user-guide>
 
 - Fuel operations guide <http://docs.mirantis.com/openstack/fuel/fuel-6.0/operations.html#operations-guide>
-
 
 A number of deployment specific parameters must be collected, those are:
 
@@ -133,17 +138,17 @@ The switching infrastructure provides connectivity for the OPNFV infrastructure 
 
 The physical TOR switches are **not** automatically configured from the OPNFV reference platform. All the networks involved in the OPNFV infrastructure as well as the provider networks and the private tenant VLANs needs to be manually configured.
 
-Manual configuration of the Arno hardware platform should be carried out according to the Pharos specification <link>.
+Manual configuration of the Arno hardware platform should be carried out according to the Pharos specification http://artifacts.opnfv.org/arno.2015.1.0/docs/pharos-spec.arno.2015.1.0.pdf
 
 
 OPNFV Software installation and deployment
 ==========================================
 
-This section describes the installation of the Fuel@OPNFV installation server (Fuel master) as well as the deployment of the full OPNFV reference platform stack across a server cluster.
+This section describes the installation of the OPNFV installation server (Fuel master) as well as the deployment of the full OPNFV reference platform stack across a server cluster.
 
 Install Fuel master
 -------------------
-1. Mount the built .iso file (release/opnfv-<version>.iso) as a boot device to the jump host server.
+1. Mount the built fuel.arno.2015.1.0.iso file as a boot device to the jump host server.
 
 2. Reboot the jump host to establish the Fuel server.
 
