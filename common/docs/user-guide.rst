@@ -128,17 +128,25 @@ Arno platform components and their licences are described in their respective Re
 References
 ==========
 
-OPNFV
------
-
 OpenStack
 ---------
+
+`OpenStack Admin User Guide <http://docs.openstack.org/user-guide-admin/>`_
 
 OpenDaylight
 ------------
 
+`OpenDaylight User Guide <https://www.opendaylight.org/sites/opendaylight/files/User-Guide-Helium-SR2.pdf>`_
+
 Foreman
 -------
+
+`Foreman User Manual <http://theforeman.org/manuals/1.7/index.html>`_
+
+Fuel
+----
+
+`Fuel User Guide <http://docs.fuel-infra.org/openstack/fuel/fuel-6.0/user-guide.html>`_
 
 :Authors: Christopher Price (christopher.price@ericsson.com)
 :Version: 0.0.2
