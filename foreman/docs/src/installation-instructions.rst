@@ -339,14 +339,26 @@ References
 OPNFV
 -----
 
+`OPNFV Home Page <www.opnfv.org>`_
+
+`OPNFV Genesis project page <https://wiki.opnfv.org/get_started>`_
+
 OpenStack
 ---------
+
+`OpenStack Juno Release artifacts <http://www.openstack.org/software/juno>`_
+
+`OpenStack documentation <http://docs.openstack.org>`_
 
 OpenDaylight
 ------------
 
+`OpenDaylight artifacts <http://www.opendaylight.org/software/downloads>`_
+
 Foreman
 -------
+
+`Foreman documentation <http://theforeman.org/documentation.html>`_
 
 :Authors: Tim Rozet (trozet@redhat.com)
 :Version: 0.0.3

@@ -393,28 +393,32 @@ c. The OpenStack controller also running the ODL controller
 
 This script will reconfigure the networking from VLAN Segregation to VXLAN mode.
 
-
 References
 ==========
 
 OPNFV
 -----
-<www.opnfv.org>
-<https://wiki.opnfv.org/get_started>
+
+`OPNFV Home Page <www.opnfv.org>`_
+
+`OPNFV Genesis project page <https://wiki.opnfv.org/get_started>`_
 
 OpenStack
 ---------
-<http://www.openstack.org/software/juno>
-<http://docs.openstack.org>
+
+`OpenStack Juno Release artifacts <http://www.openstack.org/software/juno>`_
+
+`OpenStack documentation <http://docs.openstack.org>`_
 
 OpenDaylight
 ------------
-<http://www.opendaylight.org/software/downloads>
+
+`OpenDaylight artifacts <http://www.opendaylight.org/software/downloads>`_
 
 Fuel
 ----
-<https://wiki.openstack.org/wiki/Fuel>
 
+`Fuel documentation <https://wiki.openstack.org/wiki/Fuel>`_
 
 :Authors: Jonas Bjurel (Ericsson AB)
 :Version: 0.0.7
