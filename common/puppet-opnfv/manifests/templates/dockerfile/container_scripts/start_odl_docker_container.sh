@@ -21,7 +21,7 @@ export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 
 #MAIN
 echo "Starting up the da Sheilds..."
-/opt/odl/distribution-karaf-0.2.2-Helium-SR2/bin/karaf server &
+/opt/odl/distribution-karaf-0.2.3-Helium-SR3/bin/karaf server &
 echo "Sleeping 5 bad hack"
 sleep 10
 echo "should see stuff listening now"
@@ -41,7 +41,7 @@ ps -efa
 while true;
 do
         echo "Checking status of ODL:"
-        /opt/odl/distribution-karaf-0.2.2-Helium-SR2/bin/status
+        /opt/odl/distribution-karaf-0.2.3-Helium-SR3/bin/status
         sleep 60
 done
 
