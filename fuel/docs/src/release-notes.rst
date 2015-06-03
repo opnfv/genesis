@@ -26,23 +26,14 @@ Version history
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-04-16         | 0.1                | Jonas Bjurel       | First draft        |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-04-23         | 0.2                | Jonas Bjurel       | Minor change       |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-05-12         | 0.3                | Chris Price        | Minor edits        |
-|                    |                    |                    |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-06-02         | 0.4                | Chris Price        | Minor edits        |
+| 2015-06-03         | 1.0.0              | Jonas Bjurel       | Arno SR0 release   |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
 Important notes
 ===============
 
-For the first OPNFV release (Arno), these notes introduce use of `OpenStack Fuel <https://wiki.openstack.org/wiki/Fuel>`_ for the deployment stage of the OPNFV continuous integration (CI) pipeline.  The goal of the Arno release and this Fuel-based deployment process is to establish a foundational platform accelerating further development of the OPNFV infrastructure.
+For the first OPNFV release (Arno), these notes introduce use of `OpenStack Fuel <https://wiki.openstack.org/wiki/Fuel>` for the deployment stage of the OPNFV continuous integration (CI) pipeline.  The goal of the Arno release and this Fuel-based deployment process is to establish a foundational platform accelerating further development of the OPNFV infrastructure.
 
 Carefully follow the installation-instructions and pay special attention to the pre-deploy script that needs to be run before deployment is started.
 
@@ -69,16 +60,16 @@ Release Data
 | **Project**                          | genesis/bgs                          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/tag**                         | genesis/arno_1.0.0                   |
+| **Repo/tag**                         | genesis/arno.2015.1.0                |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | Arno 1.0.0                           |
+| **Release designation**              | Arno Base Service release 0 (SR0)    |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 | **Release date**                     | 2015-06-04                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Purpose of the delivery**          | OPNFV Arno release                   |
+| **Purpose of the delivery**          | OPNFV Arno Base SR0 release          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -91,11 +82,11 @@ This is the first tracked release of genesis/fuel. It is based on following upst
 
 - Fuel 6.0.1
 - OpenStack Juno release
-- OpenDaylight Helium-SR2
+- OpenDaylight Helium-SR3
 
 Document version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
-This is the first tracked version of genesis/fuel. It comes with the following documentation:
+This is the first tracked version of the fuel installer for OPNFV. It comes with the following documentation:
 
 - OPNFV Installation instructions for Arno with Fuel as deployment tool
 - OPNFV Release Notes for Arno use of Fuel as deployment tool
@@ -111,10 +102,10 @@ Feature additions
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| JIRA:                                | Baselining Fuel 6.0.1 for OPNFV      |
+| JIRA:-                               | Baselining Fuel 6.0.1 for OPNFV      |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| JIRA:                                | Integration of OpenDaylight          |
+| JIRA:-                               | Integration of OpenDaylight          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -128,7 +119,7 @@ Bug corrections
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 |                                      |                                      |
-|                                      |                                      |
+| -                                    | -                                    |
 +--------------------------------------+--------------------------------------+
 
 Deliverables
@@ -136,11 +127,12 @@ Deliverables
 
 Software deliverables
 ~~~~~~~~~~~~~~~~~~~~~
-Fuel-based installer iso (opnfv.iso) file
+Fuel-based installer iso file <arno.2015.1.0.fuel.iso>
 
 Documentation deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - OPNFV Installation instructions for Arno release with the Fuel deployment tool - ver. 1.0.0
+- OPNFV Build instructions for Arno release with the Fuel deployment tool - ver. 1.0.0
 - OPNFV Release Note for Arno release with the Fuel deployment tool - ver. 1.0.0 (this document)
 
 Known Limitations, Issues and Workarounds
@@ -157,7 +149,6 @@ System Limitations
 
 **Max number of networks:**   3800 (Needs special switch config.)
 
-**L3Agent:**   L3 agent and floating IPs is not supported.
 
 Known issues
 ------------
@@ -168,13 +159,22 @@ Known issues
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| JIRA:                                | CentOS is not supported              |
+| JIRA: BGS-57                         | The OpenDaylight Helium release is   |
+|                                      | not fully functional and the         |
+|                                      | resulting Fuel integration is not    |
+|                                      | able to cope with the deficiancies.  |
+|                                      | It is therefore not recommended to   |
+|                                      | to enable this option.               |
+|                                      | A functional integration of ODL      |
+|                                      | version: Lithium is expected to be   |
+|                                      | available in an upcomming service    |
+|                                      | release.                             |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
 Workarounds
 -----------
-**-**
+Current workaround for the JIRA: BGS-57 is not to enable OpenDaylight networking - see installation instructions.  
 
 
 Test Result
@@ -186,21 +186,39 @@ Arno release with the Fuel deployment tool has undergone QA test runs with the f
 | **TEST-SUITE**                       | **Results:**                         |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **-**                                | **-**                                |
+| Tempest test suite 1:                | 27 out of 105 testcases fails        |
+|                                      | see note (1) and note (2)            |
++--------------------------------------+--------------------------------------+
+| Tempest test suite 2:                | 26 out of 100 testcases fails        |
+|                                      | see note (1) and note (2)            |
++--------------------------------------+--------------------------------------+
+| Tempest test suite 3:                | 14 out of 106 testcases fails        |
+|                                      | see note (1) and note (2)            |
++--------------------------------------+--------------------------------------+
+| Rally test suite suie 1:             | 10 out of 18 testcases fails         |
+|                                      | see note (1) and note (3)            |
++--------------------------------------+--------------------------------------+
+| ODL test suite suie                  | 7 out of 7 testcases fails           |
+|                                      | see note (1) and note (4)            |
++--------------------------------------+--------------------------------------+
+| vPING                                | OK                                   |
+|                                      | see note (1)                         |
 +--------------------------------------+--------------------------------------+
 
+** - Note (1): Have been run with ODL controller active but not with integrated ODL networking VXLAN segmentation activated **
+** - Note (2): see https://wiki.opnfv.org/r1_tempest **
+** - Note (3): see https://wiki.opnfv.org/r1_rally_bench **
+** - Note (4): see https://wiki.opnfv.org/r1_odl_suite **
 
 References
 ==========
-
 For more information on the OPNFV Arno release, please see http://wiki.opnfv.org/releases/arno.
 
 :Authors: Jonas Bjurel (Ericsson)
-:Version: 0.4
+:Version: 1.0.0
 
 **Documentation tracking**
 
 Revision: _sha1_
 
 Build date:  _date_
-
