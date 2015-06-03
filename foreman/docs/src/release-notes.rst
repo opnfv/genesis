@@ -31,6 +31,9 @@ Version history
 | 2015-06-02         | 0.1.1              | Chris Price        | Minor Edits        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-06-03         | 0.1.2              | Tim Rozet          | Minor Edits        |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
 
 Important notes
 ===============
@@ -52,13 +55,13 @@ Release Data
 ============
 
 +--------------------------------------+--------------------------------------+
-| **Project**                          | genesis/bgs                          |
+| **Project**                          | genesis                              |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/tag**                         | genesis/arno_1.0.0                   |
+| **Repo/tag**                         | genesis/arno.2015.1.0                |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | Arno 1.0.0                           |
+| **Release designation**              | arno.2015.1.0                        |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 | **Release date**                     | 2015-06-04                           |
@@ -77,7 +80,7 @@ This is the first tracked version of the Arno release with the Foreman/QuickStac
 
 - OpenStack (Juno release)
 
-- OpenDaylight Helium-SR2
+- OpenDaylight Helium-SR3
 
 - CentOS 7
 
