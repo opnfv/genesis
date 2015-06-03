@@ -34,6 +34,9 @@ Version history
 | 2015-06-02         | 0.0.3              | Christopher Price  | Minor changes &    |
 |                    |                    | (Ericsson AB)      | formatting         |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-06-03         | 0.0.4              | Ildiko Vancsa      | Minor changes      |
+|                    |                    | (Ericsson)         |                    |
++--------------------+--------------------+--------------------+--------------------+
 
 
 Introduction
@@ -48,7 +51,7 @@ Preface
 
 Foreman/QuickStack uses the Foreman Open Source project as a server management tool, which in turn manages and executes Genesis/QuickStack.  Genesis/QuickStack consists of layers of Puppet modules that are capable of provisioning the OPNFV Target System (3 controllers, n number of compute nodes).
 
-The Genesis repo contains the necessary tools to get install and deploy an OPNFV target system using Foreman/QuickStack.  These tools consist of the Foreman/QuickStack bootable ISO, and the automatic deployment script (``deploy.sh``).
+The Genesis repo contains the necessary tools to get install and deploy an OPNFV target system using Foreman/QuickStack.  These tools consist of the Foreman/QuickStack bootable ISO (``arno.2015.1.0.foreman.iso``), and the automatic deployment script (``deploy.sh``).
 
 An OPNFV install requires a "Jumphost" in order to operate.  The bootable ISO will allow you to install a customized CentOS 7 release to the Jumphost, which then gives you the required packages needed to run ``deploy.sh``.  If you already have a Jumphost with CentOS 7 installed, you may choose to ignore the ISO step and instead move directly to running ``deploy.sh``.  In this case, ``deploy.sh`` will install the necessary packages for you in order to execute.
 
@@ -146,7 +149,7 @@ This section goes step-by-step on how to correctly install and provision the OPN
 Install Bare Metal Jumphost
 ---------------------------
 
-1.  If your Jumphost does not have CentOS 7 already on it, or you would like to do a fresh install, then download the Foreman/QuickStack bootable ISO here <ISO LINK>.
+1.  If your Jumphost does not have CentOS 7 already on it, or you would like to do a fresh install, then download the Foreman/QuickStack bootable ISO <http://artifacts.opnfv.org/arno.2015.1.0/foreman/arno.2015.1.0.foreman.iso> here.
 
 2.  Boot the ISO off of a USB or other installation media and walk through installing OPNFV CentOS 7.
 
