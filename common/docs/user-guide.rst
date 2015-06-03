@@ -117,7 +117,7 @@ You can engage with the community to help us improve and further develop the OPN
  - To access Jira for issue reporting or improvement proposals head to: https://jira.opnfv.org/
  - To get started helping out developing the platform head to: https://wiki.opnfv.org/developer
 
-Alternatively if you are intending to invest your time as a user of the platform you can request support and help from our mailing list at: mailto://support@opnfv.org
+Alternatively if you are intending to invest your time as a user of the platform you can ask questions and request help from our mailing list at: mailto://support@opnfv.org
 
 License
 =======
