@@ -24,27 +24,9 @@ Version history
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-04-15         | 0.0.1              | Jonas Bjurel       | First draft        |
-|                    |                    | (Ericsson AB)      |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-04-23         | 0.0.2              | Jonas Bjurel       | Minor changes      |
-|                    |                    | (Ericsson AB)      |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-05-16         | 0.0.3              | Christopher Price  | Minor changes      |
-|                    |                    | (Ericsson AB)      |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-05-27         | 0.0.4              | Christopher Price  | Minor changes      |
-|                    |                    | (Ericsson AB)      |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-06-02         | 0.0.5              | Christopher Price  | Minor changes      |
-|                    |                    | (Ericsson AB)      |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-06-03         | 0.0.6              | Jonas Bjurel       | Minor changes      |
-|                    |                    | (Ericsson AB)      |                    |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-06-03         | 0.0.7              | Jonas Bjurel       | Added instructions |
-|                    |                    | (Ericsson AB)      | on how to enable   |
-|                    |                    |                    | ODL                |
+| 2015-06-03         | 1.0.0              | Jonas Bjurel       | Installation       |
+|                    |                    | (Ericsson AB)      | instructions for   |
+|                    |                    |                    | the Arno release   |
 +--------------------+--------------------+--------------------+--------------------+
 
 
@@ -421,10 +403,10 @@ Fuel
 `Fuel documentation <https://wiki.openstack.org/wiki/Fuel>`_
 
 :Authors: Jonas Bjurel (Ericsson AB)
-:Version: 0.0.7
+:Version: 1.0.0
 
 **Documentation tracking**
 
-Revision: _sha1
+Revision: _sha1_
 
-Build date:  _date
+Build date: _date_
