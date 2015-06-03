@@ -1,60 +1,48 @@
-:Authors: Jonas Bjurel (Ericsson)
-:Version: 0.1.0
+========================================================================
+OPNFV Build instructions for - Fuel deployment tool - OPNFV Arno release
+========================================================================
 
-================================================================
-OPNFV Build instructions for - < Component denomination >
-================================================================
+.. contents:: Table of Contents
+   :backlinks: none
 
 Abstract
 ========
 
-This document describes how to build <Component>, build system dependencies and required system resources.
+This document describes how to build the Fuel deployment tool for the Arno release of OPNFV, the build system, dependencies and required system resources.
 
 License
 =======
-Fuel@OPNFV DOCs (c) by Jonas Bjurel (Ericsson AB)
+Arno release of OPNFV when using Fuel as a deployment tool DOCs (c) by Jonas Bjurel (Ericsson AB)
 
-Fuel@OPNFV DOCs (c) is licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
-
-
-**Contents**
-
-1   Version history
-
-2   Introduction
-
-3   Requirements
-
-4   Building
-
-5   Artifacts
+Arno release of OPNFV when using Fuel as a deployment tool DOCs (c) are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 
-1   Version history
-===================
+
+Version history
+===============
 
 +--------------------+--------------------+--------------------+--------------------+
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-04-23         | 0.1.0              | Jonas Bjurel       | First draft        |
-|                    |                    |                    |                    |
+| 2015-06-03         | 1.0.0              | Jonas Bjurel       | Instructions for   |
+|                    |                    | (Ericsson AB)      | the Arno release   |
 +--------------------+--------------------+--------------------+--------------------+
 
-2   Introduction
-================
+Introduction
+============
 
-This document describes build system used to build Fuel@OPNFV, required dependencies and minimum requirements on the host to be used for the buildsystem.
+This document describes the build system used to build the Fuel deployment tool for the Arno release of OPNFV, required dependencies and minimum requirements on the host to be used for the buildsystem.
 
 The Fuel build system is desigened around Docker containers such that dependencies outside of the build system can be kept to a minimum. It also shields the host from any potential dangerous operations performed by the build system.
 
 The audience of this document is assumed to have good knowledge in network and Unix/Linux administration.
 
-3   Requirements
-================
+Requirements
+============
 
-3.1 Minimum Hardware Requirements
----------------------------------
+Minimum Hardware Requirements
+-----------------------------
 
 - An x86_64 host (Bare-metal or VM) with Ubuntu 14.04 LTS installed
 
@@ -62,8 +50,8 @@ The audience of this document is assumed to have good knowledge in network and U
 
 - 4 GB RAM
 
-3.2 Minimum Software Requirements
----------------------------------
+Minimum Software Requirements
+-----------------------------
 
 The build host should run Ubuntu 14.04 operating system.
 
@@ -77,11 +65,11 @@ On the host, the following packages must be installed:
 
 - curl (simply available through sudo apt-get install curl)
 
-3.3 Preparations
-----------------
+Preparations
+------------
 
-3.3.1 Setting up the Docker build container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setting up the Docker build container
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After having installed Docker, add yourself to the docker group:
 
 <usermod -a -G docker [userid]>
@@ -95,8 +83,8 @@ Then restart docker:
 
 <sudo service docker.io restart>
 
-3.3.2 Setting up OPNFV Gerrit in order to being able to clone the code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Setting up OPNFV Gerrit in order to being able to clone the code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Start setting up OPNFV gerrit by creating a SSH key (unless you don't already have one), create one with ssh-keygen
 
 - Add your generated public key in OPNFV Gerrit <https://gerrit.opnfv.org/>
@@ -104,41 +92,45 @@ Then restart docker:
 
 - Select "SSH Public Keys" to the left and then "Add Key" and paste your public key in.
 
-3.3.3 Clone the OPNFV code git repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Clone the OPNFV code git repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Now it is time to clone the code repository:
 
 <git clone ssh://'Linux foundation user'@gerrit.opnfv.org:29418/genesis>
 
-Now you should have the OPNFV genesis repository with Fuel@OPNFV stored locally on your build host.
+Now you should have the OPNFV genesis repository with the Fuel directories stored locally on your build host.
 
-4   Building
-============
+Check out the Arno release:
+<cd genesis>
+<git checkout arno.2015.1.0>
 
-There are two methods available for building Fuel@OPNFV:
+Building
+========
+
+There are two methods available for building Fuel:
 
 - A low level method using Make
 
 - An abstracted method using build.sh
 
-4.1  Configure your build environment
+Configure your build environment
 -------------------------------------
 
-Select the versions of the components you want to build by editing the fuel/build/config.mk file.
-Note if you want to build with OpenDaylight SDN controller you need to uncomment the lines starting
-with odl-main and java-main
+** Configuring the build environment should not be performed if building standard Arno release **
 
-4.2  Low level build method using make
---------------------------------------
+Select the versions of the components you want to build by editing the fuel/build/config.mk file.
+
+Low level build method using make
+---------------------------------
 The low level method is based on Make:
 
-From the <fuel/build directory> invoke <make [target]>
+From the <fuel/build> directory, invoke <make [target]>
 
 Following targets exist:
 
 - none/all -  this will:
 
-  - If not allready existing, initialize the docker build environment
+  - If not already existing, initialize the docker build environment
 
   - If not already done, build OpenDaylight from upstream (as defined by fuel-build config-spec)
 
@@ -154,9 +146,9 @@ Following targets exist:
 
 If the build is successful, you will find the generated ISO file in the <fuel/build/release> subdirectory!
 
-4.3  Abstracted build method using build.sh
-===========================================
-The abstracted build method useses the <fuel/ci/build.sh> script which allows you to:
+Abstracted build method using build.sh
+======================================
+The abstracted build method uses the <fuel/ci/build.sh> script which allows you to:
 
 - Create and use a build cache - significantly speeding up the buildtime if upstream repositories have not changed.
 
@@ -164,14 +156,24 @@ The abstracted build method useses the <fuel/ci/build.sh> script which allows yo
 
 For more info type <fuel/ci/build.sh -h>.
 
-5   Artifacts
-=============
+Artifacts
+=========
 
 The artifacts produced are:
 
-- <OPNFV_XXXX.iso> - Which represents the bootable Fuel@OPNFV image, XXXX is replaced with the build identity provided to the build system
+- <OPNFV_XXXX.iso> - Which represents the bootable Fuel image, XXXX is replaced with the build identity provided to the build system
 
 - <OPNFV_XXXX.iso.txt> - Which holds version metadata.
 
-6  References
-=============
+References
+==========
+-
+
+:Authors: Jonas Bjurel (Ericsson)
+:Version: 1.0.0
+
+**Documentation tracking**
+
+Revision:  _sha1
+
+Build date:  _date
