@@ -58,24 +58,24 @@ Before starting the installation of the Arno release of OPNFV when using Fuel as
 Retrieving the ISO image
 ------------------------
 
-First of all, the Fuel deployment arnofuel.iso image needs to be retrieved, the .iso image of the Arno release of OPNFV when using Fuel as a deployment tool can be found here at http://artifacts.opnfv.org/arno.2015.1.0/fuel/arno.2015.1.0.fuel.iso
+First of all, the Fuel deployment ISO image needs to be retrieved, the .iso image of the Arno release of OPNFV when using Fuel as a deployment tool can be found at http://artifacts.opnfv.org/arno.2015.1.0/fuel/arno.2015.1.0.fuel.iso
 
 Building the ISO image
 ----------------------
 
-Alternatively, you may build the .iso from source by cloning the opnfv/genesis git repository.  To retrieve the repository for the Arno release use the following command.
+Alternatively, you may build the .iso from source by cloning the opnfv/genesis git repository.  To retrieve the repository for the Arno release use the following command:
 
 <git clone https://<linux foundation uid>@gerrit.opnf.org/gerrit/genesis>
 
-Check-out the Arno release tag to set the branch to the baseline required to replicate the Arno release.
+Check-out the Arno release tag to set the branch to the baseline required to replicate the Arno release:
 
 <cd genesis; git checkout arno.2015.1.0>
 
-Go to the fuel directory and build the .iso
+Go to the fuel directory and build the .iso:
 
 <cd fuel/build; make all>
 
-For more information on how to build, please see "OPNFV Build instructions for - Arno release of OPNFV when using Fuel as a deployment tool which you retrieves with the repository at </genesis/fuel/docs/src/build-instructions.rst>
+For more information on how to build, please see "OPNFV Build instructions for - Arno release of OPNFV when using Fuel as a deployment tool which you retrieved with the repository at </genesis/fuel/docs/src/build-instructions.rst>
 
 Next, familiarize yourself with the Fuel 6.0.1 version by reading the following documents:
 
@@ -148,7 +148,7 @@ This section describes the installation of the OPNFV installation server (Fuel m
 
 Install Fuel master
 -------------------
-1. Mount the built fuel.arno.2015.1.0.iso file as a boot device to the jump host server.
+1. Mount the built arno.2015.1.0.fuel.iso file as a boot device to the jump host server.
 
 2. Reboot the jump host to establish the Fuel server.
 
