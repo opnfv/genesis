@@ -39,6 +39,13 @@ Version history
 | 2015-06-02         | 0.0.5              | Christopher Price  | Minor changes      |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-06-03         | 0.0.6              | Jonas Bjurel       | Minor changes      |
+|                    |                    | (Ericsson AB)      |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-06-03         | 0.0.7              | Jonas Bjurel       | Added instructions |
+|                    |                    | (Ericsson AB)      | on how to enable   |
+|                    |                    |                    | ODL                |
++--------------------+--------------------+--------------------+--------------------+
 
 
 Introduction
@@ -138,8 +145,8 @@ The switching infrastructure provides connectivity for the OPNFV infrastructure 
 
 The physical TOR switches are **not** automatically configured from the OPNFV reference platform. All the networks involved in the OPNFV infrastructure as well as the provider networks and the private tenant VLANs needs to be manually configured.
 
-Manual configuration of the Arno hardware platform should be carried out according to the Pharos specification http://artifacts.opnfv.org/arno.2015.1.0/docs/pharos-spec.arno.2015.1.0.pdf
 
+Manual configuration of the Arno hardware platform should be carried out according to the Pharos specification http://artifacts.opnfv.org/arno.2015.1.0/docs/pharos-spec.arno.2015.1.0.pdf
 
 OPNFV Software installation and deployment
 ==========================================
@@ -178,7 +185,7 @@ Install Fuel master
 
 6. Select DNS & Hostname and change the following fields to appropriate values:
 
-   - Hostname <CEE Region name>-fuel
+   - Hostname <OPNFV Region name>-fuel
 
    - Domain <Domain Name>
 
@@ -192,7 +199,7 @@ Install Fuel master
 
    - NTP Server 2 <Customer NTP server 2>
 
-   - NTP Server 3<Customer NTP server 3>
+   - NTP Server 3 <Customer NTP server 3>
 
    **Note: This step is only to pass the network sanity test, the actual ntp parameters will be set with the pre-deploy script.**
 
@@ -344,39 +351,76 @@ Deploy the OPNFV environment
 Installation health-check
 =========================
 
+38. Perform system health-check
 Now that the OPNFV environment has been created, and before the post installation configurations is started, perform a system health check from the Fuel GUI:
 
 - Select the “Health check” TAB.
 - Select all test cases
 - And click “Run tests”
 
-All test cases except the following should pass:
+All test cases should pass.
 
 Post installation and deployment actions
 ========================================
-**-**
+
+Activate OpenDaylight and VXLAN network segmentation
+----------------------------------------------------
+** Note: With the current release, the OpenDaylight option is experimental!**
+** Note: With ODL enabled, L3 features will no longer be available **
+The activation of ODL within a deployed Fuel system is a two part process.
+
+The first part involves staging the ODL container, i.e. starting the ODL container itself.
+The second part involves a reconfiguration of the underlying networking components to enable VXLAN tunneling.
+The staging of the ODL container works without manual intervention except for editing with a valid DNS IP for your system
+
+For the second part - the reconfiguration of the networking, the script <config_net_odl.sh> is provided as a baseline example to show what needs to be configured for your system system setup. Since there are many variants of valid networking topologies, this script will not be 100% correct in all deployment cases and some manual script modifications maybe required.
+
+39. Enable the ODL controller
+ssh to any of the OpenStack controllers and issue the following command as root user: </opt/opnfv/odl/stage_odl.sh>
+This script will start ODL, load modules and make the Controller ready for use.
+** Note: - The script should only be ran on a single controller (even if the system is setup in a High Availability OpenStack mode). **
+
+40. Verify that the OpenDaylight GUI is accessible
+Point your browser to the following URL: <http://{ODL-CONTROLLER-IP}:8181/dlux/index.html> and login:
+Username: Admin
+Password: Admin
+
+41. Reconfiguring the networking and switch to VXLAN network segmentation
+ssh to all of the nodes and issue the following command </opt/opnfv/odl/config_net_odl.sh> in the order specified below:
+a. All compute nodes
+b. All OpenStack controller nodes except the one running the ODL-controller
+c. The OpenStack controller also running the ODL controller
+
+This script will reconfigure the networking from VLAN Segregation to VXLAN mode.
+
 
 References
 ==========
 
 OPNFV
 -----
+<www.opnfv.org>
+<https://wiki.opnfv.org/get_started>
 
 OpenStack
 ---------
+<http://www.openstack.org/software/juno>
+<http://docs.openstack.org>
 
 OpenDaylight
 ------------
+<http://www.opendaylight.org/software/downloads>
 
 Fuel
 ----
+<https://wiki.openstack.org/wiki/Fuel>
+
 
 :Authors: Jonas Bjurel (Ericsson AB)
-:Version: 0.0.5
+:Version: 0.0.7
 
 **Documentation tracking**
 
-Revision: _sha1_
+Revision: _sha1
 
-Build date:  _date_
-
+Build date:  _date
