@@ -87,7 +87,7 @@ Operating the Arno platform
 The Arno release provides a platform for deploying software on virtual infrastructure.  The majority of operations to be executed on the platform revolve around deploying, managing and removing software (applications) on the platform itself.  Application deployment is covered in the following sections, however some platform operations you may want to perform include setting up a tenant, in OpenStack tenants are also known as projects in this document we will refer to them as tenants, and associated users for that tenant.
 
 OpenStack provides a good overview of how to create your first tenant for deploying your applications.  You should create a tenant for your applications, associate users with the tenant and assign quota's.
-- Open the OpenStack console (Horizon) you should find this by logging into your control node; for example to access the console of POD1 of the OPNFV lab you would browse to <172.30.9.70:80>
+ - Open the OpenStack console (Horizon) you should find this by logging into your control node; for example to access the console of POD1 of the OPNFV lab you would browse to <172.30.9.70:80>
  - Create your tenant and users by following the instructions at: http://docs.openstack.org/openstack-ops/content/projects_users.html
 
 Further actions and activities for checking logs and status can be found in other areas of the operations document: http://docs.openstack.org/openstack-ops/content/openstack-ops_preface.html
@@ -117,7 +117,7 @@ You can engage with the community to help us improve and further develop the OPN
  - To access Jira for issue reporting or improvement proposals head to: https://jira.opnfv.org/
  - To get started helping out developing the platform head to: https://wiki.opnfv.org/developer
 
-Alternatively if you are intending to invest your time as a user of the platform you can request support and help from our mailing list at: mailto://support@opnfv.org
+Alternatively if you are intending to invest your time as a user of the platform you can ask questions and request help from our mailing list at: mailto://support@opnfv.org
 
 License
 =======
