@@ -21,13 +21,12 @@ Version history
 | **Date**           | **Ver.**           | **Author**         | **Comment**        |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-05-28         | 0.0.1              | Christopher Price  | Initial version    |
+| 2015-06-04         | 1.0.0              | Christopher Price  | Initial revision   |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-06-02         | 0.0.2              | Christopher Price  | Minor Updates      |
-|                    |                    | (Ericsson AB)      |                    |
+| 2015-06-05         | 1.0.1              | Christopher Price  | Corrected user     |
+|                    |                    | (Ericsson AB)      | e-mail address     |
 +--------------------+--------------------+--------------------+--------------------+
-
 
 .. contents:: Table of Contents
    :backlinks: none
@@ -117,7 +116,7 @@ You can engage with the community to help us improve and further develop the OPN
  - To access Jira for issue reporting or improvement proposals head to: https://jira.opnfv.org/
  - To get started helping out developing the platform head to: https://wiki.opnfv.org/developer
 
-Alternatively if you are intending to invest your time as a user of the platform you can ask questions and request help from our mailing list at: mailto://support@opnfv.org
+Alternatively if you are intending to invest your time as a user of the platform you can ask questions and request help from our mailing list at: mailto://opnfv-users@lists.opnfv.org
 
 License
 =======
@@ -149,7 +148,7 @@ Fuel
 `Fuel User Guide <http://docs.fuel-infra.org/openstack/fuel/fuel-6.0/user-guide.html>`_
 
 :Authors: Christopher Price (christopher.price@ericsson.com)
-:Version: 0.0.2
+:Version: 1.0.1
 
 **Documentation tracking**
 
