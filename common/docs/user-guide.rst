@@ -24,7 +24,7 @@ Version history
 | 2015-06-04         | 1.0.0              | Christopher Price  | Initial revision   |
 |                    |                    | (Ericsson AB)      |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-06-05         | 1.0.1              | Christopher Price  | Corrected user     |
+| 2015-06-05         | 1.0.1              | Christopher Price  | Corrected links &  |
 |                    |                    | (Ericsson AB)      | e-mail address     |
 +--------------------+--------------------+--------------------+--------------------+
 
@@ -59,16 +59,16 @@ Hardware Requirements
 
 The Arno release of OPNFV is intended to be run as a baremetal deployment on a "Pharos compliant" lab infrastructure.  The Pharos project in OPNFV is a community activity to provide guidance and establish requirements on hardware platforms supporting the Arno virtualisation platform.
 
-Prior to deploying the OPNFV platform it is important that the hardware infrastructure be configured according to the Pharos specification: http://artifacts.opnfv.org/pharos/docs/spec.html
+Prior to deploying the OPNFV platform it is important that the hardware infrastructure be configured according to the Pharos specification: https://www.opnfv.org/sites/opnfv/files/release/pharos-spec.arno.2015.1.0.pdf
 
 Arno Platform Deployment
 ------------------------
 
 The Arno platform supports installation and deployment using two deployment tools; a Foreman based deployment toolchain and a Fuel based deployment toolchain.
 
-In order to deploy the Arno release on a Pharos compliant lab using the Foreman deployment toolchain you should follow in the Foreman installation guide: http://artifacts.opnfv.org/genesis/foreman/docs/installation-instructions.html
+In order to deploy the Arno release on a Pharos compliant lab using the Foreman deployment toolchain you should follow in the Foreman installation guide: https://www.opnfv.org/sites/opnfv/files/release/foreman_install-guide.arno.2015.1.0.pdf
 
-In order to deploy the Arno release on a Pharos compliant lab using the Fuel deployment toolchain you should follow in the Fuel installation guide: http://artifacts.opnfv.org/genesis/fuel/docs/installation-instructions.html
+In order to deploy the Arno release on a Pharos compliant lab using the Fuel deployment toolchain you should follow in the Fuel installation guide: https://www.opnfv.org/sites/opnfv/files/release/install-guide.arno.2015.1.0.pdf
 
 Enabling or disabling OpenDaylight and the native Neutron driver
 ----------------------------------------------------------------
@@ -78,7 +78,7 @@ You may find that you wish to adjust the system by enabling or disabling the nat
 Deployment Validation
 ---------------------
 
-Once installed you should validate the deployment completed successfully by executing the automated basic platform validation routines outlined in the Arno testing documentation: http://artifacts.opnfv.org/functest/docs/functest.html
+Once installed you should validate the deployment completed successfully by executing the automated basic platform validation routines outlined in the Arno testing documentation: https://www.opnfv.org/sites/opnfv/files/release/functest.arno.2015.1.0.pdf
 
 Operating the Arno platform
 ===========================
