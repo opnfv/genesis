@@ -25,4 +25,6 @@ class opnfv {
   include opnfv::add_packages
   # Setup OpenDaylight
   include opnfv::odl_docker
+  # Setup OpenDaylight
+  include opnfv::odl_lith_docker
 }
