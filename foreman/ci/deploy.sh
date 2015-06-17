@@ -225,7 +225,8 @@ fi
 
 ##install kmod-VirtualBox
 if ! lsmod | grep vboxdrv; then
-  if ! sudo /etc/init.d/vboxdrv setup; then
+  sudo /etc/init.d/vboxdrv setup
+  if ! lsmod | grep vboxdrv; then
     printf '%s\n' 'deploy.sh: Unable to install kernel module for virtualbox' >&2
     exit 1
   fi
