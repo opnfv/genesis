@@ -31,7 +31,7 @@ class Deployment(object):
                          % (self.yaml_config_dir, self.env_id)
         if os.path.exists(deployment_dir):
             shutil.rmtree(deployment_dir)
-        exec_cmd('fuel --env %s deployment --default --dir %s'
+        exec_cmd('fuel deployment --env %s --download --dir %s'
                  % (self.env_id, self.yaml_config_dir))
 
     def upload_deployment_info(self):
@@ -75,7 +75,8 @@ class Deployment(object):
             if env[0][E['status']] == 'operational':
                 ready = True
                 break
-            elif env[0][E['status']] == 'error':
+            elif (env[0][E['status']] == 'error'
+                  or env[0][E['status']] == 'stopped'):
                 break
             else:
                 time.sleep(SLEEP_TIME)
@@ -102,10 +103,9 @@ class Deployment(object):
 
     def health_check(self):
         log('Now running sanity and smoke health checks')
-        exec_cmd('fuel health --env %s --check sanity,smoke --force'
-                 % self.env_id)
-        log('Health checks passed !')
-
+        log(exec_cmd('fuel health --env %s --check sanity,smoke --force'
+                     % self.env_id))
+        
     def deploy(self):
         self.config_opnfv()
         self.run_deploy()

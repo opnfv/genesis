@@ -1,71 +1,109 @@
 
-======== How to prepare and run the OPNFV Autodeployment =======
+======== PREREQUISITES ========
 
-in fuel/build/deploy run these:
+the following applications and python modules are required to be installed:
 
+- example for Ubuntu environment:
 
-
---- Step.1 Install prerequisites
-
-sudo ./install-ubuntu-packages.sh
-
-
-
+sudo apt-get install -y libvirt-bin qemu-kvm tightvncserver virt-manager
+sshpass fuseiso genisoimage blackbox xterm python-pip
+sudo restart libvirt-bin
+sudo pip install pyyaml netaddr paramiko lxml scp
 
 
 
---- Step.2-A If wou want to deploy OPNFV cloud environment on top of KVM/Libvirt virtualization
-             run the following environment setup script
-
-sudo python setup_environment.py <storage_directory> <path_to_dha_file>
-
-Example:
-         sudo python setup_environment.py /mnt/images dha.yaml
+======== PREPARE and RUN the OPNFV Autodeployment ========
 
 
+--- Step.1 Prepare the DEA and DHA configuration files and the OPNFV ISO file
+
+Make sure that you are using the right DEA - Deployment Environment Adapter and
+DHA - Deployment Hardware Adapter configuration files, the ones provided are only templates
+you will have to modify them according to your needs
+
+- If wou wish to deploy OPNFV cloud environment on top of KVM/Libvirt
+  virtualization use as example the following configuration files:
+
+  =>   libvirt/conf/ha
+                dea.yaml
+                dha.yaml
+
+  =>   libvirt/conf/multinode
+                dea.yaml
+                dha.yaml
+
+
+- If you wish to deploy OPNFV cloud environment on baremetal
+  use as example the following configuration files:
+
+  =>   baremetal/conf/ericsson_montreal_lab/ha
+                dea.yaml
+                dha.yaml
+
+  =>   baremetal/conf/ericsson_montreal_lab/multinode
+                dea.yaml
+                dha.yaml
+
+  =>   baremetal/conf/linux_foundation_lab/ha
+                dea.yaml
+                dha.yaml
+
+  =>   baremetal/conf/linux_foundation_lab/multinode
+                dea.yaml
+                dha.yaml
+
+
+--- Step.2 Run Autodeployment:
+
+usage: python deploy.py [-h] [-nf]
+                        [iso_file] dea_file dha_file [storage_dir]
+                        [pxe_bridge]
+
+positional arguments:
+  iso_file     ISO File [default: OPNFV.iso]
+  dea_file     Deployment Environment Adapter: dea.yaml
+  dha_file     Deployment Hardware Adapter: dha.yaml
+  storage_dir  Storage Directory [default: images]
+  pxe_bridge   Linux Bridge for booting up the Fuel Master VM [default: pxebr]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -nf          Do not install Fuel Master (and Node VMs when using libvirt)
+
+
+* WARNING:
+
+If <storage_dir> is not specified, Autodeployment will use
+"<current_working_dir>/images" as default, and it will create it,
+if it hasn't been created before
+
+If <pxe_bridge> is not specified, Autodeployment will use "pxebr" as default,
+if the bridge does not exist, the application will terminate with an error message
+
+IF <storage_dir> is not specified, Autodeployment will use "<current_working_dir>/OPNFV.iso"
+as default, if the iso file does not exist, the application will terminate with an error message
+
+<pxe_bridge> is not required for Autodeployment in virtual environment, even if it is specified
+it will not be used at all
+
+
+* EXAMPLES:
+
+- Install Fuel Master and deploy OPNFV Cloud from scratch on Baremetal Environment
+
+sudo python deploy.py ~/ISO/opnfv.iso ~/CONF/baremetal/dea.yaml ~/CONF/baremetal/dha.yaml /mnt/images pxebr
+
+
+- Install Fuel Master and deploy OPNFV Cloud from scratch on Virtual Environment
+
+sudo python deploy.py ~/ISO/opnfv.iso ~/CONF/virtual/dea.yaml ~/CONF/virtual/dha.yaml /mnt/images
 
 
 
+- Deploy OPNFV Cloud on an already active Environment where Fuel Master VM is running
+  so no need to install Fuel again
 
---- Step.2-B If you want to deploy OPNFV cloud environment on baremetal run the
-             following environment setup script
+sudo python deploy.py -nf ~/CONF/baremetal/dea.yaml ~/CONF/baremetal/dha.yaml
 
-sudo python setup_vfuel.py <storage_directory> <path_to_dha_file>
-
-Example:
-         sudo python setup_vfuel.py /mnt/images dha.yaml
-
-
-WARNING!:
-setup_vfuel.py adds the following snippet into /etc/network/interfaces
-making sure to replace in setup_vfuel.py interfafe 'p1p1.20' with your actual outbound
-interface in order to provide network access to the Fuel master for DNS and NTP.
-
-iface vfuelnet inet static
-	bridge_ports em1
-	address 10.40.0.1
-	netmask 255.255.255.0
-	pre-down iptables -t nat -D POSTROUTING --out-interface p1p1.20 -j MASQUERADE  -m comment --comment "vfuelnet"
-	pre-down iptables -D FORWARD --in-interface vfuelnet --out-interface p1p1.20 -m comment --comment "vfuelnet"
-	post-up iptables -t nat -A POSTROUTING --out-interface p1p1.20 -j MASQUERADE  -m comment --comment "vfuelnet"
-	post-up iptables -A FORWARD --in-interface vfuelnet --out-interface p1p1.20 -m comment --comment "vfuelnet"
-
-
-
-
-
-
---- Step.3 Start Autodeployment
-Make sure you use the right Deployment Environment Adapter and
-Deployment Hardware Adaper configuration files:
-
-       - for baremetal:  baremetal/dea.yaml   baremetal/dha.yaml
-
-       - for libvirt:    libvirt/dea.yaml   libvirt/dha.yaml
-
-
-sudo python deploy.py [-nf] <isofile> <deafile> <dhafile>
-
-Example:
-         sudo python deploy.py ~/ISO/opnfv.iso baremetal/dea.yaml baremetal/dha.yaml
+sudo python deploy.py -nf ~/CONF/virtual/dea.yaml ~/CONF/virtual/dha.yaml
 

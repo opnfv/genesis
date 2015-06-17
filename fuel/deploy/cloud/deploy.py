@@ -19,6 +19,8 @@ parse = common.parse
 err = common.err
 check_file_exists = common.check_file_exists
 log = common.log
+commafy = common.commafy
+ArgParser = common.ArgParser
 
 class Deploy(object):
 
@@ -57,8 +59,8 @@ class Deploy(object):
                 log('Deleting node %s' % node[N['id']])
                 exec_cmd('fuel node --node-id %s --delete-from-db'
                          % node[N['id']])
-                exec_cmd('dockerctl shell cobbler cobbler system remove '
-                         '--name node-%s' % node[N['id']])
+                exec_cmd('cobbler system remove --name node-%s'
+                         % node[N['id']], False)
 
     def check_previous_installation(self):
         log('Check previous installation')
@@ -120,7 +122,7 @@ class Deploy(object):
                     self.node_ids_dict[blade] = node[N['id']]
 
     def discovery_waiting_loop(self, discovered_macs):
-        WAIT_LOOP = 180
+        WAIT_LOOP = 320
         SLEEP_TIME = 10
         all_discovered = False
         for i in range(WAIT_LOOP):
@@ -147,13 +149,8 @@ class Deploy(object):
     def assign_roles_to_cluster_node_ids(self):
         self.node_id_roles_dict = {}
         for blade, node_id in self.node_ids_dict.iteritems():
-            role_list = []
-            role = self.dea.get_node_role(blade)
-            if role == 'controller':
-                role_list.extend(['controller', 'mongo'])
-            elif role == 'compute':
-                role_list.extend(['compute'])
-            self.node_id_roles_dict[node_id] = (role_list, blade)
+            roles = commafy(self.dea.get_node_role(blade))
+            self.node_id_roles_dict[node_id] = (roles, blade)
 
     def configure_environment(self):
         config_env = ConfigureEnvironment(self.dea, YAML_CONF_DIR,
@@ -175,25 +172,16 @@ class Deploy(object):
         self.configure_environment()
         self.deploy_cloud()
 
-def usage():
-    print '''
-    Usage:
-    python deploy.py <dea_file> <macs_file>
-
-    Example:
-            python deploy.py dea.yaml macs.yaml
-    '''
-
 def parse_arguments():
-    if len(sys.argv) != 3:
-        log('Incorrect number of arguments')
-        usage()
-        sys.exit(1)
-    dea_file = sys.argv[-2]
-    macs_file = sys.argv[-1]
-    check_file_exists(dea_file)
-    check_file_exists(macs_file)
-    return dea_file, macs_file
+    parser = ArgParser(prog='python %s' % __file__)
+    parser.add_argument('dea_file', action='store',
+                        help='Deployment Environment Adapter: dea.yaml')
+    parser.add_argument('macs_file', action='store',
+                        help='Blade MAC addresses: macs.yaml')
+    args = parser.parse_args()
+    check_file_exists(args.dea_file)
+    check_file_exists(args.macs_file)
+    return (args.dea_file, args.macs_file)
 
 def main():
 

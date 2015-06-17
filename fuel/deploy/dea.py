@@ -48,6 +48,8 @@ class DeploymentEnvironmentAdapter(object):
                 return node[property_name]
 
     def get_node_role(self, node_id):
+        role_list = []
+
         return self.get_node_property(node_id, 'role')
 
     def get_node_ids(self):

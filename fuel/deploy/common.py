@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 import logging
+import argparse
 
 N = {'id': 0, 'status': 1, 'name': 2, 'cluster': 3, 'ip': 4, 'mac': 5,
      'roles': 6, 'pending_roles': 7, 'online': 8}
@@ -73,6 +74,19 @@ def check_dir_exists(dir_path):
     if not os.path.isdir(dir_path):
         err('ERROR: Directory %s not found\n' % dir_path)
 
+def create_dir_if_not_exists(dir_path):
+    if not os.path.isdir(dir_path):
+        log('Creating directory %s' % dir_path)
+        os.makedirs(dir_path)
+
+def commafy(comma_separated_list):
+    l = [c.strip() for c in comma_separated_list.split(',')]
+    return ','.join(l)
+
+def delete_file(file):
+    if os.path.exists(file):
+        os.remove(file)
+
 def check_if_root():
     r = exec_cmd('whoami')
     if r != 'root':
@@ -80,3 +94,10 @@ def check_if_root():
 
 def log(message):
     LOG.debug('%s\n' % message)
+
+class ArgParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('ERROR: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+

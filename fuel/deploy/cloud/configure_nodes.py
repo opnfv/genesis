@@ -26,7 +26,7 @@ class ConfigureNodes(object):
         log('Configure nodes')
         for node_id, roles_blade in self.node_id_roles_dict.iteritems():
             exec_cmd('fuel node set --node-id %s --role %s --env %s'
-                     % (node_id, ','.join(roles_blade[0]), self.env_id))
+                     % (node_id, roles_blade[0], self.env_id))
 
         self.download_deployment_config()
         for node_id, roles_blade in self.node_id_roles_dict.iteritems():
@@ -37,8 +37,7 @@ class ConfigureNodes(object):
         self.upload_deployment_config()
 
     def modify_node_network_schemes(self, node_id, roles_blade):
-        log('Modify node network transformations in environment %s'
-            % self.env_id)
+        log('Modify network transformations for node %s' % node_id)
         type = self.dea.get_node_property(roles_blade[1], 'transformations')
         transformations = self.dea.get_transformations(type)
 
@@ -52,7 +51,6 @@ class ConfigureNodes(object):
 
             with io.open(node_file, 'w') as stream:
                yaml.dump(node, stream, default_flow_style=False)
-
 
     def download_deployment_config(self):
         log('Download deployment config for environment %s' % self.env_id)

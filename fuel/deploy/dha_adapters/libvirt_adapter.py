@@ -96,12 +96,6 @@ class LibvirtAdapter(HardwareAdapter):
         exec_cmd('virsh change-media %s --insert %s %s'
                  % (vm_name, device, iso_file))
 
-    def get_disks(self):
-        return self.dha_struct['disks']
-
-    def get_node_role(self, node_id):
-        return self.get_node_property(node_id, 'role')
-
     def get_node_pxe_mac(self, node_id):
         mac_list = []
         vm_name = self.get_node_property(node_id, 'libvirtName')
