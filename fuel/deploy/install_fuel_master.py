@@ -138,7 +138,7 @@ class InstallFuelMaster(object):
                      self.work_dir, os.path.basename(self.dea_file)))
 
     def wait_until_installation_completed(self):
-        WAIT_LOOP = 320
+        WAIT_LOOP = 360
         SLEEP_TIME = 10
         CMD = 'ps -ef | grep %s | grep -v grep' % BOOTSTRAP_ADMIN
 

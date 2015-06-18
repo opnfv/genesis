@@ -1,12 +1,9 @@
-#!/bin/bash -x
-set -o xtrace
-set -o errexit
-set -o nounset
-set -o pipefail
+#!/bin/bash
+topdir=$(dirname $(readlink -f $BASH_SOURCE))
+deploydir=$(cd ${topdir}/../deploy; pwd)
 
-WORKSPACE=$(readlink -e ..)
-ISO_LOCATION="$(readlink -f $(find $WORKSPACE -iname 'fuel*iso' -type f))"
-INTERFACE="fuel"
+pushd ${deploydir} > /dev/null
+echo -e "python deploy.py $@\n"
+python deploy.py $@
+popd > /dev/null
 
-cd "${WORKSPACE}/deploy"
-./deploy_fuel.sh "$ISO_LOCATION" $INTERFACE 2>&1 | tee deploy_fuel.log
