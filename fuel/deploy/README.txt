@@ -55,32 +55,32 @@ you will have to modify them according to your needs
 
 --- Step.2 Run Autodeployment:
 
-usage: python deploy.py [-h] [-nf]
-                        [iso_file] dea_file dha_file [storage_dir]
-                        [pxe_bridge]
+usage: python deploy.py [-h] [-nf] [-s [STORAGE_DIR]] [-b [PXE_BRIDGE]]
+                        [iso_file] dea_file dha_file
 
 positional arguments:
-  iso_file     ISO File [default: OPNFV.iso]
-  dea_file     Deployment Environment Adapter: dea.yaml
-  dha_file     Deployment Hardware Adapter: dha.yaml
-  storage_dir  Storage Directory [default: images]
-  pxe_bridge   Linux Bridge for booting up the Fuel Master VM [default: pxebr]
+  iso_file          ISO File [default: OPNFV.iso]
+  dea_file          Deployment Environment Adapter: dea.yaml
+  dha_file          Deployment Hardware Adapter: dha.yaml
 
 optional arguments:
-  -h, --help   show this help message and exit
-  -nf          Do not install Fuel Master (and Node VMs when using libvirt)
+  -h, --help        show this help message and exit
+  -nf               Do not install Fuel Master (and Node VMs when using
+                    libvirt)
+  -s [STORAGE_DIR]  Storage Directory [default: images]
+  -b [PXE_BRIDGE]   Linux Bridge for booting up the Fuel Master VM [default:
+                    pxebr]
 
 
 * WARNING:
 
-If <storage_dir> is not specified, Autodeployment will use
-"<current_working_dir>/images" as default, and it will create it,
-if it hasn't been created before
+If optional argument -s <storage_dir> is not specified, Autodeployment will use
+"<current_working_dir>/images" as default, and it will create it, if it hasn't been created before
 
-If <pxe_bridge> is not specified, Autodeployment will use "pxebr" as default,
+If optional argument -b <pxe_bridge> is not specified, Autodeployment will use "pxebr" as default,
 if the bridge does not exist, the application will terminate with an error message
 
-IF <storage_dir> is not specified, Autodeployment will use "<current_working_dir>/OPNFV.iso"
+IF optional argument <iso_file> is not specified, Autodeployment will use "<current_working_dir>/OPNFV.iso"
 as default, if the iso file does not exist, the application will terminate with an error message
 
 <pxe_bridge> is not required for Autodeployment in virtual environment, even if it is specified
@@ -91,12 +91,12 @@ it will not be used at all
 
 - Install Fuel Master and deploy OPNFV Cloud from scratch on Baremetal Environment
 
-sudo python deploy.py ~/ISO/opnfv.iso ~/CONF/baremetal/dea.yaml ~/CONF/baremetal/dha.yaml /mnt/images pxebr
+sudo python deploy.py ~/ISO/opnfv.iso ~/CONF/baremetal/dea.yaml ~/CONF/baremetal/dha.yaml -s /mnt/images -b pxebr
 
 
 - Install Fuel Master and deploy OPNFV Cloud from scratch on Virtual Environment
 
-sudo python deploy.py ~/ISO/opnfv.iso ~/CONF/virtual/dea.yaml ~/CONF/virtual/dha.yaml /mnt/images
+sudo python deploy.py ~/ISO/opnfv.iso ~/CONF/virtual/dea.yaml ~/CONF/virtual/dha.yaml -s /mnt/images
 
 
 
