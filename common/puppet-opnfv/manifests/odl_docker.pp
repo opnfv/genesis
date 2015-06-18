@@ -39,7 +39,7 @@ class opnfv::odl_docker
                 mode => 750,
              }
 
-        file { "/opt/opnfv/odl/start_odl_conatiner.sh":
+        file { "/opt/opnfv/odl/start_odl_container.sh":
                 ensure => present,
                 source => "/etc/puppet/modules/opnfv/scripts/start_odl_container.sh",
                 mode => 750,

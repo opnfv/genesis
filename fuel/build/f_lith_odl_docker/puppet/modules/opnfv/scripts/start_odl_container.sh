@@ -2,7 +2,7 @@
 #  Ericsson Canada Inc.
 #  Authoer: Daniel Smith
 #
-#   A helper script to install and setup the ODL docker conatiner on the controller
+#   A helper script to install and setup the ODL docker container on the controller
 #
 #
 #   Inputs:  odl_docker_image.tar
@@ -86,7 +86,7 @@ then
         echo "Starting Container in Interactive Mode (/bin/bash will be provided, you will need to run ./start_odl_docker.sh inside the container yourself)"
         $LOCALPATH/$DOCKERBINNAME run --name odl_docker -p 8181:8181 -p 8185:8185 -p 9000:9000 -p 1099:1099 -p 8101:8101 -p 6633:6633 -p 43506:43506 -p 44444:44444 -p 6653:6653 -p 12001:12001 -p 6400:6400 -p 6640:6640 -p 8080:8080 -p 7800:7800 -p 55130:55130 -p 52150:52150 -p 36826:26826 -i -t loving_daniel  /bin/bash
 else
-        echo "Starting Conatiner in Daemon mode - no shell will be provided and docker attach will not provide shell)"
+        echo "Starting Container in Daemon mode - no shell will be provided and docker attach will not provide shell)"
         $LOCALPATH/$DOCKERBINNAME run --name odl_docker -p 8181:8181 -p 8185:8185 -p 9000:9000 -p 1099:1099 -p 8101:8101 -p 6633:6633 -p 43506:43506 -p 44444:44444 -p 6653:6653 -p 12001:12001 -p 6400:6400 -p 6640:6640 -p 8080:8080 -p 7800:7800 -p 55130:55130 -p 52150:52150 -p 36826:26826 -i -d -t loving_daniel
         echo "should see the process listed here in docker ps -a"
         $LOCALPATH/$DOCKERBINNAME ps -a;
