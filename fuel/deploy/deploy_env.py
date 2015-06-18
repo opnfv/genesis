@@ -68,7 +68,9 @@ class CloudDeploy(object):
         dea_file = '%s/%s' % (self.work_dir, os.path.basename(self.dea_file))
         macs_file = '%s/%s' % (self.work_dir, os.path.basename(self.macs_file))
         with self.ssh as s:
-            s.run('python %s %s %s' % (deploy_app, dea_file, macs_file))
+            status = s.run('python %s %s %s'
+                           % (deploy_app, dea_file, macs_file))
+        return status
 
     def deploy(self):
 
@@ -84,4 +86,4 @@ class CloudDeploy(object):
 
         self.upload_cloud_deployment_files()
 
-        self.run_cloud_deploy(CLOUD_DEPLOY_FILE)
+        return self.run_cloud_deploy(CLOUD_DEPLOY_FILE)

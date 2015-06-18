@@ -70,6 +70,7 @@ class SSHClient(object):
                 while error_buff:
                     log(error_buff.strip())
                     error_buff = chan.recv_stderr(1024)
+        return chan.recv_exit_status()
 
     def scp_get(self, remote, local='.', dir=False):
         try:

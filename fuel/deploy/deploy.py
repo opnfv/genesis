@@ -2,6 +2,7 @@ import os
 import shutil
 import io
 import re
+import sys
 import netaddr
 import uuid
 import yaml
@@ -138,7 +139,7 @@ class AutoDeploy(object):
     def deploy_env(self):
         dep = CloudDeploy(self.dha, self.fuel_conf['ip'], self.fuel_username,
                           self.fuel_password, self.dea_file, WORK_DIR)
-        dep.deploy()
+        return dep.deploy()
 
     def setup_execution_environment(self):
         exec_env = ExecutionEnvironment(self.storage_dir, self.pxe_bridge,
@@ -157,7 +158,7 @@ class AutoDeploy(object):
             self.create_tmp_dir()
             self.install_fuel_master()
             shutil.rmtree(self.tmp_dir)
-        self.deploy_env()
+        return self.deploy_env()
 
 def check_bridge(pxe_bridge, dha_path):
     with io.open(dha_path) as yaml_file:
@@ -215,7 +216,7 @@ def main():
 
     d = AutoDeploy(without_fuel, storage_dir, pxe_bridge, iso_file,
                    dea_file, dha_file)
-    d.deploy()
+    sys.exit(d.deploy())
 
 if __name__ == '__main__':
     main()
