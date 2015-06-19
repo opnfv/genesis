@@ -1,0 +1,4 @@
+---
+- name: restart cinder-volume
+  service: name=cinder-volume state=restarted enabled=yes
+
