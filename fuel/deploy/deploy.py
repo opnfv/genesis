@@ -184,15 +184,16 @@ def parse_arguments():
                         help='Deployment Environment Adapter: dea.yaml')
     parser.add_argument('dha_file', action='store',
                         help='Deployment Hardware Adapter: dha.yaml')
-    parser.add_argument('storage_dir', nargs='?', action='store',
+    parser.add_argument('-s', dest='storage_dir', action='store',
                         default='%s/images' % CWD,
                         help='Storage Directory [default: images]')
-    parser.add_argument('pxe_bridge', nargs='?', action='store',
+    parser.add_argument('-b', dest='pxe_bridge', action='store',
                         default='pxebr',
                         help='Linux Bridge for booting up the Fuel Master VM '
                              '[default: pxebr]')
 
     args = parser.parse_args()
+    log(args)
 
     check_file_exists(args.dea_file)
     check_file_exists(args.dha_file)
@@ -202,8 +203,6 @@ def parse_arguments():
         check_file_exists(args.iso_file)
         log('Using image directory: %s' % args.storage_dir)
         create_dir_if_not_exists(args.storage_dir)
-        log('Using bridge %s to boot up Fuel Master VM on it'
-            % args.pxe_bridge)
         check_bridge(args.pxe_bridge, args.dha_file)
 
     return (args.without_fuel, args.storage_dir, args.pxe_bridge,
