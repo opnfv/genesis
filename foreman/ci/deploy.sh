@@ -25,6 +25,9 @@ red=`tput setaf 1`
 green=`tput setaf 2`
 
 declare -A interface_arr
+declare -A controllers_ip_arr
+declare -A admin_ip_arr
+declare -A public_ip_arr
 ##END VARS
 
 ##FUNCTIONS
@@ -35,6 +38,9 @@ display_usage() {
   echo -e "\n   -no_parse : No variable parsing into config. Flag. \n"
   echo -e "\n   -base_config : Full path of settings file to parse. Optional.  Will provide a new base settings file rather than the default.  Example:  -base_config /opt/myinventory.yml \n"
   echo -e "\n   -virtual : Node virtualization instead of baremetal. Flag. \n"
+  echo -e "\n   -enable_virtual_dhcp : Run dhcp server instead of using static IPs.  Use this with -virtual only. \n"
+  echo -e "\n   -static_ip_range : static IP range to define when using virtual and when dhcp is not being used (default), must at least a 20 IP block.  Format: '192.168.1.1,192.168.1.20' \n"
+  echo -e "\n   -ping_site : site to use to verify IP connectivity from the VM when -virtual is used.  Format: -ping_site www.blah.com \n"
 }
 
 ##find ip of interface
@@ -178,12 +184,39 @@ parse_cmdline() {
                 virtual="TRUE"
                 shift 1
             ;;
+        -enable_virtual_dhcp)
+                enable_virtual_dhcp="TRUE"
+                shift 1
+            ;;
+        -static_ip_range)
+                static_ip_range=$2
+                shift 2
+            ;;
+        -ping_site)
+                ping_site=$2
+                shift 2
+            ;;
         *)
                 display_usage
                 exit 1
             ;;
     esac
   done
+
+  if [ ! -z "$enable_virtual_dhcp" ] && [ ! -z "$static_ip_range" ]; then
+    echo -e "\n\n${red}ERROR: Incorrect Usage.  Static IP range cannot be set when using DHCP!.  Exiting${reset}\n\n"
+    exit 1
+  fi
+
+  if [ -z "$virtual" ]; then
+    if [ ! -z "$enable_virtual_dhcp" ]; then
+      echo -e "\n\n${red}ERROR: Incorrect Usage.  enable_virtual_dhcp can only be set when using -virtual!.  Exiting${reset}\n\n"
+      exit 1
+    elif [ ! -z "$static_ip_range" ]; then
+      echo -e "\n\n${red}ERROR: Incorrect Usage.  static_ip_range can only be set when using -virtual!.  Exiting${reset}\n\n"
+      exit 1
+    fi
+  fi
 }
 
 ##disable selinux
@@ -253,7 +286,7 @@ EOM
 
 ##install Ansible using yum
 ##params: none
-##usage: install_anible()
+##usage: install_ansible()
 install_ansible() {
   if ! yum list installed | grep -i ansible; then
     if ! yum -y install ansible-1*; then
@@ -317,7 +350,7 @@ clone_bgs() {
   fi
 }
 
-##validates the netork settings and update VagrantFile with network settings
+##validates the network settings and update VagrantFile with network settings
 ##params: none
 ##usage: configure_network()
 configure_network() {
@@ -333,52 +366,101 @@ configure_network() {
     exit 1
   fi
 
-  ##find number of interfaces with ip and substitute in VagrantFile
-  if_counter=0
-  for interface in ${output}; do
+  ##virtual we only find 1 interface
+  if [ $virtual ]; then
+    ##find interface with default gateway
+    this_default_gw=$(ip route | grep default | awk '{print $3}')
+    echo "${blue}Default Gateway: $this_default_gw ${reset}"
+    this_default_gw_interface=$(ip route get $this_default_gw | awk '{print $3}')
 
-    if [ "$if_counter" -ge 4 ]; then
-      break
-    fi
-    interface_ip=$(find_ip $interface)
+    ##find interface IP, make sure its valid
+    interface_ip=$(find_ip $this_default_gw_interface)
     if [ ! "$interface_ip" ]; then
-      continue
+      echo "${red}Interface ${this_default_gw_interface} does not have an IP: $interface_ip ! Exiting ${reset}"
+      exit 1
     fi
-    new_ip=$(next_usable_ip $interface_ip)
-    if [ ! "$new_ip" ]; then
-      continue
-    fi
-    interface_arr[$interface]=$if_counter
-    interface_ip_arr[$if_counter]=$new_ip
-    subnet_mask=$(find_netmask $interface)
-    if [ "$if_counter" -eq 1 ]; then
-      private_subnet_mask=$subnet_mask
-      private_short_subnet_mask=$(find_short_netmask $interface)
-    fi
-    if [ "$if_counter" -eq 2 ]; then
-      public_subnet_mask=$subnet_mask
-      public_short_subnet_mask=$(find_short_netmask $interface)
-    fi
-    if [ "$if_counter" -eq 3 ]; then
-      storage_subnet_mask=$subnet_mask
-    fi
-    sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
-    ((if_counter++))
-  done
 
+    ##set variable info
+    if [ ! -z "$static_ip_range" ]; then
+      new_ip=$(echo $static_ip_range | cut -d , -f1)
+    else
+      new_ip=$(next_usable_ip $interface_ip)
+      if [ ! "$new_ip" ]; then
+        echo "${red} Cannot find next IP on interface ${this_default_gw_interface} new_ip: $new_ip ! Exiting ${reset}"
+        exit 1
+      fi
+    fi
+    interface=$this_default_gw_interface
+    public_interface=$interface
+    interface_arr[$interface]=2
+    interface_ip_arr[2]=$new_ip
+    subnet_mask=$(find_netmask $interface)
+    public_subnet_mask=$subnet_mask
+    public_short_subnet_mask=$(find_short_netmask $interface)
+
+    ##set that interface to be public
+    sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
+    if_counter=1
+  else
+    ##find number of interfaces with ip and substitute in VagrantFile
+    if_counter=0
+    for interface in ${output}; do
+
+      if [ "$if_counter" -ge 4 ]; then
+        break
+      fi
+      interface_ip=$(find_ip $interface)
+      if [ ! "$interface_ip" ]; then
+        continue
+      fi
+      new_ip=$(next_usable_ip $interface_ip)
+      if [ ! "$new_ip" ]; then
+        continue
+      fi
+      interface_arr[$interface]=$if_counter
+      interface_ip_arr[$if_counter]=$new_ip
+      subnet_mask=$(find_netmask $interface)
+      if [ "$if_counter" -eq 0 ]; then
+        admin_subnet_mask=$subnet_mask
+      elif [ "$if_counter" -eq 1 ]; then
+        private_subnet_mask=$subnet_mask
+        private_short_subnet_mask=$(find_short_netmask $interface)
+      elif [ "$if_counter" -eq 2 ]; then
+        public_subnet_mask=$subnet_mask
+        public_short_subnet_mask=$(find_short_netmask $interface)
+      elif [ "$if_counter" -eq 3 ]; then
+        storage_subnet_mask=$subnet_mask
+      else
+        echo "${red}ERROR: interface counter outside valid range of 0 to 3: $if_counter ! ${reset}"
+        exit 1
+      fi
+      sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
+      ((if_counter++))
+    done
+  fi
   ##now remove interface config in Vagrantfile for 1 node
   ##if 1, 3, or 4 interfaces set deployment type
   ##if 2 interfaces remove 2nd interface and set deployment type
-  if [ "$if_counter" == 1 ]; then
-    deployment_type="single_network"
-    remove_vagrant_network eth_replace1
-    remove_vagrant_network eth_replace2
-    remove_vagrant_network eth_replace3
-  elif [ "$if_counter" == 2 ]; then
-    deployment_type="single_network"
-    second_interface=`echo $output | awk '{print $2}'`
-    remove_vagrant_network $second_interface
-    remove_vagrant_network eth_replace2
+  if [[ "$if_counter" == 1 || "$if_counter" == 2 ]]; then
+    if [ $virtual ]; then
+      deployment_type="single_network"
+      echo "${blue}Single network detected for Virtual deployment...converting to three_network with internal networks! ${reset}"
+      private_internal_ip=155.1.2.2
+      admin_internal_ip=156.1.2.2
+      private_subnet_mask=255.255.255.0
+      private_short_subnet_mask=/24
+      interface_ip_arr[1]=$private_internal_ip
+      interface_ip_arr[0]=$admin_internal_ip
+      admin_subnet_mask=255.255.255.0
+      admin_short_subnet_mask=/24
+      sed -i 's/^.*eth_replace1.*$/  config.vm.network "private_network", virtualbox__intnet: "my_private_network", ip: '\""$private_internal_ip"\"', netmask: '\""$private_subnet_mask"\"'/' Vagrantfile
+      sed -i 's/^.*eth_replace0.*$/  config.vm.network "private_network", virtualbox__intnet: "my_admin_network", ip: '\""$admin_internal_ip"\"', netmask: '\""$private_subnet_mask"\"'/' Vagrantfile
+      remove_vagrant_network eth_replace3
+      deployment_type=three_network
+    else
+       echo "${blue}Single network or 2 network detected for baremetal deployment.  This is unsupported! Exiting. ${reset}"
+       exit 1
+    fi
   elif [ "$if_counter" == 3 ]; then
     deployment_type="three_network"
     remove_vagrant_network eth_replace3
@@ -387,6 +469,28 @@ configure_network() {
   fi
 
   echo "${blue}Network detected: ${deployment_type}! ${reset}"
+
+  if [ $virtual ]; then
+    if [ -z "$enable_virtual_dhcp" ]; then
+      sed -i 's/^.*disable_dhcp_flag =.*$/  disable_dhcp_flag = true/' Vagrantfile
+      if [ $static_ip_range ]; then
+        ##verify static range is at least 20 IPs
+        static_ip_range_begin=$(echo $static_ip_range | cut -d , -f1)
+        static_ip_range_end=$(echo $static_ip_range | cut -d , -f2)
+        ##verify range is at least 20 ips
+        ##assumes less than 255 range pool
+        begin_octet=$(echo $static_ip_range_begin | cut -d . -f4)
+        end_octet=$(echo $static_ip_range_end | cut -d . -f4)
+        ip_count=$((end_octet-begin_octet+1))
+        if [ "$ip_count" -lt 20 ]; then
+          echo "${red}Static range is less than 20 ips: ${ip_count}, exiting  ${reset}"
+          exit 1
+        else
+          echo "${blue}Static IP range is size $ip_count ${reset}"
+        fi
+      fi
+    fi
+  fi
 
   if route | grep default; then
     echo "${blue}Default Gateway Detected ${reset}"
@@ -476,17 +580,56 @@ configure_network() {
       ##required for controllers_ip_array global param
       next_private_ip=${interface_ip_arr[1]}
       type=_private
+      control_count=0
       for node in controller1 controller2 controller3; do
         next_private_ip=$(next_usable_ip $next_private_ip)
         if [ ! "$next_private_ip" ]; then
-           printf '%s\n' 'deploy.sh: Unable to find next ip for private network for control nodes' >&2
-           exit 1
+          printf '%s\n' 'deploy.sh: Unable to find next ip for private network for control nodes' >&2
+          exit 1
         fi
         sed -i 's/'"$node$type"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
         controller_ip_array=$controller_ip_array$next_private_ip,
+        controllers_ip_arr[$control_count]=$next_private_ip
+        ((control_count++))
       done
 
-      ##replace global param for contollers_ip_array
+      next_public_ip=${interface_ip_arr[2]}
+      foreman_ip=$next_public_ip
+
+      ##if no dhcp, find all the Admin IPs for nodes in advance
+      if [ $virtual ]; then
+        if [ -z "$enable_virtual_dhcp" ]; then
+          sed -i 's/^.*no_dhcp:.*$/no_dhcp: true/' opnfv_ksgen_settings.yml
+          nodes=`sed -nr '/nodes:/{:start /workaround/!{N;b start};//p}' opnfv_ksgen_settings.yml | sed -n '/^  [A-Za-z0-9]\+:$/p' | sed 's/\s*//g' | sed 's/://g'`
+          compute_nodes=`echo $nodes | tr " " "\n" | grep -v controller | tr "\n" " "`
+          controller_nodes=`echo $nodes | tr " " "\n" | grep controller | tr "\n" " "`
+          nodes=${controller_nodes}${compute_nodes}
+          next_admin_ip=${interface_ip_arr[0]}
+          type=_admin
+          for node in ${nodes}; do
+            next_admin_ip=$(next_ip $next_admin_ip)
+            if [ ! "$next_admin_ip" ]; then
+              echo "${red} Unable to find an unused IP in admin_network for $node ! ${reset}"
+              exit 1
+            else
+              admin_ip_arr[$node]=$next_admin_ip
+              sed -i 's/'"$node$type"'/'"$next_admin_ip"'/g' opnfv_ksgen_settings.yml
+            fi
+          done
+
+          ##allocate node public IPs
+          for node in ${nodes}; do
+            next_public_ip=$(next_usable_ip $next_public_ip)
+            if [ ! "$next_public_ip" ]; then
+              echo "${red} Unable to find an unused IP in admin_network for $node ! ${reset}"
+              exit 1
+            else
+              public_ip_arr[$node]=$next_public_ip
+            fi
+          done
+        fi
+      fi
+      ##replace global param for controllers_ip_array
       controller_ip_array=${controller_ip_array%?}
       sed -i 's/^.*controllers_ip_array:.*$/  controllers_ip_array: '"$controller_ip_array"'/' opnfv_ksgen_settings.yml
 
@@ -495,28 +638,49 @@ configure_network() {
       ##therefore we increment the ip by 10 to make sure we have a safe buffer
       next_private_ip=$(increment_ip $next_private_ip 10)
 
-      grep -E '*private_vip|loadbalancer_vip|db_vip|amqp_vip|*admin_vip' opnfv_ksgen_settings.yml | while read -r line ; do
-        sed -i 's/^.*'"$line"'.*$/  '"$line $next_private_ip"'/' opnfv_ksgen_settings.yml
-        next_private_ip=$(next_usable_ip $next_private_ip)
-        if [ ! "$next_private_ip" ]; then
-          printf '%s\n' 'deploy.sh: Unable to find next ip for private network for vip replacement' >&2
-          exit 1
+      private_output=$(grep -E '*private_vip|loadbalancer_vip|db_vip|amqp_vip|*admin_vip' opnfv_ksgen_settings.yml)
+      if [ ! -z "$private_output" ]; then
+        while read -r line; do
+          sed -i 's/^.*'"$line"'.*$/  '"$line $next_private_ip"'/' opnfv_ksgen_settings.yml
+          next_private_ip=$(next_usable_ip $next_private_ip)
+          if [ ! "$next_private_ip" ]; then
+            printf '%s\n' 'deploy.sh: Unable to find next ip for private network for vip replacement' >&2
+            exit 1
           fi
-      done
+        done <<< "$private_output"
+      fi
+
+      ##replace odl_control_ip (non-HA only)
+      odl_control_ip=${controllers_ip_arr[0]}
+      sed -i 's/^.*odl_control_ip:.*$/  odl_control_ip: '"$odl_control_ip"'/' opnfv_ksgen_settings.yml
+
+      ##replace controller_ip (non-HA only)
+      sed -i 's/^.*controller_ip:.*$/  controller_ip: '"$odl_control_ip"'/' opnfv_ksgen_settings.yml
 
       ##replace foreman site
-      next_public_ip=${interface_ip_arr[2]}
-      sed -i 's/^.*foreman_url:.*$/  foreman_url:'" https:\/\/$next_public_ip"'\/api\/v2\//' opnfv_ksgen_settings.yml
+      sed -i 's/^.*foreman_url:.*$/  foreman_url:'" https:\/\/$foreman_ip"'\/api\/v2\//' opnfv_ksgen_settings.yml
       ##replace public vips
-      next_public_ip=$(increment_ip $next_public_ip 10)
-      grep -E '*public_vip' opnfv_ksgen_settings.yml | while read -r line ; do
-        sed -i 's/^.*'"$line"'.*$/  '"$line $next_public_ip"'/' opnfv_ksgen_settings.yml
+      ##no need to do this if virtual and no dhcp
+      if [ ! -z "$enable_virtual_dhcp" ]; then
+        next_public_ip=$(increment_ip $next_public_ip 10)
+      else
         next_public_ip=$(next_usable_ip $next_public_ip)
-        if [ ! "$next_public_ip" ]; then
-          printf '%s\n' 'deploy.sh: Unable to find next ip for public network for vip replcement' >&2
-          exit 1
-        fi
-      done
+      fi
+
+      public_output=$(grep -E '*public_vip' opnfv_ksgen_settings.yml)
+      if [ ! -z "$public_output" ]; then
+        while read -r line; do
+          if echo $line | grep horizon_public_vip; then
+            horizon_public_vip=$next_public_ip
+          fi
+          sed -i 's/^.*'"$line"'.*$/  '"$line $next_public_ip"'/' opnfv_ksgen_settings.yml
+          next_public_ip=$(next_usable_ip $next_public_ip)
+          if [ ! "$next_public_ip" ]; then
+            printf '%s\n' 'deploy.sh: Unable to find next ip for public network for vip replcement' >&2
+            exit 1
+          fi
+        done <<< "$public_output"
+      fi
 
       ##replace public_network param
       public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
@@ -555,9 +719,27 @@ configure_network() {
       ##to neutron to use as floating IPs
       ##we should control this subnet, so this range should work .150-200
       ##but generally this is a bad idea and we are assuming at least a /24 subnet here
+      ##if static ip range, then we take the difference of the end range and current ip
+      ## to be the allocation pool
       public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
-      public_allocation_start=$(increment_subnet $public_subnet 150)
-      public_allocation_end=$(increment_subnet $public_subnet 200)
+      if [ ! -z "$static_ip_range" ]; then
+        begin_octet=$(echo $next_public_ip | cut -d . -f4)
+        end_octet=$(echo $static_ip_range_end | cut -d . -f4)
+        ip_diff=$((end_octet-begin_octet))
+        if [ $ip_diff -le 0 ]; then
+          echo "${red}ip range left for floating range is less than or equal to 0! $ipdiff ${reset}"
+          exit 1
+        else
+          public_allocation_start=$(next_ip $next_public_ip)
+          public_allocation_end=$static_ip_range_end
+          echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
+        fi
+      else
+        public_allocation_start=$(increment_subnet $public_subnet 150)
+        public_allocation_end=$(increment_subnet $public_subnet 200)
+        echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
+        echo "${blue}Foreman VM is up! ${reset}"
+      fi
 
       sed -i 's/^.*public_allocation_start:.*$/  public_allocation_start:'" $public_allocation_start"'/' opnfv_ksgen_settings.yml
       sed -i 's/^.*public_allocation_end:.*$/  public_allocation_end:'" $public_allocation_end"'/' opnfv_ksgen_settings.yml
@@ -582,7 +764,7 @@ configure_virtual() {
   fi
 }
 
-##Starts for forement VM with Vagrant
+##Starts Foreman VM with Vagrant
 ##params: none
 ##usage: start_vagrant()
 start_foreman() {
@@ -597,11 +779,11 @@ start_foreman() {
   fi
 }
 
-##start the VM if this is a virtual installaion
+##start the VM if this is a virtual installation
 ##this function does nothing if baremetal servers are being used
 ##params: none
 ##usage: start_virtual_nodes()
-start_virutal_nodes() {
+start_virtual_nodes() {
   if [ $virtual ]; then
 
     ##Bring up VM nodes
@@ -613,6 +795,8 @@ start_virutal_nodes() {
     compute_nodes=`echo $nodes | tr " " "\n" | grep -v controller | tr "\n" " "`
     controller_nodes=`echo $nodes | tr " " "\n" | grep controller | tr "\n" " "`
     nodes=${controller_nodes}${compute_nodes}
+    controller_count=0
+    compute_wait_completed=false
 
     for node in ${nodes}; do
       cd /tmp
@@ -622,7 +806,7 @@ start_virutal_nodes() {
 
       ##clone bgs vagrant
       ##will change this to be opnfv repo when commit is done
-      if ! git clone -b v1.0 https://github.com/trozet/bgs_vagrant.git $node; then
+      if ! git clone https://github.com/trozet/bgs_vagrant.git $node; then
         printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
         exit 1
       fi
@@ -631,7 +815,7 @@ start_virutal_nodes() {
 
       if [ $base_config ]; then
         if ! cp -f $base_config opnfv_ksgen_settings.yml; then
-          echo "{red}ERROR: Unable to copy $base_config to opnfv_ksgen_settings.yml${reset}"
+          echo "${red}ERROR: Unable to copy $base_config to opnfv_ksgen_settings.yml${reset}"
           exit 1
         fi
       fi
@@ -642,6 +826,13 @@ start_virutal_nodes() {
       node_type=config_nodes_${node}_type
       node_type=$(eval echo \$$node_type)
 
+      ##trozet test make compute nodes wait 20 minutes
+      if [ "$compute_wait_completed" = false ] && [ "$node_type" != "controller" ]; then
+        echo "${blue}Waiting 20 minutes for Control nodes to install before continuing with Compute nodes..."
+        compute_wait_completed=true
+        sleep 1400
+      fi
+
       ##find number of interfaces with ip and substitute in VagrantFile
       output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
 
@@ -650,11 +841,14 @@ start_virutal_nodes() {
         exit 1
       fi
 
-
       if_counter=0
       for interface in ${output}; do
 
-        if [ "$if_counter" -ge 4 ]; then
+        if [ -z "$enable_virtual_dhcp" ]; then
+          if [ "$if_counter" -ge 1 ]; then
+            break
+          fi
+        elif [ "$if_counter" -ge 4 ]; then
           break
         fi
         interface_ip=$(find_ip $interface)
@@ -690,30 +884,66 @@ start_virutal_nodes() {
             mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
             ;;
         esac
-          sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", bridge: '\'"$interface"\'', :mac => '\""$mac_addr"\"'/' Vagrantfile
-          ((if_counter++))
+        this_admin_ip=${admin_ip_arr[$node]}
+        sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "private_network", virtualbox__intnet: "my_admin_network", ip: '\""$this_admin_ip"\"', netmask: '\""$admin_subnet_mask"\"', :mac => '\""$mac_addr"\"'/' Vagrantfile
+        ((if_counter++))
       done
-
       ##now remove interface config in Vagrantfile for 1 node
       ##if 1, 3, or 4 interfaces set deployment type
       ##if 2 interfaces remove 2nd interface and set deployment type
-      if [ "$if_counter" == 1 ]; then
+      if [[ "$if_counter" == 1 || "$if_counter" == 2 ]]; then
         deployment_type="single_network"
-        remove_vagrant_network eth_replace1
-        remove_vagrant_network eth_replace2
+        if [ "$node_type" == "controller" ]; then
+            mac_string=config_nodes_${node}_private_mac
+            mac_addr=$(eval echo \$$mac_string)
+            if [ $mac_addr == "" ]; then
+              echo "${red} Unable to find private_mac for $node! ${reset}"
+              exit 1
+            fi
+        else
+            ##generate random mac
+            mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
+        fi
+        mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+        if [ "$node_type" == "controller" ]; then
+          new_node_ip=${controllers_ip_arr[$controller_count]}
+          if [ ! "$new_node_ip" ]; then
+            echo "{red}ERROR: Empty node ip for controller $controller_count ${reset}"
+            exit 1
+          fi
+          ((controller_count++))
+        else
+          next_private_ip=$(next_ip $next_private_ip)
+          if [ ! "$next_private_ip" ]; then
+            echo "{red}ERROR: Could not find private ip for $node ${reset}"
+            exit 1
+          fi
+          new_node_ip=$next_private_ip
+        fi
+        sed -i 's/^.*eth_replace1.*$/  config.vm.network "private_network", virtualbox__intnet: "my_private_network", :mac => '\""$mac_addr"\"', ip: '\""$new_node_ip"\"', netmask: '\""$private_subnet_mask"\"'/' Vagrantfile
+        ##replace host_ip in vm_nodes_provision with private ip
+        sed -i 's/^host_ip=REPLACE/host_ip='$new_node_ip'/' vm_nodes_provision.sh
+        ##replace ping site
+        if [ ! -z "$ping_site" ]; then
+          sed -i 's/www.google.com/'$ping_site'/' vm_nodes_provision.sh
+        fi
+        ##find public ip info
+        mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
+        mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+        this_public_ip=${public_ip_arr[$node]}
+
+        if [ -z "$enable_virtual_dhcp" ]; then
+          sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", bridge: '\'"$public_interface"\'', :mac => '\""$mac_addr"\"', ip: '\""$this_public_ip"\"', netmask: '\""$public_subnet_mask"\"'/' Vagrantfile
+        else
+          sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", bridge: '\'"$public_interface"\'', :mac => '\""$mac_addr"\"'/' Vagrantfile
+        fi
         remove_vagrant_network eth_replace3
-      elif [ "$if_counter" == 2 ]; then
-        deployment_type="single_network"
-        second_interface=`echo $output | awk '{print $2}'`
-        remove_vagrant_network $second_interface
-        remove_vagrant_network eth_replace2
       elif [ "$if_counter" == 3 ]; then
         deployment_type="three_network"
         remove_vagrant_network eth_replace3
       else
         deployment_type="multi_network"
       fi
-
       ##modify provisioning to do puppet install, config, and foreman check-in
       ##substitute host_name and dns_server in the provisioning script
       host_string=config_nodes_${node}_hostname
@@ -721,19 +951,17 @@ start_virutal_nodes() {
       sed -i 's/^host_name=REPLACE/host_name='$host_name'/' vm_nodes_provision.sh
       ##dns server should be the foreman server
       sed -i 's/^dns_server=REPLACE/dns_server='${interface_ip_arr[0]}'/' vm_nodes_provision.sh
-
       ## remove bootstrap and NAT provisioning
       sed -i '/nat_setup.sh/d' Vagrantfile
       sed -i 's/bootstrap.sh/vm_nodes_provision.sh/' Vagrantfile
-
       ## modify default_gw to be node_default_gw
       sed -i 's/^.*default_gw =.*$/  default_gw = '\""$node_default_gw"\"'/' Vagrantfile
-
       ## modify VM memory to be 4gig
-      sed -i 's/^.*vb.memory =.*$/     vb.memory = 4096/' Vagrantfile
-
+      ##if node type is controller
+      if [ "$node_type" == "controller" ]; then
+        sed -i 's/^.*vb.memory =.*$/     vb.memory = 4096/' Vagrantfile
+      fi
       echo "${blue}Starting Vagrant Node $node! ${reset}"
-
       ##stand up vagrant
       if ! vagrant up; then
         echo "${red} Unable to start $node ${reset}"
@@ -741,11 +969,33 @@ start_virutal_nodes() {
       else
         echo "${blue} $node VM is up! ${reset}"
       fi
-
     done
-
     echo "${blue} All VMs are UP! ${reset}"
-
+    echo "${blue} Waiting for puppet to complete on the nodes... ${reset}"
+    ##check puppet is complete
+    ##ssh into foreman server, run check to verify puppet is complete
+    pushd /tmp/bgs_vagrant
+    if ! vagrant ssh -c "/opt/khaleesi/run.sh --no-logs --use /vagrant/opnfv_ksgen_settings.yml /opt/khaleesi/playbooks/validate_opnfv-vm.yml"; then
+      echo "${red} Failed to validate puppet completion on nodes ${reset}"
+      exit 1
+    else
+      echo "{$blue} Puppet complete on all nodes! ${reset}"
+    fi
+    popd
+    ##add routes back to nodes
+    for node in ${nodes}; do
+      pushd /tmp/$node
+      if ! vagrant ssh -c "route | grep default | grep $this_default_gw"; then
+        echo "${blue} Adding public route back to $node! ${reset}"
+        vagrant ssh -c "route add default gw $this_default_gw"
+      fi
+      popd
+    done
+    if [ ! -z "$horizon_public_vip" ]; then
+      echo "${blue} Virtual deployment SUCCESS!! Foreman URL:  http://${foreman_ip}, Horizon URL: http://${horizon_public_vip} ${reset}"
+    else
+      echo "${blue} Virtual deployment SUCCESS!! Foreman URL:  http://${foreman_ip}, Horizon URL: http://${odl_control_ip} ${reset}"
+    fi
   fi
 }
 
@@ -763,7 +1013,7 @@ main() {
   configure_network
   configure_virtual
   start_foreman
-  start_virutal_nodes
+  start_virtual_nodes
 }
 
 main "$@"

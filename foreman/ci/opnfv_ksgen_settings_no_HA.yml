@@ -1,47 +1,14 @@
 global_params:
   admin_email: opnfv@opnfv.com
-  ha_flag: "true"
+  ha_flag: "false"
   odl_flag: "true"
+  odl_control_ip:
   private_network:
   storage_network:
-  controllers_hostnames_array: oscontroller1,oscontroller2,oscontroller3
-  controllers_ip_array:
-  amqp_vip:
-  private_subnet:
-  cinder_admin_vip:
-  cinder_private_vip:
-  cinder_public_vip:
-  db_vip:
-  glance_admin_vip:
-  glance_private_vip:
-  glance_public_vip:
-  heat_admin_vip:
-  heat_private_vip:
-  heat_public_vip:
-  heat_cfn_admin_vip:
-  heat_cfn_private_vip:
-  heat_cfn_public_vip:
-  horizon_admin_vip:
-  horizon_private_vip:
-  horizon_public_vip:
-  keystone_admin_vip:
-  keystone_private_vip:
-  keystone_public_vip:
-  loadbalancer_vip:
-  neutron_admin_vip:
-  neutron_private_vip:
-  neutron_public_vip:
-  nova_admin_vip:
-  nova_private_vip:
-  nova_public_vip:
-  external_network_flag: "true"
-  public_gateway:
-  public_dns:
   public_network:
-  public_subnet:
-  public_allocation_start:
-  public_allocation_end:
+  private_subnet:
   deployment_type:
+  controller_ip:
 network_type: multi_network
 default_gw:
 no_dhcp: false
@@ -132,55 +99,9 @@ nodes:
     bmc_mac: "10:23:45:67:88:AC"
     bmc_user: root
     bmc_pass: root
-    admin_ip: controller1_admin
     private_ip: controller1_private
+    admin_ip: controller1_admin
     private_mac: "10:23:45:67:87:AC"
-    ansible_ssh_pass: "Op3nStack"
-    admin_password: "octopus"
-    groups:
-    - controller
-    - foreman_nodes
-    - puppet
-    - rdo
-    - neutron
-  controller2:
-    name: oscontroller2.opnfv.com
-    hostname: oscontroller2.opnfv.com
-    short_name: oscontroller2
-    type: controller
-    host_type: baremetal
-    hostgroup: Controller_Network
-    mac_address: "10:23:45:67:89:AD"
-    bmc_ip: 10.4.17.4
-    bmc_mac: "10:23:45:67:88:AD"
-    bmc_user: root
-    bmc_pass: root
-    admin_ip: controller2_admin
-    private_ip: controller2_private
-    private_mac: "10:23:45:67:87:AD"
-    ansible_ssh_pass: "Op3nStack"
-    admin_password: "octopus"
-    groups:
-    - controller
-    - foreman_nodes
-    - puppet
-    - rdo
-    - neutron
-  controller3:
-    name: oscontroller3.opnfv.com
-    hostname: oscontroller3.opnfv.com
-    short_name: oscontroller3
-    type: controller
-    host_type: baremetal
-    hostgroup: Controller_Network
-    mac_address: "10:23:45:67:89:AE"
-    bmc_ip: 10.4.17.5
-    bmc_mac: "10:23:45:67:88:AE"
-    bmc_user: root
-    bmc_pass: root
-    admin_ip: controller3_admin
-    private_ip: controller3_private
-    private_mac: "10:23:45:67:87:AE"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
     groups:
