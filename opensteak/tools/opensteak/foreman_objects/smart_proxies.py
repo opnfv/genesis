@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,4 +16,21 @@
 # @author: David Blaisonneau <david.blaisonneau@orange.com>
 # @author: Arnaud Morin <arnaud1.morin@orange.com>
 
-#placeholder
+from opensteak.foreman_objects.objects import ForemanObjects
+
+
+class SmartProxies(ForemanObjects):
+    """
+    Domain class
+    """
+    objName = 'smart_proxies'
+    payloadObj = 'smart_proxy'
+
+    def importPuppetClasses(self, smartProxyId):
+        """ Function importPuppetClasses
+        Force the reload of puppet classes
+
+        @param smartProxyId: smartProxy Id
+        @return RETURN: the API result
+        """
+        return self.api.create('smart_proxies/{}/import_puppetclasses'.format(smartProxyId), '{}')
