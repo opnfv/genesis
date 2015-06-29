@@ -39,7 +39,7 @@ nodes:
 # Adding the Fuel node as node id 6 which may not be correct - please
 # adjust as needed.
 - id: 6
-  libvirtName: vFuel
+  libvirtName: fuel-opnfv
   libvirtTemplate: baremetal/vms/fuel_lf.xml
   isFuel: yes
   username: root
