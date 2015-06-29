@@ -11,8 +11,7 @@ check_if_root = common.check_if_root
 class VirtualFuel(ExecutionEnvironment):
 
     def __init__(self, storage_dir, pxe_bridge, dha_file, root_dir):
-        super(VirtualFuel, self).__init__(
-            storage_dir, dha_file, root_dir)
+        super(VirtualFuel, self).__init__(storage_dir, dha_file, root_dir)
         self.pxe_bridge = pxe_bridge
 
     def set_vm_nic(self, temp_vm_file):

@@ -1,5 +1,5 @@
 <domain type='kvm' id='62'>
-  <name>vFuel</name>
+  <name>fuel</name>
   <memory unit='KiB'>8290304</memory>
   <currentMemory unit='KiB'>8290304</currentMemory>
   <vcpu placement='static'>4</vcpu>
