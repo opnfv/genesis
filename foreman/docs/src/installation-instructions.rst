@@ -353,7 +353,11 @@ OpenStack
 OpenDaylight
 ------------
 
-`OpenDaylight artifacts <http://www.opendaylight.org/software/downloads>`_
+Upstream OpenDaylight provides `a number of packaging and deployment options <https://wiki.opendaylight.org/view/Deployment>`_ meant for consumption by downstream projects like OPNFV.
+
+Currently, OPNFV Foreman uses `OpenDaylight's Puppet module <https://github.com/dfarrell07/puppet-opendaylight>`_, which in turn depends on `OpenDaylight's RPM <https://copr.fedoraproject.org/coprs/dfarrell07/OpenDaylight/>`_.
+
+Note that the RPM is currently hosted on Copr, but `will soon <https://trello.com/c/qseotfgL/171-host-odl-rpm-on-odl-infra>`_ be migrated to OpenDaylight's infrastructure and/or the new CentOS NFV SIG.
 
 Foreman
 -------
