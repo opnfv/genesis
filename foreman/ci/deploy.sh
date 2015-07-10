@@ -41,6 +41,7 @@ display_usage() {
   echo -e "\n   -enable_virtual_dhcp : Run dhcp server instead of using static IPs.  Use this with -virtual only. \n"
   echo -e "\n   -static_ip_range : static IP range to define when using virtual and when dhcp is not being used (default), must at least a 20 IP block.  Format: '192.168.1.1,192.168.1.20' \n"
   echo -e "\n   -ping_site : site to use to verify IP connectivity from the VM when -virtual is used.  Format: -ping_site www.blah.com \n"
+  echo -e "\n   -floating_ip_count : number of IP address from the public range to be used for floating IP. Default is 20.\n"
 }
 
 ##find ip of interface
@@ -55,6 +56,16 @@ function find_subnet {
   IFS=. read -r i1 i2 i3 i4 <<< "$1"
   IFS=. read -r m1 m2 m3 m4 <<< "$2"
   printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
+}
+
+##finds last usable ip (broadcast minus 1) of a subnet from an IP and netmask
+## Warning: This function only works for IPv4 at the moment.
+##params: ip, netmask
+function find_last_ip_subnet {
+  IFS=. read -r i1 i2 i3 i4 <<< "$1"
+  IFS=. read -r m1 m2 m3 m4 <<< "$2"
+  IFS=. read -r s1 s2 s3 s4 <<< "$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))"
+  printf "%d.%d.%d.%d\n" "$((255 - $m1 + $s1))" "$((255 - $m2 + $s2))" "$((255 - $m3 + $s3))" "$((255 - $m4 + $s4 - 1))"
 }
 
 ##increments subnet by a value
@@ -196,6 +207,10 @@ parse_cmdline() {
                 ping_site=$2
                 shift 2
             ;;
+        -floating_ip_count)
+                floating_ip_count=$2
+                shift 2
+            ;;
         *)
                 display_usage
                 exit 1
@@ -216,6 +231,10 @@ parse_cmdline() {
       echo -e "\n\n${red}ERROR: Incorrect Usage.  static_ip_range can only be set when using -virtual!.  Exiting${reset}\n\n"
       exit 1
     fi
+  fi
+
+  if [ -z "$floating_ip_count" ]; then
+    floating_ip_count=20
   fi
 }
 
@@ -717,10 +736,10 @@ configure_network() {
 
       ##we have to define an allocation range of the public subnet to give
       ##to neutron to use as floating IPs
-      ##we should control this subnet, so this range should work .150-200
-      ##but generally this is a bad idea and we are assuming at least a /24 subnet here
       ##if static ip range, then we take the difference of the end range and current ip
       ## to be the allocation pool
+      ##if not static ip, we will use the last 20 IP from the subnet
+      ## note that this is not a really good idea because the subnet must be at least a /27 for this to work...
       public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
       if [ ! -z "$static_ip_range" ]; then
         begin_octet=$(echo $next_public_ip | cut -d . -f4)
@@ -735,8 +754,9 @@ configure_network() {
           echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
         fi
       else
-        public_allocation_start=$(increment_subnet $public_subnet 150)
-        public_allocation_end=$(increment_subnet $public_subnet 200)
+        last_ip_subnet=$(find_last_ip_subnet $next_public_ip $public_subnet_mask)
+        public_allocation_start=$(increment_subnet $public_subnet $(( $last_ip_subnet - $floating_ip_count )) )
+        public_allocation_end=$(increment_subnet $public_subnet $(( $last_ip_subnet )) )
         echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
         echo "${blue}Foreman VM is up! ${reset}"
       fi
