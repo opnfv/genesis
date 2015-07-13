@@ -5,7 +5,7 @@
 #
 #Uses Vagrant and VirtualBox
 #
-#Destroys Vagrant VM running in /tmp/bgs_vagrant
+#Destroys Vagrant VM running in $vm_dir/foreman_vm
 #Shuts down all nodes found in Khaleesi settings
 #Removes hypervisor kernel modules (VirtualBox)
 
@@ -14,6 +14,8 @@ reset=`tput sgr0`
 blue=`tput setaf 4`
 red=`tput setaf 1`
 green=`tput setaf 2`
+
+vm_dir=/var/opt/opnfv
 ##END VARS
 
 ##FUNCTIONS
@@ -106,9 +108,17 @@ else
   skip_vagrant=1
 fi
 
+###legacy VM location check
+###remove me later
+if [ -d /tmp/bgs_vagrant ]; then
+  cd /tmp/bgs_vagrant
+  vagrant destroy -f
+  rm -rf /tmp/bgs_vagrant
+fi
+
 ###destroy vagrant
 if [ $skip_vagrant -eq 0 ]; then
-  cd /tmp/bgs_vagrant
+  cd $vm_dir/foreman_vm
   if vagrant destroy -f; then
     echo "${blue}Successfully destroyed Foreman VM ${reset}"
   else
@@ -135,6 +145,8 @@ else
   echo "${blue}Skipping Vagrant destroy + Vbox Removal as VirtualBox package is already removed ${reset}"
 fi
 
+###remove working vm directory
+rm -rf $vm_dir
 
 ###remove kernel modules
 echo "${blue}Removing kernel modules ${reset}"

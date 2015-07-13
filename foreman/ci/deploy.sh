@@ -28,6 +28,8 @@ declare -A interface_arr
 declare -A controllers_ip_arr
 declare -A admin_ip_arr
 declare -A public_ip_arr
+
+vm_dir=/var/opt/opnfv
 ##END VARS
 
 ##FUNCTIONS
@@ -42,6 +44,24 @@ display_usage() {
   echo -e "\n   -static_ip_range : static IP range to define when using virtual and when dhcp is not being used (default), must at least a 20 IP block.  Format: '192.168.1.1,192.168.1.20' \n"
   echo -e "\n   -ping_site : site to use to verify IP connectivity from the VM when -virtual is used.  Format: -ping_site www.blah.com \n"
   echo -e "\n   -floating_ip_count : number of IP address from the public range to be used for floating IP. Default is 20.\n"
+}
+
+##verify vm dir exists
+##params: none
+function verify_vm_dir {
+  if [ -d "$vm_dir" ]; then
+    echo -e "\n\n${red}ERROR: VM Directory: $vm_dir already exists.  Environment not clean.  Please use clean.sh.  Exiting${reset}\n\n"
+    exit 1
+  else
+    mkdir -p $vm_dir
+  fi
+
+  chmod 700 $vm_dir
+
+  if [ ! -d $vm_dir ]; then
+    echo -e "\n\n${red}ERROR: Unable to create VM Directory: $vm_dir  Exiting${reset}\n\n"
+    exit -1
+  fi
 }
 
 ##find ip of interface
@@ -353,27 +373,31 @@ install_vagrant() {
 ##params: none
 ##usage: clean_tmp()
 clean_tmp() {
-  rm -rf /tmp/bgs_vagrant
+  rm -rf $vm_dir/foreman_vm
 }
 
-##clone bgs vagrant version 1.0 using git
+##clone genesis and move to node vm dir
 ##params: none
 ##usage: clone_bgs
 clone_bgs() {
   cd /tmp/
+  rm -rf /tmp/genesis/
 
-  ##will change this to be opnfv repo when commit is done
-  if ! git clone -b v1.0 https://github.com/trozet/bgs_vagrant.git; then
-    printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
+  ##clone artifacts and move into foreman_vm dir
+  if ! git clone https://gerrit.opnfv.org/gerrit/genesis; then
+    printf '%s\n' 'deploy.sh: Unable to clone genesis repo' >&2
     exit 1
   fi
+
+  mv -f /tmp/genesis/foreman/ci $vm_dir/foreman_vm
+  rm -rf /tmp/genesis/
 }
 
 ##validates the network settings and update VagrantFile with network settings
 ##params: none
 ##usage: configure_network()
 configure_network() {
-  cd /tmp/bgs_vagrant
+  cd $vm_dir/foreman_vm
 
   echo "${blue}Detecting network configuration...${reset}"
   ##detect host 1 or 3 interface configuration
@@ -792,7 +816,7 @@ start_foreman() {
 
   ##stand up vagrant
   if ! vagrant up; then
-    printf '%s\n' 'deploy.sh: Unable to start vagrant' >&2
+    printf '%s\n' 'deploy.sh: Unable to complete Foreman VM install' >&2
     exit 1
   else
     echo "${blue}Foreman VM is up! ${reset}"
@@ -819,19 +843,22 @@ start_virtual_nodes() {
     compute_wait_completed=false
 
     for node in ${nodes}; do
-      cd /tmp
+      cd /tmp/
 
       ##remove VM nodes incase it wasn't cleaned up
-      rm -rf /tmp/$node
+      rm -rf $vm_dir/$node
+      rm -rf /tmp/genesis/
 
-      ##clone bgs vagrant
-      ##will change this to be opnfv repo when commit is done
-      if ! git clone https://github.com/trozet/bgs_vagrant.git $node; then
+      ##clone genesis and move into node folder
+      if ! git clone https://gerrit.opnfv.org/gerrit/genesis; then
         printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
         exit 1
       fi
 
-      cd $node
+      mv -f /tmp/genesis/foreman/ci $vm_dir/$node
+      rm -rf /tmp/genesis/
+
+      cd $vm_dir/$node
 
       if [ $base_config ]; then
         if ! cp -f $base_config opnfv_ksgen_settings.yml; then
@@ -994,7 +1021,7 @@ start_virtual_nodes() {
     echo "${blue} Waiting for puppet to complete on the nodes... ${reset}"
     ##check puppet is complete
     ##ssh into foreman server, run check to verify puppet is complete
-    pushd /tmp/bgs_vagrant
+    pushd $vm_dir/foreman_vm
     if ! vagrant ssh -c "/opt/khaleesi/run.sh --no-logs --use /vagrant/opnfv_ksgen_settings.yml /opt/khaleesi/playbooks/validate_opnfv-vm.yml"; then
       echo "${red} Failed to validate puppet completion on nodes ${reset}"
       exit 1
@@ -1004,7 +1031,7 @@ start_virtual_nodes() {
     popd
     ##add routes back to nodes
     for node in ${nodes}; do
-      pushd /tmp/$node
+      pushd $vm_dir/$node
       if ! vagrant ssh -c "route | grep default | grep $this_default_gw"; then
         echo "${blue} Adding public route back to $node! ${reset}"
         vagrant ssh -c "route add default gw $this_default_gw"
@@ -1029,6 +1056,7 @@ main() {
   install_ansible
   install_vagrant
   clean_tmp
+  verify_vm_dir
   clone_bgs
   configure_network
   configure_virtual
