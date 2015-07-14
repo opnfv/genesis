@@ -118,17 +118,19 @@ fi
 
 ###destroy vagrant
 if [ $skip_vagrant -eq 0 ]; then
-  cd $vm_dir/foreman_vm
-  if vagrant destroy -f; then
-    echo "${blue}Successfully destroyed Foreman VM ${reset}"
-  else
-    echo "${red}Unable to destroy Foreman VM ${reset}"
-    echo "${blue}Checking if vagrant was already destroyed and no process is active...${reset}"
-    if ps axf | grep vagrant; then
-      echo "${red}Vagrant VM still exists...exiting ${reset}"
-      exit 1
+  if [ -d $vm_dir/foreman_vm ]; then
+    cd $vm_dir/foreman_vm
+    if vagrant destroy -f; then
+      echo "${blue}Successfully destroyed Foreman VM ${reset}"
     else
-      echo "${blue}Vagrant process doesn't exist.  Moving on... ${reset}"
+      echo "${red}Unable to destroy Foreman VM ${reset}"
+      echo "${blue}Checking if vagrant was already destroyed and no process is active...${reset}"
+      if ps axf | grep vagrant; then
+        echo "${red}Vagrant VM still exists...exiting ${reset}"
+        exit 1
+      else
+        echo "${blue}Vagrant process doesn't exist.  Moving on... ${reset}"
+      fi
     fi
   fi
 
