@@ -384,7 +384,7 @@ clone_bgs() {
   rm -rf /tmp/genesis/
 
   ##clone artifacts and move into foreman_vm dir
-  if ! git clone https://gerrit.opnfv.org/gerrit/genesis.git; then
+  if ! GIT_SSL_NO_VERIFY=true git clone https://gerrit.opnfv.org/gerrit/genesis.git; then
     printf '%s\n' 'deploy.sh: Unable to clone genesis repo' >&2
     exit 1
   fi
@@ -850,7 +850,7 @@ start_virtual_nodes() {
       rm -rf /tmp/genesis/
 
       ##clone genesis and move into node folder
-      if ! git clone https://gerrit.opnfv.org/gerrit/genesis.git; then
+      if ! GIT_SSL_NO_VERIFY=true git clone https://gerrit.opnfv.org/gerrit/genesis.git; then
         printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
         exit 1
       fi
