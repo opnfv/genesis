@@ -124,6 +124,19 @@ function next_ip {
   echo $baseaddr.$lsv
 }
 
+##subtracts a value from an IP address
+##params: last ip, ip_count
+##assumes ip_count is less than the last octect of the address
+subtract_ip() {
+  IFS=. read -r i1 i2 i3 i4 <<< "$1"
+  ip_count=$2
+  if [ $i4 -lt $ip_count ]; then
+    echo -e "\n\n${red}ERROR: Can't subtract $ip_count from IP address $1  Exiting${reset}\n\n"
+    exit 1
+  fi
+  printf "%d.%d.%d.%d\n" "$i1" "$i2" "$i3" "$((i4 - $ip_count ))"
+}
+
 ##removes the network interface config from Vagrantfile
 ##params: interface
 ##assumes you are in the directory of Vagrantfile
@@ -703,11 +716,11 @@ configure_network() {
       ##replace foreman site
       sed -i 's/^.*foreman_url:.*$/  foreman_url:'" https:\/\/$foreman_ip"'\/api\/v2\//' opnfv_ksgen_settings.yml
       ##replace public vips
-      ##no need to do this if virtual and no dhcp
-      if [ ! -z "$enable_virtual_dhcp" ]; then
-        next_public_ip=$(increment_ip $next_public_ip 10)
-      else
+      ##no need to do this if no dhcp
+      if [[ -z "$enable_virtual_dhcp" && ! -z "$virtual" ]]; then
         next_public_ip=$(next_usable_ip $next_public_ip)
+      else
+        next_public_ip=$(increment_ip $next_public_ip 10)
       fi
 
       public_output=$(grep -E '*public_vip' opnfv_ksgen_settings.yml)
@@ -775,15 +788,13 @@ configure_network() {
         else
           public_allocation_start=$(next_ip $next_public_ip)
           public_allocation_end=$static_ip_range_end
-          echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
         fi
       else
         last_ip_subnet=$(find_last_ip_subnet $next_public_ip $public_subnet_mask)
-        public_allocation_start=$(increment_subnet $public_subnet $(( $last_ip_subnet - $floating_ip_count )) )
-        public_allocation_end=$(increment_subnet $public_subnet $(( $last_ip_subnet )) )
-        echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
-        echo "${blue}Foreman VM is up! ${reset}"
+        public_allocation_start=$(subtract_ip $last_ip_subnet $floating_ip_count )
+        public_allocation_end=${last_ip_subnet}
       fi
+      echo "${blue}Neutron Floating IP range: $public_allocation_start to $public_allocation_end ${reset}"
 
       sed -i 's/^.*public_allocation_start:.*$/  public_allocation_start:'" $public_allocation_start"'/' opnfv_ksgen_settings.yml
       sed -i 's/^.*public_allocation_end:.*$/  public_allocation_end:'" $public_allocation_end"'/' opnfv_ksgen_settings.yml
