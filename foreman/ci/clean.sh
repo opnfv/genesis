@@ -5,7 +5,7 @@
 #
 #Uses Vagrant and VirtualBox
 #
-#Destroys Vagrant VM running in $vm_dir/foreman_vm
+#Destroys Vagrant VMs running in $vm_dir/
 #Shuts down all nodes found in Khaleesi settings
 #Removes hypervisor kernel modules (VirtualBox)
 
@@ -87,7 +87,7 @@ node_counter=0
 output=`grep bmc_pass $base_config | sed 's/\s*bmc_pass:\s*//'`
 for line in ${output} ; do
   bmc_pass[$node_counter]=$line
-  ((node_counter++)) 
+  ((node_counter++))
 done
 
 for mynode in `seq 0 $max_nodes`; do
@@ -118,36 +118,67 @@ fi
 
 ###destroy vagrant
 if [ $skip_vagrant -eq 0 ]; then
-  if [ -d $vm_dir/foreman_vm ]; then
-    cd $vm_dir/foreman_vm
-    if vagrant destroy -f; then
-      echo "${blue}Successfully destroyed Foreman VM ${reset}"
-    else
-      echo "${red}Unable to destroy Foreman VM ${reset}"
-      echo "${blue}Checking if vagrant was already destroyed and no process is active...${reset}"
-      if ps axf | grep vagrant; then
-        echo "${red}Vagrant VM still exists...exiting ${reset}"
-        exit 1
+  if [ -d $vm_dir ]; then
+    ##all vm directories
+    for vm in $( ls $vm_dir ); do
+      cd $vm_dir/$vm
+      if vagrant destroy -f; then
+        echo "${blue}Successfully destroyed $vm Vagrant VM ${reset}"
       else
-        echo "${blue}Vagrant process doesn't exist.  Moving on... ${reset}"
+        echo "${red}Unable to destroy $vm Vagrant VM! Attempting to killall vagrant if process is hung ${reset}"
+        killall vagrant
+        echo "${blue}Checking if vagrant was already destroyed and no process is active...${reset}"
+        if ps axf | grep vagrant; then
+          echo "${red}Vagrant process still exists after kill...exiting ${reset}"
+          exit 1
+        else
+          echo "${blue}Vagrant process doesn't exist.  Moving on... ${reset}"
+        fi
       fi
-    fi
+
+      ##Vagrant boxes appear as VboxHeadless processes
+      ##try to gracefully destroy the VBox VM if it still exists
+      if vboxmanage list runningvms | grep $vm; then
+        echo "${red} $vm VBoxHeadless process still exists...Removing${reset}"
+        vbox_id=$(vboxmanage list runningvms | grep $vm | awk '{print $1}' | sed 's/"//g')
+        vboxmanage controlvm $vbox_id poweroff
+        if vboxmanage unregistervm --delete $vbox_id; then
+          echo "${blue}$vm VM is successfully deleted! ${reset}"
+        else
+          echo "${red} Unable to delete VM $vm ...Exiting ${reset}"
+          exit 1
+        fi
+      else
+        echo "${blue}$vm VM is successfully deleted! ${reset}"
+      fi
+    done
+  else
+    echo "${blue}${vm_dir} doesn't exist, no VMs in OPNFV directory to destroy! ${reset}"
   fi
 
+  echo "${blue}Checking for any remaining virtual box processes...${reset}"
   ###kill virtualbox
-  echo "${blue}Killing VirtualBox ${reset}"
-  killall virtualbox
-  killall VBoxHeadless
+  if ps axf | grep virtualbox; then
+    echo "${blue}virtualbox processes are still running. Killing any remaining VirtualBox processes...${reset}"
+    killall virtualbox
+  fi
+
+  ###kill any leftover VMs (brute force)
+  if ps axf | grep VBoxHeadless; then
+    echo "${blue}VBoxHeadless processes are still running. Killing any remaining VBoxHeadless processes...${reset}"
+    killall VBoxHeadless
+  fi
 
   ###remove virtualbox
-  echo "${blue}Removing VirtualBox ${reset}"
+  echo "${blue}Removing VirtualBox... ${reset}"
   yum -y remove $vboxpkg
 
 else
-  echo "${blue}Skipping Vagrant destroy + Vbox Removal as VirtualBox package is already removed ${reset}"
+  echo "${blue}Skipping Vagrant destroy + VBox Removal as VirtualBox package is already removed ${reset}"
 fi
 
 ###remove working vm directory
+echo "${blue}Removing working VM directory: $vm_dir ${reset}"
 rm -rf $vm_dir
 
 ###remove kernel modules
