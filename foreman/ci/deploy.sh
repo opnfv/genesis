@@ -78,6 +78,31 @@ function find_subnet {
   printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
 }
 
+##verify subnet has at least n IPs
+##params: subnet mask, n IPs
+function verify_subnet_size {
+  IFS=. read -r i1 i2 i3 i4 <<< "$1"
+  num_ips_required=$2
+
+  ##this function assumes you would never need more than 254
+  ##we check here to make sure
+  if [ "$num_ips_required" -ge 254 ]; then
+    echo -e "\n\n${red}ERROR: allocating more than 254 IPs is unsupported...Exiting${reset}\n\n"
+    return 1
+  fi
+
+  ##we just return if 3rd octet is not 255
+  ##because we know the subnet is big enough
+  if [ "$i3" -ne 255 ]; then
+    return 0
+  elif [ $((254-$i4)) -ge "$num_ips_required" ]; then
+    return 0
+  else
+    echo -e "\n\n${red}ERROR: Subnet is too small${reset}\n\n"
+    return 1
+  fi
+}
+
 ##finds last usable ip (broadcast minus 1) of a subnet from an IP and netmask
 ## Warning: This function only works for IPv4 at the moment.
 ##params: ip, netmask
@@ -454,6 +479,11 @@ configure_network() {
     public_subnet_mask=$subnet_mask
     public_short_subnet_mask=$(find_short_netmask $interface)
 
+    if ! verify_subnet_size $public_subnet_mask 25; then
+      echo "${red} Not enough IPs in public subnet: $interface_ip_arr[2] ${public_subnet_mask}.  Need at least 25 IPs.  Please resize subnet! Exiting ${reset}"
+      exit 1
+    fi
+
     ##set that interface to be public
     sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
     if_counter=1
@@ -478,14 +508,34 @@ configure_network() {
       subnet_mask=$(find_netmask $interface)
       if [ "$if_counter" -eq 0 ]; then
         admin_subnet_mask=$subnet_mask
+        if ! verify_subnet_size $admin_subnet_mask 5; then
+          echo "${red} Not enough IPs in admin subnet: ${interface_ip_arr[$if_counter]} ${admin_subnet_mask}.  Need at least 5 IPs.  Please resize subnet! Exiting ${reset}"
+          exit 1
+        fi
+
       elif [ "$if_counter" -eq 1 ]; then
         private_subnet_mask=$subnet_mask
         private_short_subnet_mask=$(find_short_netmask $interface)
+
+        if ! verify_subnet_size $private_subnet_mask 15; then
+          echo "${red} Not enough IPs in private subnet: ${interface_ip_arr[$if_counter]} ${private_subnet_mask}.  Need at least 15 IPs.  Please resize subnet! Exiting ${reset}"
+          exit 1
+        fi
       elif [ "$if_counter" -eq 2 ]; then
         public_subnet_mask=$subnet_mask
         public_short_subnet_mask=$(find_short_netmask $interface)
+
+        if ! verify_subnet_size $public_subnet_mask 25; then
+          echo "${red} Not enough IPs in public subnet: ${interface_ip_arr[$if_counter]} ${public_subnet_mask}.  Need at least 25 IPs.  Please resize subnet! Exiting ${reset}"
+          exit 1
+        fi
       elif [ "$if_counter" -eq 3 ]; then
         storage_subnet_mask=$subnet_mask
+
+        if ! verify_subnet_size $storage_subnet_mask 10; then
+          echo "${red} Not enough IPs in storage subnet: ${interface_ip_arr[$if_counter]} ${storage_subnet_mask}.  Need at least 10 IPs.  Please resize subnet! Exiting ${reset}"
+          exit 1
+        fi
       else
         echo "${red}ERROR: interface counter outside valid range of 0 to 3: $if_counter ! ${reset}"
         exit 1
