@@ -213,8 +213,6 @@ Follow the steps below to execute:
 
 4.  Your nodes will take 40-60 minutes to re-install CentOS 7 and install/configure OPNFV.  When complete you will see "Finished: SUCCESS"
 
-.. _setup_verify:
-
 Verifying the Setup
 -------------------
 
@@ -236,9 +234,7 @@ Now that the installer has finished it is a good idea to check and make sure thi
 
 7.  Now go to your web browser and insert the Horizon public VIP.  The login will be "admin"/"octopus".
 
-8.  You are now able to follow the `OpenStack Verification <openstack_verify_>`_ section.
-
-.. _openstack_verify:
+8.  You are now able to follow the `OpenStack Verification`_ section.
 
 OpenStack Verification
 ----------------------
@@ -316,14 +312,14 @@ Follow the steps below to execute:
 Verifying the Setup - VMs
 -------------------------
 
-Follow the instructions in the `Verifying the Setup <setup_verify_>`_ section.
+Follow the instructions in the `Verifying the Setup`_ section.
 
 Also, for VM deployment you are able to easily access your nodes by going to ``/tmp/<node name>`` and then ``vagrant ssh`` (password is "vagrant").  You can use this to go to a controller and check OpenStack services, OpenDaylight, etc.
 
 OpenStack Verification - VMs
 ----------------------------
 
-Follow the steps in `OpenStack Verification <openstack_verify_>`_ section.
+Follow the steps in `OpenStack Verification`_ section.
 
 Frequently Asked Questions
 ==========================
