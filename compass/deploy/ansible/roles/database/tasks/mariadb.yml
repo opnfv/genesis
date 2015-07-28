@@ -7,22 +7,8 @@
       #- mariadb-client-5.5
       - mysql-client-5.5
       - python-mysqldb
-
-- name: download mariadb and galera deb package
-  get_url: url={{ item.url }} dest=/opt/{{ item.filename }}
-  register: result
-  until: result|success
-  retries: 5
-  delay: 3
-  with_items:
-    - { url:  "{{ MARIADB_URL }}", filename: "{{ MARIADB }}" }
-    - { url:  "{{ GALERA_URL }}", filename: "{{ GALERA }}" }
-
-- name: install mariadb  and galera packages
-  command: dpkg -i /opt/{{ item }}
-  with_items:
-    - "{{ MARIADB }}"
-    - "{{ GALERA }}"
+      - mysql-server-wsrep
+      - galera
 
 - name: create mysql log directy
   file: path=/var/log/mysql state=directory owner=mysql group=mysql mode=0755
@@ -52,7 +38,6 @@
   shell: echo {{ item }} >> /opt/service
   with_items:
    - mysql
-
 
 - name: create database/user
   shell: /opt/data.sh

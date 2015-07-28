@@ -9,7 +9,6 @@
 
 - name: update keystone conf
   template: src=keystone.conf dest=/etc/keystone/keystone.conf backup=yes
-  notify: restart keystone
 
 - name: delete sqlite database
   shell: rm /var/lib/keystone/keystone.db || echo sqllite database already removed
@@ -25,3 +24,6 @@
   with_items:
     - admin-openrc.sh
     - demo-openrc.sh
+
+- name: manually start keystone
+  service: name=keystone state=restarted enabled=yes
