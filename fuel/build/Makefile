@@ -88,6 +88,14 @@ $(ISOCACHE):
 	# Patch to make the sandbox chroot in Fuel succeed with package
 	# installation in a Docker build
 	cd /tmp/fuel-main && patch -p1 < $(TOPDIR)/fuel-main_2.patch
+	# Temporary patch to accomodate for new Ubuntu trusty devops keys not yet
+	# backported to fuel 6.0 or 6.1
+	cd /tmp/fuel-main && patch -p0 < $(TOPDIR)/fuel-main_3.patch
+	# Temporary patch for pidlockfile which was earlier part of python-daemon
+	# but in later pyhon versions is part of python-lockfile. This patch has
+	# not yet been backported to fuel 6.0
+	cd /tmp/fuel-main/utils && patch -p0 < $(TOPDIR)/fuel-main_4.patch
+
 	# Remove Docker optimizations, otherwise multistrap will fail during
 	# Fuel build.
 	sudo rm -f /etc/apt/apt.conf.d/docker*
