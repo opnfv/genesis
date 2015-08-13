@@ -1,8 +1,8 @@
 title: Deployment Environment Adapter (DEA)
 # DEA API version supported
-version: 1.1
-created: Thu May 21 13:34:13 CEST 2015
-comment: HA deployment with Ceph
+version:
+created:
+comment: Config for LF POD2 - HA deployment with Ceph
 environment_name: opnfv
 environment_mode: ha
 wanted_release: Juno on Ubuntu 12.04.4
@@ -169,8 +169,8 @@ network:
     - 8.8.4.4
     - 8.8.8.8
     floating_ranges:
-    - - 172.30.9.80
-      - 172.30.9.89
+    - - 172.30.10.80
+      - 172.30.10.89
     gre_id_range:
     - 2
     - 65535
@@ -182,19 +182,19 @@ network:
     - 1000
     - 1010
   networks:
-  - cidr: 172.30.9.0/24
-    gateway: 172.30.9.1
+  - cidr: 172.30.10.0/24
+    gateway: 172.30.10.1
     ip_ranges:
-    - - 172.30.9.70
-      - 172.30.9.79
+    - - 172.30.10.70
+      - 172.30.10.79
     meta:
       assign_vip: true
-      cidr: 172.16.0.0/24
+      cidr: 172.30.10.0/24
       configurable: true
       floating_range_var: floating_ranges
       ip_range:
-      - 172.16.0.2
-      - 172.16.0.126
+      - 172.30.10.70
+      - 172.30.10.79
       map_priority: 1
       name: public
       notation: ip_ranges
@@ -219,7 +219,7 @@ network:
       render_addr_mask: internal
       render_type: cidr
       use_gateway: false
-      vlan_start: 101
+      vlan_start: 300
     name: management
     vlan_start: 300
   - cidr: 192.168.1.0/24
@@ -237,7 +237,7 @@ network:
       render_addr_mask: storage
       render_type: cidr
       use_gateway: false
-      vlan_start: 102
+      vlan_start: 301
     name: storage
     vlan_start: 301
   - cidr: null
