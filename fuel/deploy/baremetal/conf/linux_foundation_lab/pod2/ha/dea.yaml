@@ -169,8 +169,8 @@ network:
     - 8.8.4.4
     - 8.8.8.8
     floating_ranges:
-    - - 172.30.10.80
-      - 172.30.10.89
+    - - 172.30.10.83
+      - 172.30.10.92
     gre_id_range:
     - 2
     - 65535
@@ -185,16 +185,16 @@ network:
   - cidr: 172.30.10.0/24
     gateway: 172.30.10.1
     ip_ranges:
-    - - 172.30.10.70
-      - 172.30.10.79
+    - - 172.30.10.73
+      - 172.30.10.82
     meta:
       assign_vip: true
       cidr: 172.30.10.0/24
       configurable: true
       floating_range_var: floating_ranges
       ip_range:
-      - 172.30.10.70
-      - 172.30.10.79
+      - 172.30.10.73
+      - 172.30.10.82
       map_priority: 1
       name: public
       notation: ip_ranges
