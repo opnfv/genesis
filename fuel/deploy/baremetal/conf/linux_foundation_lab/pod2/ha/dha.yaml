@@ -1,8 +1,8 @@
 title: Deployment Hardware Adapter (DHA)
 # DHA API version supported
-version: 1.1
-created: Fri May  8 08:03:49 UTC 2015
-comment: Config for LF Pod1
+version:
+created:
+comment: Config for LF POD2
 
 # Adapter to use for this definition
 adapter: ipmi
@@ -12,28 +12,28 @@ adapter: ipmi
 
 nodes:
 - id: 1
-  pxeMac: 00:25:b5:b0:00:ef
-  ipmiIp: 172.30.8.69
+  pxeMac: 00:25:b5:a0:00:2b
+  ipmiIp: 172.30.8.75
   ipmiUser: admin
   ipmiPass: octopus
 - id: 2
-  pxeMac: 00:25:b5:b0:00:cf
-  ipmiIp: 172.30.8.78
+  pxeMac: 00:25:b5:a0:00:3b
+  ipmiIp: 172.30.8.65
   ipmiUser: admin
   ipmiPass: octopus
 - id: 3
-  pxeMac: 00:25:b5:b0:00:8f
-  ipmiIp: 172.30.8.68
+  pxeMac: 00:25:b5:a0:00:4b
+  ipmiIp: 172.30.8.74
   ipmiUser: admin
   ipmiPass: octopus
 - id: 4
-  pxeMac: 00:25:b5:b0:00:6f
-  ipmiIp: 172.30.8.77
+  pxeMac: 00:25:b5:a0:00:5b
+  ipmiIp: 172.30.8.73
   ipmiUser: admin
   ipmiPass: octopus
 - id: 5
-  pxeMac: 00:25:b5:b0:00:4f
-  ipmiIp: 172.30.8.67
+  pxeMac: 00:25:b5:a0:00:6b
+  ipmiIp: 172.30.8.72
   ipmiUser: admin
   ipmiPass: octopus
 # Adding the Fuel node as node id 6 which may not be correct - please
