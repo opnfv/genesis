@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 import paramiko
 import common
 import scp
@@ -34,7 +44,7 @@ class SSHClient(object):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    def exec_cmd(self, command, sudo=False, timeout=TIMEOUT, check=True):
+    def exec_cmd(self, command, check=True, sudo=False, timeout=TIMEOUT):
         if sudo and self.username != 'root':
             command = "sudo -S -p '' %s" % command
         stdin, stdout, stderr = self.client.exec_command(command,

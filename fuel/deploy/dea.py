@@ -1,8 +1,20 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 import yaml
 import io
 import netaddr
 
+
 class DeploymentEnvironmentAdapter(object):
+
     def __init__(self, yaml_path):
         self.dea_struct = None
         self.parse_yaml(yaml_path)
@@ -18,6 +30,15 @@ class DeploymentEnvironmentAdapter(object):
     def parse_yaml(self, yaml_path):
         with io.open(yaml_path) as yaml_file:
             self.dea_struct = yaml.load(yaml_file)
+
+    def get_env_name(self):
+        return self.get_property('environment')['name']
+
+    def get_env_mode(self):
+        return self.get_property('environment')['mode']
+
+    def get_env_net_segment_type(self):
+        return self.get_property('environment')['net_segment_type']
 
     def get_fuel_config(self):
         return self.dea_struct['fuel']
@@ -48,8 +69,6 @@ class DeploymentEnvironmentAdapter(object):
                 return node[property_name]
 
     def get_node_role(self, node_id):
-        role_list = []
-
         return self.get_node_property(node_id, 'role')
 
     def get_node_ids(self):
@@ -69,14 +88,20 @@ class DeploymentEnvironmentAdapter(object):
     def get_network_names(self):
         return self.network_names
 
-    def get_interfaces(self, type):
-        return self.dea_struct['interfaces'][type]
+    def get_dns_list(self):
+        settings = self.get_property('settings')
+        dns_list = settings['editable']['external_dns']['dns_list']['value']
+        return [d.strip() for d in dns_list.split(',')]
 
-    def get_transformations(self, type):
-        return self.dea_struct['transformations'][type]
+    def get_ntp_list(self):
+        settings = self.get_property('settings')
+        ntp_list = settings['editable']['external_ntp']['ntp_list']['value']
+        return [n.strip() for n in ntp_list.split(',')]
 
-    def get_opnfv(self, role):
-        return {'opnfv': self.dea_struct['opnfv'][role]}
-
-    def get_wanted_release(self):
-        return self.dea_struct['wanted_release']
+    def get_hosts(self):
+        opnfv = self.get_property('opnfv')
+        hosts_list = []
+        for host in opnfv['hosts']:
+            if host['address'] and host['fqdn']:
+                hosts_list.append(host)
+        return hosts_list

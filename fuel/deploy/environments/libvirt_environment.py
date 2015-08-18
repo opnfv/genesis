@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 from lxml import etree
 import glob
 
@@ -11,7 +21,6 @@ check_dir_exists = common.check_dir_exists
 check_file_exists = common.check_file_exists
 check_if_root = common.check_if_root
 
-NET_DIR = 'libvirt/networks'
 
 class LibvirtEnvironment(ExecutionEnvironment):
 
@@ -19,17 +28,18 @@ class LibvirtEnvironment(ExecutionEnvironment):
         super(LibvirtEnvironment, self).__init__(
             storage_dir, dha_file, root_dir)
         self.dea = dea
-        self.network_dir = '%s/%s' % (self.root_dir, NET_DIR)
+        self.network_dir = '%s/%s' % (self.root_dir,
+                                      self.dha.get_virt_net_conf_dir())
         self.node_ids = self.dha.get_all_node_ids()
         self.net_names = self.collect_net_names()
 
     def create_storage(self, node_id, disk_path, disk_sizes):
         if node_id == self.fuel_node_id:
-           disk_size = disk_sizes['fuel']
+            disk_size = disk_sizes['fuel']
         else:
-           roles = self.dea.get_node_role(node_id)
-           role = 'controller' if 'controller' in roles else 'compute'
-           disk_size = disk_sizes[role]
+            roles = self.dea.get_node_role(node_id)
+            role = 'controller' if 'controller' in roles else 'compute'
+            disk_size = disk_sizes[role]
         exec_cmd('fallocate -l %s %s' % (disk_size, disk_path))
 
     def create_vms(self):
@@ -47,6 +57,10 @@ class LibvirtEnvironment(ExecutionEnvironment):
             exec_cmd('cp %s %s' % (vm_template, temp_vm_file))
             self.define_vm(vm_name, temp_vm_file, disk_path)
         exec_cmd('rm -fr %s' % temp_dir)
+
+    def start_vms(self):
+        for node_id in self.node_ids:
+            self.dha.node_power_on(node_id)
 
     def create_networks(self):
         for net_file in glob.glob('%s/*' % self.network_dir):
@@ -82,11 +96,11 @@ class LibvirtEnvironment(ExecutionEnvironment):
             self.delete_vm(node_id)
 
     def setup_environment(self):
-        check_if_root()
         check_dir_exists(self.network_dir)
         self.cleanup_environment()
-        self.create_vms()
         self.create_networks()
+        self.create_vms()
+        self.start_vms()
 
     def cleanup_environment(self):
         self.delete_vms()
