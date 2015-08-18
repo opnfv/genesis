@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 import common
 import time
 from hardware_adapter import HardwareAdapter
@@ -5,6 +15,7 @@ from hardware_adapter import HardwareAdapter
 log = common.log
 exec_cmd = common.exec_cmd
 err = common.err
+
 
 class IpmiAdapter(HardwareAdapter):
 

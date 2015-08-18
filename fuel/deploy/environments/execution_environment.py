@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 from lxml import etree
 
 import common
@@ -9,6 +19,7 @@ log = common.log
 check_dir_exists = common.check_dir_exists
 check_file_exists = common.check_file_exists
 check_if_root = common.check_if_root
+
 
 class ExecutionEnvironment(object):
 
@@ -54,8 +65,8 @@ class ExecutionEnvironment(object):
             uuid.getparent().remove(uuid)
         disks = vm_xml.xpath('/domain/devices/disk')
         for disk in disks:
-            if (disk.get('type') == 'file'
-                and disk.get('device') == 'disk'):
+            if (disk.get('type') == 'file' and
+                disk.get('device') == 'disk'):
                 sources = disk.xpath('source')
                 for source in sources:
                     disk.remove(source)
