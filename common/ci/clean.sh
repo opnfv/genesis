@@ -215,7 +215,7 @@ if rpm -qa | grep -iE 'libvirt|kvm'; then
   fi
   echo "${blue}Removing libvirt and kvm packages"
   yum -y remove libvirt-*
-  yum -y remove qemu-kvm-*
+  yum -y remove *qemu*
 else
   echo "${blue}libvirt/KVM is not installed${reset}"
 fi
