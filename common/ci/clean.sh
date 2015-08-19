@@ -14,7 +14,7 @@ reset=`tput sgr0`
 blue=`tput setaf 4`
 red=`tput setaf 1`
 green=`tput setaf 2`
-
+pxe_bridge='pxebr'
 vm_dir=/var/opt/opnfv
 ##END VARS
 
@@ -234,3 +234,21 @@ for kernel_mod in vboxnetadp vboxnetflt vboxpci vboxdrv kvm_intel kvm; do
     echo "${blue}Removed Kernel Module: $kernel_mod ${reset}"
   fi
 done
+
+###remove pxebr
+echo "${blue}Checking whether PXE bridge ${pxe_bridge} exists${reset}"
+if ! brctl show ${pxe_bridge} 2>&1 | grep -i 'No such device'; then
+  echo "${blue}PXE bridge detected. Removing...${reset}"
+  if ifconfig | grep ${pxe_bridge}; then
+    ifdown ${pxe_bridge}
+  fi
+  brctl delbr ${pxe_bridge}
+  if ifconfig | grep ${pxe_bridge} || brctl show | grep ${pxe_bridge}; then
+    echo "${red}Error trying to remove ${pxe_bridge}${reset}"
+    exit 1
+  else
+    echo "${blue}PXE bridge ${pxe_bridge} removed${reset}"
+  fi
+else
+  echo "${blue}PXE bridge ${pxe_bridge} does not exist${reset}"
+fi

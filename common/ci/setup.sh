@@ -128,7 +128,7 @@ setup_pxe_bridge() {
 
   #Check whether PXE bridge exists
   echo "${blue}Checking whether PXE bridge ${pxe_bridge} exists${reset}"
-  if brctl show ${pxe_bridge} | grep 'No such device'; then
+  if brctl show ${pxe_bridge} 2>&1 | grep 'No such device'; then
     echo "${blue}Creating PXE bridge ${pxe_bridge}${reset}"
     brctl addbr ${pxe_bridge}
   else
@@ -140,10 +140,10 @@ setup_pxe_bridge() {
 
   #Add VLAN 0 (PXE) interface to PXE bridge
   echo "${blue}Checking whether VLAN 0 (PXE) interface ${pxe_interface} is added to PXE bridge ${pxe_bridge} exists${reset}"
-  if ! brctl show ${pxe_bridge} | grep ${pxe_interface}; then
+  if ! brctl show ${pxe_bridge} 2>&1 | grep ${pxe_interface}; then
     echo "${blue}Adding VLAN 0 (PXE) interface ${pxe_interface} to PXE bridge ${pxe_bridge}${reset}"
     brctl addif ${pxe_bridge} ${pxe_interface}
-    if ! brctl show ${pxe_bridge} | grep ${pxe_interface}; then
+    if ! brctl show ${pxe_bridge} 2>&1 | grep ${pxe_interface}; then
       echo "${red}Could not add VLAN 0 (PXE) interface ${pxe_interface} to PXE bridge ${pxe_bridge}${reset}"
       exit 1
     fi
