@@ -24,8 +24,5 @@ ADD ./setcontext /root/setcontext
 RUN chmod +x /root/setcontext
 ADD ./enable_dockerx2 /root/enable_dockerx2
 RUN chmod +x /root/enable_dockerx2
-ADD ./install.sh /root/install.sh
-RUN chmod +x /root/install.sh
-RUN /root/install.sh
 
 VOLUME /var/lib/docker

@@ -43,7 +43,6 @@ SUBDIRS += f_l23network
 SUBDIRS += f_resolvconf
 SUBDIRS += f_ntp
 SUBDIRS += f_odl_docker
-#SUBDIRS += f_odl
 
 # f_example is only an example of how to generate a .deb package and
 # should not be enabled in official builds.
@@ -128,10 +127,6 @@ patch-packages:
 prepare:
 	#$(MAKE) -C opendaylight -f Makefile setup
 
-.PHONY: odl
-odl:
-	#$(MAKE) -C opendaylight -f Makefile
-
 .PHONY: build-clean $(SUBCLEAN)
 build-clean: $(SUBCLEAN)
 	$(MAKE) -C patch-packages -f Makefile clean
@@ -146,7 +141,6 @@ clean:  clean-cache prepare $(SUBCLEAN)
 	@rm -f *.iso
 	@rm -Rf release
 	@rm -Rf newiso
-	@rm -f f_odl
 	@rm -f $(NEWISO)
 	@rm -f $(BUILD_BASE)/.versions
 
@@ -156,6 +150,6 @@ $(SUBCLEAN): %.clean:
 # Todo: Make things smarter - we shouldn't need to clean everything
 # betwen make invocations.
 .PHONY: iso
-iso:	prepare build-clean odl $(ISOCACHE) $(SUBDIRS) patch-packages
+iso:	prepare build-clean $(ISOCACHE) $(SUBDIRS) patch-packages
 	install/install.sh iso $(ISOCACHE) $(NEWISO) $(PRODNO) $(REVSTATE)
 	@printf "\n\nProduct ISO is $(NEWISO)\n\n"
