@@ -88,6 +88,7 @@ check_interface() {
   if [[ ${link_state} != 'UP' ]]; then
     echo "${blue}${interface} state is ${link_state}. Bringing it UP!${reset}"
     ip link set dev ${interface} up
+    sleep 5
     link_state=$(ip link show ${interface} | grep -oP 'state \K[^ ]+')
     if [[ ${link_state} != 'UP' ]]; then
       echo "${red}Could not bring UP interface ${interface} link state is ${link_state}${reset}"
@@ -135,9 +136,6 @@ setup_pxe_bridge() {
     echo "${green}OK!${reset}"
   fi
 
-  #Check whether PXE bridge is UP
-  check_interface ${pxe_bridge}
-
   #Add VLAN 0 (PXE) interface to PXE bridge
   echo "${blue}Checking whether VLAN 0 (PXE) interface ${pxe_interface} is added to PXE bridge ${pxe_bridge} exists${reset}"
   if ! brctl show ${pxe_bridge} 2>&1 | grep ${pxe_interface}; then
@@ -150,6 +148,9 @@ setup_pxe_bridge() {
   else
     echo "${green}OK!${reset}"
   fi
+
+  #Check whether PXE bridge is UP
+  check_interface ${pxe_bridge}
 
   #Add Fuel Gateway IP Address to PXE bridge
   echo "${blue}Checking whether Fuel Gateway IP Address ${fuel_gw_ip} is assigned to PXE bridge ${pxe_bridge}${reset}"
