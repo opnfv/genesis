@@ -324,7 +324,7 @@ parse_cmdline() {
   fi
 
   ##Validate nic args
-  if [ $nic_arg_flag -eq 1 ]; then
+  if [[ $nic_arg_flag -eq 1 ]]; then
     if [ -z "$virtual" ]; then
       for nic_type in admin_nic private_nic public_nic; do
         eval "nic_value=\$$nic_type"
@@ -500,7 +500,7 @@ configure_network() {
 
   ##if nic_arg_flag is set, then we don't figure out
   ##NICs dynamically
-  if [ $nic_arg_flag -eq 1 ]; then
+  if [[ $nic_arg_flag -eq 1 ]]; then
     echo "${blue}Static Network Interfaces Defined.  Updating Vagrantfile...${reset}"
     if [ $virtual ]; then
       nic_list="$public_nic"
@@ -516,7 +516,7 @@ configure_network() {
     echo "${blue}Detecting network configuration...${reset}"
     ##detect host 1 or 3 interface configuration
     #output=`ip link show | grep -E "^[0-9]" | grep -Ev ": lo|tun|virbr|vboxnet" | awk '{print $2}' | sed 's/://'`
-    output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
+    output=`/bin/ls -l /sys/class/net | tail -n +2 | grep -v virtual | cut -d " " -f9`
   fi
 
   if [ ! "$output" ]; then
