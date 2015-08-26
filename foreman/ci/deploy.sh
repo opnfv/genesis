@@ -1107,11 +1107,79 @@ start_virtual_nodes() {
   fi
 }
 
+##check to make sure nodes are powered off
+##this function does nothing if virtual
+##params: none
+##usage: check_baremetal_nodes()
+check_baremetal_nodes() {
+  if [ $virtual ]; then
+    echo "${blue}Skipping Baremetal node power status check as deployment is virtual ${reset}"
+  else
+    echo "${blue}Checking Baremetal nodes power state... ${reset}"
+    if [ ! -z "$base_config" ]; then
+      # Install ipmitool
+      # Major version is pinned to force some consistency for Arno
+      if ! yum list installed | grep -i ipmitool; then
+        echo "${blue}Installing ipmitool...${reset}"
+        if ! yum -y install ipmitool-1*; then
+          echo "${red}Failed to install ipmitool!${reset}"
+          exit 1
+        fi
+      fi
+
+        ###find all the bmc IPs and number of nodes
+      node_counter=0
+      output=`grep bmc_ip $base_config | grep -Eo '[0-9]+.[0-9]+.[0-9]+.[0-9]+'`
+      for line in ${output} ; do
+        bmc_ip[$node_counter]=$line
+        ((node_counter++))
+      done
+
+      max_nodes=$((node_counter-1))
+
+      ###find bmc_users per node
+      node_counter=0
+      output=`grep bmc_user $base_config | sed 's/\s*bmc_user:\s*//'`
+      for line in ${output} ; do
+        bmc_user[$node_counter]=$line
+        ((node_counter++))
+      done
+
+      ###find bmc_pass per node
+      node_counter=0
+      output=`grep bmc_pass $base_config | sed 's/\s*bmc_pass:\s*//'`
+      for line in ${output} ; do
+        bmc_pass[$node_counter]=$line
+        ((node_counter++))
+      done
+
+      for mynode in `seq 0 $max_nodes`; do
+        echo "${blue}Node: ${bmc_ip[$mynode]} ${bmc_user[$mynode]} ${bmc_pass[$mynode]} ${reset}"
+        ipmi_output=`ipmitool -I lanplus -P ${bmc_pass[$mynode]} -U ${bmc_user[$mynode]} -H ${bmc_ip[$mynode]} chassis status \
+                    | grep "System Power" | cut -d ':' -f2 | tr -d [:blank:]`
+        if [ "$ipmi_output" == "on" ]; then
+          echo "${red}Error: Node is powered on: ${bmc_ip[$mynode]} ${reset}"
+          echo "${red}Please run clean.sh before running deploy! ${reset}"
+          exit 1
+        elif [ "$ipmi_output" == "off" ]; then
+          echo "${blue}Node: ${bmc_ip[$mynode]} is powered off${reset}"
+        else
+          echo "${red}Warning: Unable to detect node power state: ${bmc_ip[$mynode]} ${reset}"
+        fi
+      done
+    else
+      echo "${red}base_config was not provided for a baremetal install! Exiting${reset}"
+      exit 1
+    fi
+  fi
+}
+
 ##END FUNCTIONS
 
 main() {
   parse_cmdline "$@"
   disable_selinux
+  check_baremetal_nodes
   install_EPEL
   install_vbox
   install_ansible
