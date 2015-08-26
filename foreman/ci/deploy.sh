@@ -650,6 +650,20 @@ configure_network() {
     fi
   fi
 
+  nodes=`sed -nr '/nodes:/{:start /workaround/!{N;b start};//p}' opnfv_ksgen_settings.yml | sed -n '/^  [A-Za-z0-9]\+:$/p' | sed 's/\s*//g' | sed 's/://g'`
+  controller_nodes=`echo $nodes | tr " " "\n" | grep controller | tr "\n" " "`
+  echo "${blue}Controller nodes found in settings: ${controller_nodes}${reset}"
+  my_controller_array=( $controller_nodes )
+  num_control_nodes=${#my_controller_array[@]}
+  if [ "$num_control_nodes" -ne 3 ]; then
+    if cat opnfv_ksgen_settings.yml | grep ha_flag | grep true; then
+      echo "${red}Error: You must define exactly 3 control nodes when HA flag is true!${reset}"
+      exit 1
+    fi
+  else
+    echo "${blue}Number of Controller nodes detected: ${num_control_nodes}${reset}"
+  fi
+
   if [ $no_parse ]; then
     echo "${blue}Skipping parsing variables into settings file as no_parse flag is set${reset}"
 
