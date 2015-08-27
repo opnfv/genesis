@@ -387,8 +387,8 @@ install_vagrant() {
   fi
 
   ##add centos 7 box to vagrant
-  if ! vagrant box list | grep chef/centos-7.0; then
-    if ! vagrant box add chef/centos-7.0 --provider virtualbox; then
+  if ! vagrant box list | grep opnfv/centos-7.0; then
+    if ! vagrant box add opnfv/centos-7.0 --provider virtualbox; then
       printf '%s\n' 'deploy.sh: Unable to download centos7 box for Vagrant' >&2
       exit 1
     fi
