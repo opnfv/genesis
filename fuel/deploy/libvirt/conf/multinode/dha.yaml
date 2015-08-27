@@ -15,19 +15,19 @@ nodes:
   libvirtName: controller1
   libvirtTemplate: libvirt/vms/controller.xml
 - id: 2
-  libvirtName: controller2
-  libvirtTemplate: libvirt/vms/compute.xml
-- id: 3
-  libvirtName: controller3
-  libvirtTemplate: libvirt/vms/compute.xml
-- id: 4
   libvirtName: compute1
   libvirtTemplate: libvirt/vms/compute.xml
-- id: 5
+- id: 3
   libvirtName: compute2
   libvirtTemplate: libvirt/vms/compute.xml
-- id: 6
+- id: 4
   libvirtName: compute3
+  libvirtTemplate: libvirt/vms/compute.xml
+- id: 5
+  libvirtName: compute4
+  libvirtTemplate: libvirt/vms/compute.xml
+- id: 6
+  libvirtName: compute5
   libvirtTemplate: libvirt/vms/compute.xml
 - id: 7
   libvirtName: fuel-master
