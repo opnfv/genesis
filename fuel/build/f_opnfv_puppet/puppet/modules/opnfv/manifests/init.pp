@@ -23,6 +23,4 @@ class opnfv {
   include opnfv::ntp
   # Make sure all added packages are installed
   include opnfv::add_packages
-  # Setup OpenDaylight
-  include opnfv::odl_docker
 }

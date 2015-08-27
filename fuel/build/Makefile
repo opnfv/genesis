@@ -42,7 +42,6 @@ SUBDIRS += f_osnaily
 SUBDIRS += f_l23network
 SUBDIRS += f_resolvconf
 SUBDIRS += f_ntp
-SUBDIRS += f_odl_docker
 
 # f_example is only an example of how to generate a .deb package and
 # should not be enabled in official builds.
@@ -62,7 +61,6 @@ all:
 	@echo "Versions of cached build results built by" $(shell hostname) "at" $(shell date -u) > $(VERSION_FILE)
 	@echo "cache.mk" $(shell md5sum $(BUILD_BASE)/cache.mk | cut -f1 -d " ") >> $(VERSION_FILE)
 	@echo "config.mk" $(shell md5sum $(BUILD_BASE)/config.mk | cut -f1 -d " ") >> $(VERSION_FILE)
-	$(MAKE) -C f_odl_docker -f Makefile all
 	@make -C docker
 	@docker/runcontext $(DOCKERIMG) $(MAKE) $(MAKEFLAGS) iso
 
