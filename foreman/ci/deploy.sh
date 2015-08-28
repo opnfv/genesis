@@ -44,6 +44,14 @@ display_usage() {
   echo -e "\n   -static_ip_range : static IP range to define when using virtual and when dhcp is not being used (default), must at least a 20 IP block.  Format: '192.168.1.1,192.168.1.20' \n"
   echo -e "\n   -ping_site : site to use to verify IP connectivity from the VM when -virtual is used.  Format: -ping_site www.blah.com \n"
   echo -e "\n   -floating_ip_count : number of IP address from the public range to be used for floating IP. Default is 20.\n"
+  echo -e "\n   -admin_nic : Baremetal NIC for the admin network.  Required if other "nic" arguments are used.  \
+Not applicable with -virtual.  Example: -admin_nic em1"
+  echo -e "\n   -private_nic : Baremetal NIC for the private network.  Required if other "nic" arguments are used.  \
+Not applicable with -virtual.  Example: -private_nic em2"
+  echo -e "\n   -public_nic : Baremetal NIC for the public network.  Required if other "nic" arguments are used.  \
+Can also be used with -virtual.  Example: -public_nic em3"
+  echo -e "\n   -storage_nic : Baremetal NIC for the storage network.  Optional.  Not applicable with -virtual. \
+Private NIC will be used for storage if not specified. Example: -storage_nic em4"
 }
 
 ##verify vm dir exists
@@ -269,6 +277,26 @@ parse_cmdline() {
                 floating_ip_count=$2
                 shift 2
             ;;
+        -admin_nic)
+                admin_nic=$2
+                shift 2
+                nic_arg_flag=1
+            ;;
+        -private_nic)
+                private_nic=$2
+                shift 2
+                nic_arg_flag=1
+            ;;
+        -public_nic)
+                public_nic=$2
+                shift 2
+                nic_arg_flag=1
+            ;;
+        -storage_nic)
+                storage_nic=$2
+                shift 2
+                nic_arg_flag=1
+            ;;
         *)
                 display_usage
                 exit 1
@@ -293,6 +321,39 @@ parse_cmdline() {
 
   if [ -z "$floating_ip_count" ]; then
     floating_ip_count=20
+  fi
+
+  ##Validate nic args
+  if [ $nic_arg_flag -eq 1 ]; then
+    if [ -z "$virtual" ]; then
+      for nic_type in admin_nic private_nic public_nic; do
+        eval "nic_value=\$$nic_type"
+        if [ -z "$nic_value" ]; then
+          echo "${red}$nic_type is empty or not defined.  Required when other nic args are given!${reset}"
+          exit 1
+        fi
+        interface_ip=$(find_ip $nic_value)
+        if [ ! "$interface_ip" ]; then
+          echo "${red}$nic_value does not have an IP address! Exiting... ${reset}"
+          exit 1
+        fi
+      done
+    else
+      ##if virtual only public_nic should be specified
+      for nic_type in admin_nic private_nic storage_nic; do
+        eval "nic_value=\$$nic_type"
+        if [ ! -z "$nic_value" ]; then
+          echo "${red}$nic_type is not a valid argument using -virtual.  Please only specify public_nic!${reset}"
+          exit 1
+        fi
+      done
+
+      interface_ip=$(find_ip $public_nic)
+      if [ ! "$interface_ip" ]; then
+        echo "${red}Public NIC: $public_nic does not have an IP address! Exiting... ${reset}"
+        exit 1
+      fi
+    fi
   fi
 }
 
@@ -437,10 +498,26 @@ clone_bgs() {
 configure_network() {
   cd $vm_dir/foreman_vm
 
-  echo "${blue}Detecting network configuration...${reset}"
-  ##detect host 1 or 3 interface configuration
-  #output=`ip link show | grep -E "^[0-9]" | grep -Ev ": lo|tun|virbr|vboxnet" | awk '{print $2}' | sed 's/://'`
-  output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
+  ##if nic_arg_flag is set, then we don't figure out
+  ##NICs dynamically
+  if [ $nic_arg_flag -eq 1 ]; then
+    echo "${blue}Static Network Interfaces Defined.  Updating Vagrantfile...${reset}"
+    if [ $virtual ]; then
+      nic_list="$public_nic"
+    elif [ -z "$storage_nic" ]; then
+      echo "${blue}storage_nic not defined, will combine storage into private VLAN ${reset}"
+      nic_list="$admin_nic $private_nic $public_nic"
+    else
+      nic_list="$admin_nic $private_nic $public_nic $storage_nic"
+    fi
+    nic_array=( $nic_list )
+    output=$nic_list
+  else
+    echo "${blue}Detecting network configuration...${reset}"
+    ##detect host 1 or 3 interface configuration
+    #output=`ip link show | grep -E "^[0-9]" | grep -Ev ": lo|tun|virbr|vboxnet" | awk '{print $2}' | sed 's/://'`
+    output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
+  fi
 
   if [ ! "$output" ]; then
     printf '%s\n' 'deploy.sh: Unable to detect interfaces to bridge to' >&2
@@ -449,10 +526,15 @@ configure_network() {
 
   ##virtual we only find 1 interface
   if [ $virtual ]; then
-    ##find interface with default gateway
-    this_default_gw=$(ip route | grep default | awk '{print $3}')
-    echo "${blue}Default Gateway: $this_default_gw ${reset}"
-    this_default_gw_interface=$(ip route get $this_default_gw | awk '{print $3}')
+    if [ ! -z "${nic_array[0]}" ]; then
+      echo "${blue}Public Interface specified: ${nic_array[0]}${reset}"
+      this_default_gw_interface=${nic_array[0]}
+    else
+      ##find interface with default gateway
+      this_default_gw=$(ip route | grep default | awk '{print $3}')
+      echo "${blue}Default Gateway: $this_default_gw ${reset}"
+      this_default_gw_interface=$(ip route get $this_default_gw | awk '{print $3}')
+    fi
 
     ##find interface IP, make sure its valid
     interface_ip=$(find_ip $this_default_gw_interface)
@@ -955,117 +1037,65 @@ start_virtual_nodes() {
         sleep 1400
       fi
 
-      ##find number of interfaces with ip and substitute in VagrantFile
-      output=`ifconfig | grep -E "^[a-zA-Z0-9]+:"| grep -Ev "lo|tun|virbr|vboxnet" | awk '{print $1}' | sed 's/://'`
-
-      if [ ! "$output" ]; then
-        printf '%s\n' 'deploy.sh: Unable to detect interfaces to bridge to' >&2
+      ## Add Admin interface
+      mac_string=config_nodes_${node}_mac_address
+      mac_addr=$(eval echo \$$mac_string)
+      mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+      if [ $mac_addr == "" ]; then
+        echo "${red} Unable to find mac_address for $node! ${reset}"
         exit 1
       fi
+      this_admin_ip=${admin_ip_arr[$node]}
+      sed -i 's/^.*eth_replace0.*$/  config.vm.network "private_network", virtualbox__intnet: "my_admin_network", ip: '\""$this_admin_ip"\"', netmask: '\""$admin_subnet_mask"\"', :mac => '\""$mac_addr"\"'/' Vagrantfile
 
-      if_counter=0
-      for interface in ${output}; do
-
-        if [ -z "$enable_virtual_dhcp" ]; then
-          if [ "$if_counter" -ge 1 ]; then
-            break
-          fi
-        elif [ "$if_counter" -ge 4 ]; then
-          break
-        fi
-        interface_ip=$(find_ip $interface)
-        if [ ! "$interface_ip" ]; then
-          continue
-        fi
-        case "${if_counter}" in
-          0)
-            mac_string=config_nodes_${node}_mac_address
-            mac_addr=$(eval echo \$$mac_string)
-            mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
-            if [ $mac_addr == "" ]; then
-              echo "${red} Unable to find mac_address for $node! ${reset}"
-              exit 1
-            fi
-            ;;
-          1)
-            if [ "$node_type" == "controller" ]; then
-              mac_string=config_nodes_${node}_private_mac
-              mac_addr=$(eval echo \$$mac_string)
-              if [ $mac_addr == "" ]; then
-                echo "${red} Unable to find private_mac for $node! ${reset}"
-                exit 1
-              fi
-            else
-              ##generate random mac
-              mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
-            fi
-            mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
-            ;;
-          *)
-            mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
-            mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
-            ;;
-        esac
-        this_admin_ip=${admin_ip_arr[$node]}
-        sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "private_network", virtualbox__intnet: "my_admin_network", ip: '\""$this_admin_ip"\"', netmask: '\""$admin_subnet_mask"\"', :mac => '\""$mac_addr"\"'/' Vagrantfile
-        ((if_counter++))
-      done
-      ##now remove interface config in Vagrantfile for 1 node
-      ##if 1, 3, or 4 interfaces set deployment type
-      ##if 2 interfaces remove 2nd interface and set deployment type
-      if [[ "$if_counter" == 1 || "$if_counter" == 2 ]]; then
-        deployment_type="single_network"
-        if [ "$node_type" == "controller" ]; then
-            mac_string=config_nodes_${node}_private_mac
-            mac_addr=$(eval echo \$$mac_string)
-            if [ $mac_addr == "" ]; then
-              echo "${red} Unable to find private_mac for $node! ${reset}"
-              exit 1
-            fi
-        else
-            ##generate random mac
-            mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
-        fi
-        mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
-        if [ "$node_type" == "controller" ]; then
-          new_node_ip=${controllers_ip_arr[$controller_count]}
-          if [ ! "$new_node_ip" ]; then
-            echo "{red}ERROR: Empty node ip for controller $controller_count ${reset}"
+      ## Add private interface
+      if [ "$node_type" == "controller" ]; then
+          mac_string=config_nodes_${node}_private_mac
+          mac_addr=$(eval echo \$$mac_string)
+          if [ $mac_addr == "" ]; then
+            echo "${red} Unable to find private_mac for $node! ${reset}"
             exit 1
           fi
-          ((controller_count++))
-        else
-          next_private_ip=$(next_ip $next_private_ip)
-          if [ ! "$next_private_ip" ]; then
-            echo "{red}ERROR: Could not find private ip for $node ${reset}"
-            exit 1
-          fi
-          new_node_ip=$next_private_ip
-        fi
-        sed -i 's/^.*eth_replace1.*$/  config.vm.network "private_network", virtualbox__intnet: "my_private_network", :mac => '\""$mac_addr"\"', ip: '\""$new_node_ip"\"', netmask: '\""$private_subnet_mask"\"'/' Vagrantfile
-        ##replace host_ip in vm_nodes_provision with private ip
-        sed -i 's/^host_ip=REPLACE/host_ip='$new_node_ip'/' vm_nodes_provision.sh
-        ##replace ping site
-        if [ ! -z "$ping_site" ]; then
-          sed -i 's/www.google.com/'$ping_site'/' vm_nodes_provision.sh
-        fi
-        ##find public ip info
-        mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
-        mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
-        this_public_ip=${public_ip_arr[$node]}
-
-        if [ -z "$enable_virtual_dhcp" ]; then
-          sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", bridge: '\'"$public_interface"\'', :mac => '\""$mac_addr"\"', ip: '\""$this_public_ip"\"', netmask: '\""$public_subnet_mask"\"'/' Vagrantfile
-        else
-          sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", bridge: '\'"$public_interface"\'', :mac => '\""$mac_addr"\"'/' Vagrantfile
-        fi
-        remove_vagrant_network eth_replace3
-      elif [ "$if_counter" == 3 ]; then
-        deployment_type="three_network"
-        remove_vagrant_network eth_replace3
       else
-        deployment_type="multi_network"
+          ##generate random mac
+          mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
       fi
+      mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+      if [ "$node_type" == "controller" ]; then
+        new_node_ip=${controllers_ip_arr[$controller_count]}
+        if [ ! "$new_node_ip" ]; then
+          echo "{red}ERROR: Empty node ip for controller $controller_count ${reset}"
+          exit 1
+        fi
+        ((controller_count++))
+      else
+        next_private_ip=$(next_ip $next_private_ip)
+        if [ ! "$next_private_ip" ]; then
+          echo "{red}ERROR: Could not find private ip for $node ${reset}"
+          exit 1
+        fi
+        new_node_ip=$next_private_ip
+      fi
+      sed -i 's/^.*eth_replace1.*$/  config.vm.network "private_network", virtualbox__intnet: "my_private_network", :mac => '\""$mac_addr"\"', ip: '\""$new_node_ip"\"', netmask: '\""$private_subnet_mask"\"'/' Vagrantfile
+      ##replace host_ip in vm_nodes_provision with private ip
+      sed -i 's/^host_ip=REPLACE/host_ip='$new_node_ip'/' vm_nodes_provision.sh
+      ##replace ping site
+      if [ ! -z "$ping_site" ]; then
+        sed -i 's/www.google.com/'$ping_site'/' vm_nodes_provision.sh
+      fi
+
+      ##find public ip info and add public interface
+      mac_addr=$(echo -n 00-60-2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 "-%02X"')
+      mac_addr=$(echo $mac_addr | sed 's/:\|-//g')
+      this_public_ip=${public_ip_arr[$node]}
+
+      if [ -z "$enable_virtual_dhcp" ]; then
+        sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", bridge: '\'"$public_interface"\'', :mac => '\""$mac_addr"\"', ip: '\""$this_public_ip"\"', netmask: '\""$public_subnet_mask"\"'/' Vagrantfile
+      else
+        sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", bridge: '\'"$public_interface"\'', :mac => '\""$mac_addr"\"'/' Vagrantfile
+      fi
+      remove_vagrant_network eth_replace3
+
       ##modify provisioning to do puppet install, config, and foreman check-in
       ##substitute host_name and dns_server in the provisioning script
       host_string=config_nodes_${node}_hostname
