@@ -85,7 +85,7 @@ class opnfv::external_net_presetup {
         owner   => 'root',
         group   => 'root',
         mode    => '0644',
-        content => template('trystack/br_ex.erb'),
+        content => template('opnfv/br_ex.erb'),
         before  => Class["quickstack::pacemaker::params"],
   }
   ->

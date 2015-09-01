@@ -476,20 +476,13 @@ clean_tmp() {
 }
 
 ##clone genesis and move to node vm dir
-##params: none
-##usage: clone_bgs
+##params: destination directory
+##usage: clone_bgs /tmp/myvm/
 clone_bgs() {
-  cd /tmp/
-  rm -rf /tmp/genesis/
-
-  ##clone artifacts and move into foreman_vm dir
-  if ! GIT_SSL_NO_VERIFY=true git clone https://gerrit.opnfv.org/gerrit/genesis.git; then
-    printf '%s\n' 'deploy.sh: Unable to clone genesis repo' >&2
-    exit 1
-  fi
-
-  mv -f /tmp/genesis/foreman/ci $vm_dir/foreman_vm
-  rm -rf /tmp/genesis/
+  script=`realpath $0`
+  script_dir="`dirname "$script"`"
+  cp -fr $script_dir/ $1
+  cp -fr $script_dir/../../common/puppet-opnfv $1
 }
 
 ##validates the network settings and update VagrantFile with network settings
@@ -1007,13 +1000,7 @@ start_virtual_nodes() {
       rm -rf /tmp/genesis/
 
       ##clone genesis and move into node folder
-      if ! GIT_SSL_NO_VERIFY=true git clone https://gerrit.opnfv.org/gerrit/genesis.git; then
-        printf '%s\n' 'deploy.sh: Unable to clone vagrant repo' >&2
-        exit 1
-      fi
-
-      mv -f /tmp/genesis/foreman/ci $vm_dir/$node
-      rm -rf /tmp/genesis/
+      clone_bgs $vm_dir/$node
 
       cd $vm_dir/$node
 
@@ -1230,7 +1217,7 @@ main() {
   install_vagrant
   clean_tmp
   verify_vm_dir
-  clone_bgs
+  clone_bgs $vm_dir/foreman_vm
   configure_network
   configure_virtual
   start_foreman
