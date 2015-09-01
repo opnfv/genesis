@@ -30,6 +30,7 @@ declare -A admin_ip_arr
 declare -A public_ip_arr
 
 vm_dir=/var/opt/opnfv
+script=`realpath $0`
 ##END VARS
 
 ##FUNCTIONS
@@ -479,7 +480,6 @@ clean_tmp() {
 ##params: destination directory
 ##usage: clone_bgs /tmp/myvm/
 clone_bgs() {
-  script=`realpath $0`
   script_dir="`dirname "$script"`"
   cp -fr $script_dir/ $1
   cp -fr $script_dir/../../common/puppet-opnfv $1
@@ -993,7 +993,6 @@ start_virtual_nodes() {
     compute_wait_completed=false
 
     for node in ${nodes}; do
-      cd /tmp/
 
       ##remove VM nodes incase it wasn't cleaned up
       rm -rf $vm_dir/$node

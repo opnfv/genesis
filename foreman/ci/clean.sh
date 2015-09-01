@@ -128,7 +128,7 @@ if [ $skip_vagrant -eq 0 ]; then
         echo "${red}Unable to destroy $vm Vagrant VM! Attempting to killall vagrant if process is hung ${reset}"
         killall vagrant
         echo "${blue}Checking if vagrant was already destroyed and no process is active...${reset}"
-        if ps axf | grep vagrant; then
+        if ps axf | grep vagrant | grep -v 'grep'; then
           echo "${red}Vagrant process still exists after kill...exiting ${reset}"
           exit 1
         else
@@ -158,13 +158,13 @@ if [ $skip_vagrant -eq 0 ]; then
 
   echo "${blue}Checking for any remaining virtual box processes...${reset}"
   ###kill virtualbox
-  if ps axf | grep virtualbox; then
+  if ps axf | grep virtualbox | grep -v 'grep'; then
     echo "${blue}virtualbox processes are still running. Killing any remaining VirtualBox processes...${reset}"
     killall virtualbox
   fi
 
   ###kill any leftover VMs (brute force)
-  if ps axf | grep VBoxHeadless; then
+  if ps axf | grep VBoxHeadless | grep -v 'grep'; then
     echo "${blue}VBoxHeadless processes are still running. Killing any remaining VBoxHeadless processes...${reset}"
     killall VBoxHeadless
   fi
