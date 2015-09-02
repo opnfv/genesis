@@ -1126,6 +1126,7 @@ start_virtual_nodes() {
       if ! vagrant ssh -c "route | grep default | grep $this_default_gw"; then
         echo "${blue} Adding public route back to $node! ${reset}"
         vagrant ssh -c "route add default gw $this_default_gw"
+        vagrant ssh -c "route delete default gw 10.0.2.2"
       fi
       popd
     done
