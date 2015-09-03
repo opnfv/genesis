@@ -114,6 +114,9 @@ nodes:
     admin_ip: compute_admin
     ansible_ssh_pass: "Op3nStack"
     admin_password: ""
+    cpus: 2
+    memory: 2048
+    disk: 40
     groups:
     - compute
     - foreman_nodes
@@ -137,6 +140,9 @@ nodes:
     private_mac: "10:23:45:67:87:AC"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
+    cpus: 2
+    memory: 4096
+    disk: 40
     groups:
     - controller
     - foreman_nodes
@@ -160,6 +166,9 @@ nodes:
     private_mac: "10:23:45:67:87:AD"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
+    cpus: 2
+    memory: 4096
+    disk: 40
     groups:
     - controller
     - foreman_nodes
@@ -183,6 +192,9 @@ nodes:
     private_mac: "10:23:45:67:87:AE"
     ansible_ssh_pass: "Op3nStack"
     admin_password: "octopus"
+    cpus: 2
+    memory: 4096
+    disk: 40
     groups:
     - controller
     - foreman_nodes
