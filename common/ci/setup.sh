@@ -90,7 +90,7 @@ check_interface() {
     ip link set dev ${interface} up
     sleep 5
     link_state=$(ip link show ${interface} | grep -oP 'state \K[^ ]+')
-    if [[ ${link_state} != 'UP' ]]; then
+    if [[ ${link_state} == 'DOWN' ]]; then
       echo "${red}Could not bring UP interface ${interface} link state is ${link_state}${reset}"
       exit 1
     fi
