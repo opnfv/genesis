@@ -1140,7 +1140,21 @@ start_virtual_nodes() {
     if [ ! -z "$horizon_public_vip" ]; then
       echo "${blue} Virtual deployment SUCCESS!! Foreman URL:  http://${foreman_ip}, Horizon URL: http://${horizon_public_vip} ${reset}"
     else
-      echo "${blue} Virtual deployment SUCCESS!! Foreman URL:  http://${foreman_ip}, Horizon URL: http://${odl_control_ip} ${reset}"
+      ##Find public IP of controller
+      for node in ${nodes}; do
+        node_type=config_nodes_${node}_type
+        node_type=$(eval echo \$$node_type)
+        if [ "$node_type" == "controller" ]; then
+          pushd $vm_dir/$node
+          horizon_ip=`vagrant ssh -c "ifconfig enp0s10" | grep -Eo "inet [0-9\.]+" | awk {'print $2'}`
+          popd
+          break
+        fi
+      done
+      if [ -z "$horizon_ip" ]; then
+        echo "${red}Warn: Unable to determine horizon IP, please login to your controller node to find it${reset}"
+      fi
+      echo "${blue} Virtual deployment SUCCESS!! Foreman URL:  http://${foreman_ip}, Horizon URL: http://${horizon_ip} ${reset}"
     fi
   fi
 }
