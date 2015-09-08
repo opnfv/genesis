@@ -539,6 +539,13 @@ configure_network() {
     ##set variable info
     if [ ! -z "$static_ip_range" ]; then
       new_ip=$(echo $static_ip_range | cut -d , -f1)
+      subnet_mask=$(find_netmask $this_default_gw_interface)
+      host_subnet=$(find_subnet $interface_ip $subnet_mask)
+      ip_range_subnet=$(find_subnet $new_ip $subnet_mask)
+      if [ "$ip_range_subnet" != "$host_subnet" ]; then
+        echo "${red}static_ip_range: ${static_ip_range} is not in the same subnet as your default gateway interface: ${host_subnet}.  Please use a correct range!${reset}"
+        exit 1
+      fi
     else
       new_ip=$(next_usable_ip $interface_ip)
       if [ ! "$new_ip" ]; then
