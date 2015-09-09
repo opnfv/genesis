@@ -1107,8 +1107,12 @@ start_virtual_nodes() {
 
       ##modify provisioning to do puppet install, config, and foreman check-in
       ##substitute host_name and dns_server in the provisioning script
-      host_string=config_nodes_${node}_hostname
-      host_name=$(eval echo \$$host_string)
+      host_string=config_nodes_${node}_short_name
+      short_host_name=$(eval echo \$$host_string)
+      ##substitute domain_name
+      domain_name=$config_domain_name
+      sed -i 's/^domain_name=REPLACE/domain_name='$domain_name'/' vm_nodes_provision.sh
+      host_name=${short_host_name}.${domain_name}
       sed -i 's/^host_name=REPLACE/host_name='$host_name'/' vm_nodes_provision.sh
       ##dns server should be the foreman server
       sed -i 's/^dns_server=REPLACE/dns_server='${interface_ip_arr[0]}'/' vm_nodes_provision.sh

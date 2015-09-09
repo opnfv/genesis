@@ -19,6 +19,7 @@ green=`tput setaf 2`
 host_name=REPLACE
 dns_server=REPLACE
 host_ip=REPLACE
+domain_name=REPLACE
 ##END VARS
 
 ##set hostname
@@ -35,7 +36,7 @@ fi
 ##modify /etc/resolv.conf to point to foreman
 echo "${blue} Configuring resolv.conf with DNS: $dns_server ${reset}"
 cat > /etc/resolv.conf << EOF
-search ci.com opnfv.com
+search ci.com $domain_name
 nameserver $dns_server
 nameserver 8.8.8.8
 
@@ -94,10 +95,10 @@ pluginsync      = true
 report          = true
 ignoreschedules = true
 daemon          = false
-ca_server       = foreman-server.opnfv.com
+ca_server       = foreman-server.$domain_name
 certname        = $host_name
 environment     = production
-server          = foreman-server.opnfv.com
+server          = foreman-server.$domain_name
 runinterval     = 600
 
 EOF
@@ -105,13 +106,13 @@ EOF
 # Setup puppet to run on system reboot
 /sbin/chkconfig --level 345 puppet on
 
-/usr/bin/puppet agent --config /etc/puppet/puppet.conf -o --tags no_such_tag --server foreman-server.opnfv.com --no-daemonize
+/usr/bin/puppet agent --config /etc/puppet/puppet.conf -o --tags no_such_tag --server foreman-server.$domain_name --no-daemonize
 
 sync
 
 # Inform the build system that we are done.
 echo "Informing Foreman that we are built"
-wget -q -O /dev/null --no-check-certificate http://foreman-server.opnfv.com:80/unattended/built
+wget -q -O /dev/null --no-check-certificate http://foreman-server.$domain_name:80/unattended/built
 
 echo "Starting puppet"
 systemctl start puppet
