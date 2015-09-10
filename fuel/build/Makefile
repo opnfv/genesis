@@ -15,7 +15,7 @@ SHELL = /bin/bash
 #Input args
 export UNIT_TEST = FALSE
 export INTERACTIVE = TRUE
-export ISOSRC = file:$(shell pwd)/fuel-6.0.1.iso
+export ISOSRC = file:$(shell pwd)/fuel-6.1.iso
 export ISOCACHE = $(shell pwd)/$(shell basename $(ISOSRC))
 export PRODNO = "OPNFV_BGS"
 export REVSTATE = "P0000"
@@ -37,11 +37,6 @@ export TOPDIR := $(shell pwd)
 #Build subclasses
 
 SUBDIRS := f_isoroot
-SUBDIRS += f_opnfv_puppet
-SUBDIRS += f_osnaily
-SUBDIRS += f_l23network
-SUBDIRS += f_resolvconf
-SUBDIRS += f_ntp
 
 # f_example is only an example of how to generate a .deb package and
 # should not be enabled in official builds.
@@ -80,19 +75,11 @@ $(ISOCACHE):
 	@echo "fuel" `git -C /tmp/fuel-main show | grep commit | head -1 | cut -d " " -f2` >> $(VERSION_FILE)
 	# Setup cgroups for docker-in-docker
 	sudo /root/enable_dockerx2
-	# Patch to fix race condition when doing "Docker-in-Docker" build
-	cd /tmp/fuel-main && patch -p1 < $(TOPDIR)/fuel-main_1.patch
-	# Patch to make the sandbox chroot in Fuel succeed with package
-	# installation in a Docker build
-	cd /tmp/fuel-main && patch -p1 < $(TOPDIR)/fuel-main_2.patch
 	# Temporary patch to accomodate for new Ubuntu trusty devops keys not yet
 	# backported to fuel 6.0 or 6.1
 	cd /tmp/fuel-main && patch -p0 < $(TOPDIR)/fuel-main_3.patch
-	# Temporary patch for pidlockfile which was earlier part of python-daemon
-	# but in later pyhon versions is part of python-lockfile. This patch has
-	# not yet been backported to fuel 6.0
-	cd /tmp/fuel-main/utils && patch -p0 < $(TOPDIR)/fuel-main_4.patch
-
+	# Patch for adding dosfstools, as Fuel 6.1 is running mkfs.vfat
+	cd /tmp/fuel-main && patch -p0 < $(TOPDIR)/fuel-main_5.patch
 	# Remove Docker optimizations, otherwise multistrap will fail during
 	# Fuel build.
 	sudo rm -f /etc/apt/apt.conf.d/docker*
@@ -151,3 +138,9 @@ $(SUBCLEAN): %.clean:
 iso:	prepare build-clean $(ISOCACHE) $(SUBDIRS) patch-packages
 	install/install.sh iso $(ISOCACHE) $(NEWISO) $(PRODNO) $(REVSTATE)
 	@printf "\n\nProduct ISO is $(NEWISO)\n\n"
+
+# Start a bash shell in docker for Makefile debugging
+.PHONY: debug
+debug:
+	@docker version >/dev/null 2>&1 || (echo 'No Docker installation available'; exit 1)
+	docker/runcontext $(DOCKERIMG) bash

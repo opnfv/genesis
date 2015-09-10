@@ -1,11 +1,19 @@
---- prepare-build-env.sh.orig	2015-08-11 22:12:19.750626481 +0200
-+++ prepare-build-env.sh	2015-08-11 22:43:42.308300848 +0200
-@@ -43,7 +43,7 @@
-   trusty)
-     GEMPKG="ruby ruby-dev"
-     # we need multistrap version 2.1.6, let's install it from devops mirror
--    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys D5A05778
-+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D2B45A2
-     echo "deb http://mirror.fuel-infra.org/devops/ubuntu/ ./" | sudo tee /etc/apt/sources.list.d/fuel-devops.list
-     # be sure, that we will not update multistrap in future
-     sudo tee /etc/apt/preferences.d/fuel-pin-300 <<EOF
+*** prepare-build-env.sh.orig	Tue Sep  8 08:47:46 2015
+--- prepare-build-env.sh	Tue Sep  8 08:48:22 2015
+***************
+*** 41,47 ****
+  
+    trusty)
+      GEMPKG="ruby ruby-dev"
+!     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys D5A05778
+      echo "deb http://mirror.fuel-infra.org/devops/ubuntu/ ./" | sudo tee /etc/apt/sources.list.d/fuel-devops.list
+      sudo apt-get update && sudo apt-get -y install nodejs nodejs-legacy npm
+      ;;
+--- 41,47 ----
+  
+    trusty)
+      GEMPKG="ruby ruby-dev"
+!     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 1D2B45A2
+      echo "deb http://mirror.fuel-infra.org/devops/ubuntu/ ./" | sudo tee /etc/apt/sources.list.d/fuel-devops.list
+      sudo apt-get update && sudo apt-get -y install nodejs nodejs-legacy npm
+      ;;

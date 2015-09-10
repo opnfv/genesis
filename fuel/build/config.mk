@@ -12,7 +12,7 @@ ODL_MAIN_REPO := https://git.opendaylight.org/gerrit/p/controller.git
 ODL_MAIN_TAG := release/helium
 
 FUEL_MAIN_REPO := https://github.com/stackforge/fuel-main
-FUEL_MAIN_TAG = stable/6.0
+FUEL_MAIN_TAG = stable/6.1
 
 DOCKER_REPO := http://get.docker.com/builds/Linux/x86_64
 DOCKER_TAG := docker-latest
