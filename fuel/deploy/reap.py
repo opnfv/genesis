@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 import common
 import time
 import os
@@ -64,6 +74,7 @@ DHA_2 = '''
 DISKS = {'fuel': '30G',
          'controller': '30G',
          'compute': '30G'}
+
 
 class Reap(object):
 
@@ -219,7 +230,7 @@ class Reap(object):
 
     def reap_network_settings(self):
         network_file = ('%s/network_%s.yaml'
-                          % (self.temp_dir, self.env_id))
+                        % (self.temp_dir, self.env_id))
         data = self.read_yaml(network_file)
         network = {}
         network['networking_parameters'] = data['networking_parameters']
@@ -230,7 +241,7 @@ class Reap(object):
         self.write_yaml(self.dea_file, {'network': network})
 
     def reap_settings(self):
-        settings_file  = '%s/settings_%s.yaml' % (self.temp_dir, self.env_id)
+        settings_file = '%s/settings_%s.yaml' % (self.temp_dir, self.env_id)
         settings = self.read_yaml(settings_file)
         self.write_yaml(self.dea_file, {'settings': settings})
 
@@ -302,11 +313,13 @@ class Reap(object):
         self.reap_settings()
         self.finale()
 
+
 def usage():
     print '''
     Usage:
     python reap.py <dea_file> <dha_file> <comment>
     '''
+
 
 def parse_arguments():
     parser = ArgParser(prog='python %s' % __file__)
@@ -320,11 +333,13 @@ def parse_arguments():
     args = parser.parse_args()
     return (args.dea_file, args.dha_file, args.comment)
 
+
 def main():
     dea_file, dha_file, comment = parse_arguments()
 
     r = Reap(dea_file, dha_file, comment)
     r.reap()
+
 
 if __name__ == '__main__':
     main()

@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 import common
 import time
 import os
@@ -7,14 +17,17 @@ from dha_adapters.libvirt_adapter import LibvirtAdapter
 log = common.log
 err = common.err
 clean = common.clean
+delete = common.delete
 
 TRANSPLANT_FUEL_SETTINGS = 'transplant_fuel_settings.py'
 BOOTSTRAP_ADMIN = '/usr/local/sbin/bootstrap_admin_node'
+FUEL_CLIENT_CONFIG = '/etc/fuel/client/config.yaml'
+
 
 class InstallFuelMaster(object):
 
-    def __init__(self, dea_file, dha_file, fuel_ip, fuel_username, fuel_password,
-                 fuel_node_id, iso_file, work_dir):
+    def __init__(self, dea_file, dha_file, fuel_ip, fuel_username,
+                 fuel_password, fuel_node_id, iso_file, work_dir):
         self.dea_file = dea_file
         self.dha = LibvirtAdapter(dha_file)
         self.fuel_ip = fuel_ip
@@ -22,6 +35,7 @@ class InstallFuelMaster(object):
         self.fuel_password = fuel_password
         self.fuel_node_id = fuel_node_id
         self.iso_file = iso_file
+        self.iso_dir = os.path.dirname(self.iso_file)
         self.work_dir = work_dir
         self.file_dir = os.path.dirname(os.path.realpath(__file__))
         self.ssh = SSHClient(self.fuel_ip, self.fuel_username,
@@ -67,8 +81,9 @@ class InstallFuelMaster(object):
         log('Waiting for one minute for Fuel to stabilize')
         time.sleep(60)
 
-        log('Eject ISO')
-        self.dha.node_eject_iso(self.fuel_node_id)
+        self.delete_deprecated_fuel_client_config_from_fuel_6_1()
+
+        self.post_install_cleanup()
 
         log('Fuel Master installed successfully !')
 
@@ -89,7 +104,7 @@ class InstallFuelMaster(object):
                 self.ssh.close()
 
         if not success:
-           err('Could not SSH into Fuel VM %s' % self.fuel_ip)
+            err('Could not SSH into Fuel VM %s' % self.fuel_ip)
 
     def wait_until_fuel_menu_up(self):
         WAIT_LOOP = 60
@@ -123,17 +138,16 @@ class InstallFuelMaster(object):
         return ret
 
     def inject_own_astute_yaml(self):
-        dest ='~/%s/' % self.work_dir
-
         with self.ssh as s:
-            s.exec_cmd('rm -rf %s' % self.work_dir, check=False)
-            s.exec_cmd('mkdir ~/%s' % self.work_dir)
-            s.scp_put(self.dea_file, dest)
-            s.scp_put('%s/common.py' % self.file_dir, dest)
-            s.scp_put('%s/dea.py' % self.file_dir, dest)
-            s.scp_put('%s/transplant_fuel_settings.py' % self.file_dir, dest)
+            s.exec_cmd('rm -rf %s' % self.work_dir, False)
+            s.exec_cmd('mkdir %s' % self.work_dir)
+            s.scp_put(self.dea_file, self.work_dir)
+            s.scp_put('%s/common.py' % self.file_dir, self.work_dir)
+            s.scp_put('%s/dea.py' % self.file_dir, self.work_dir)
+            s.scp_put('%s/transplant_fuel_settings.py'
+                      % self.file_dir, self.work_dir)
             log('Modifying Fuel astute')
-            s.run('python ~/%s/%s ~/%s/%s'
+            s.run('python %s/%s %s/%s'
                   % (self.work_dir, TRANSPLANT_FUEL_SETTINGS,
                      self.work_dir, os.path.basename(self.dea_file)))
 
@@ -153,4 +167,22 @@ class InstallFuelMaster(object):
                     time.sleep(SLEEP_TIME)
 
         if not install_completed:
+            self.post_install_cleanup()
             err('Fuel installation did not complete')
+
+    def post_install_cleanup(self):
+        log('Eject ISO file %s' % self.iso_file)
+        self.dha.node_eject_iso(self.fuel_node_id)
+        log('Remove ISO directory %s' % self.iso_dir)
+        delete(self.iso_dir)
+
+    def delete_deprecated_fuel_client_config_from_fuel_6_1(self):
+        with self.ssh as s:
+            response, error = s.exec_cmd('fuel -v', False)
+        if (error and
+            'DEPRECATION WARNING' in error and
+            '6.1.0' in error and
+            FUEL_CLIENT_CONFIG in error):
+            log('Delete deprecated fuel client config %s' % FUEL_CLIENT_CONFIG)
+            with self.ssh as s:
+                s.exec_cmd('rm %s' % FUEL_CLIENT_CONFIG, False)

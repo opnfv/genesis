@@ -1,3 +1,13 @@
+###############################################################################
+# Copyright (c) 2015 Ericsson AB and others.
+# szilard.cserey@ericsson.com
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+###############################################################################
+
+
 import common
 from ipmi_adapter import IpmiAdapter
 from ssh_client import SSHClient
@@ -9,6 +19,7 @@ DEV = {'pxe': 'bootsource5',
        'iso': 'bootsource1'}
 
 ROOT = '/system1/bootconfig1'
+
 
 class HpAdapter(IpmiAdapter):
 
@@ -22,4 +33,4 @@ class HpAdapter(IpmiAdapter):
         with ssh as s:
             for order, dev in enumerate(boot_order_list):
                 s.exec_cmd('set %s/%s bootorder=%s'
-                           % (ROOT, DEV[dev], order+1))
+                           % (ROOT, DEV[dev], order + 1))
