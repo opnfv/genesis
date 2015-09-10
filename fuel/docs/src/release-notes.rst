@@ -1,5 +1,5 @@
 =====================================================================================
-OPNFV Release Note for the Arno release of OPNFV when using Fuel as a deployment tool
+OPNFV Release Note for the Arno SR1 release of OPNFV when using Fuel as a deployment tool
 =====================================================================================
 
 
@@ -10,7 +10,7 @@ OPNFV Release Note for the Arno release of OPNFV when using Fuel as a deployment
 Abstract
 ========
 
-This document compiles the release notes for the Arno release of OPNFV when using Fuel as a deployment tool.
+This document compiles the release notes for the Arno SR1 release of OPNFV when using Fuel as a deployment tool.
 
 License
 =======
@@ -27,6 +27,9 @@ Version history
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 | 2015-06-03         | 1.0.0              | Jonas Bjurel       | Arno SR0 release   |
+|                    |                    |                    |                    |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-09-10         | 1.1.0              | Jonas Bjurel       | Arno SR1 release   |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
@@ -60,16 +63,16 @@ Release Data
 | **Project**                          | genesis/bgs                          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Repo/tag**                         | genesis/arno.2015.1.0                |
+| **Repo/tag**                         | genesis/arno.2015.2.0                |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release designation**              | Arno Base Service release 0 (SR0)    |
+| **Release designation**              | Arno Base Service release 1 (SR1)    |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release date**                     | 2015-06-04                           |
+| **Release date**                     | 2015-09-28                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Purpose of the delivery**          | OPNFV Arno Base SR0 release          |
+| **Purpose of the delivery**          | OPNFV Arno Base SR1 release          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -78,15 +81,15 @@ Version change
 
 Module version changes
 ~~~~~~~~~~~~~~~~~~~~~~
-This is the first tracked release of genesis/fuel. It is based on following upstream versions:
+This is the second tracked release of genesis/fuel. It is based on following upstream versions:
 
-- Fuel 6.0.1
+- Fuel 6.1.0
 - OpenStack Juno release
-- OpenDaylight Helium-SR3
+- OpenDaylight Litium-SR1
 
 Document version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
-This is the first tracked version of the fuel installer for OPNFV. It comes with the following documentation:
+This is the second tracked version of the fuel installer for OPNFV. It comes with the following documentation:
 
 - OPNFV Installation instructions for Arno with Fuel as deployment tool
 - OPNFV Release Notes for Arno use of Fuel as deployment tool
@@ -118,8 +121,44 @@ Bug corrections
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
+| JIRA: BGS-57                         | The OpenDaylight Helium release is   |
+|                                      | not fully functional and the         |
+|                                      | resulting Fuel integration is not    |
+|                                      | able to cope with the deficiancies.  |
+|                                      | It is therefore not recommended to   |
+|                                      | to enable this option.               |
+|                                      | A functional integration of ODL      |
+|                                      | version: Lithium is expected to be   |
+|                                      | available in an upcomming service    |
+|                                      | release.                             |
 |                                      |                                      |
-| -                                    | -                                    |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-4                               | Fuel 6.1 build rebasing              |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-5                               | Fuel 6.1 deploy rebasing             |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-7                               | Deploy clean-up script               |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-8                               | Virtualized deployment               |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-11                              | Updated installation instructions    |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-12                              | Updated build-system documentation   |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-13                              | Updated deploy-system documentation  |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-16                              | Deployment of ODL plugin             |
++--------------------------------------+--------------------------------------+
+|                                      |                                      |
+| FUEL-17                              | ODL plugin for Fuel 6.1              |
 +--------------------------------------+--------------------------------------+
 
 Deliverables
@@ -159,22 +198,10 @@ Known issues
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| JIRA: BGS-57                         | The OpenDaylight Helium release is   |
-|                                      | not fully functional and the         |
-|                                      | resulting Fuel integration is not    |
-|                                      | able to cope with the deficiancies.  |
-|                                      | It is therefore not recommended to   |
-|                                      | to enable this option.               |
-|                                      | A functional integration of ODL      |
-|                                      | version: Lithium is expected to be   |
-|                                      | available in an upcomming service    |
-|                                      | release.                             |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
 
 Workarounds
 -----------
-Current workaround for the JIRA: BGS-57 is not to enable OpenDaylight networking - see installation instructions.  
+-
 
 
 Test Result
