@@ -29,6 +29,8 @@ declare -A controllers_ip_arr
 declare -A admin_ip_arr
 declare -A public_ip_arr
 
+vagrant_box_dir=~/.vagrant.d/boxes/opnfv-VAGRANTSLASH-centos-7.0/1.0.0/virtualbox/
+vagrant_box_vmdk=box-disk1.vmdk
 vm_dir=/var/opt/opnfv
 script=`realpath $0`
 ##END VARS
@@ -1023,6 +1025,19 @@ start_virtual_nodes() {
       node_type=config_nodes_${node}_type
       node_type=$(eval echo \$$node_type)
 
+      ##modify memory and cpu
+      node_memory=$(eval echo \${config_nodes_${node}_memory})
+      node_vcpus=$(eval echo \${config_nodes_${node}_cpus})
+      node_storage=$(eval echo \${config_nodes_${node}_disk})
+
+      sed -i 's/^.*vb.memory =.*$/     vb.memory = '"$node_memory"'/' Vagrantfile
+      sed -i 's/^.*vb.cpus =.*$/     vb.cpus = '"$node_vcpus"'/' Vagrantfile
+
+      if ! resize_vagrant_disk $node_storage; then
+        echo "${red}Error while resizing vagrant box to size $node_storage for $node! ${reset}"
+        exit 1
+      fi
+
       ##trozet test make compute nodes wait 20 minutes
       if [ "$compute_wait_completed" = false ] && [ "$node_type" != "controller" ]; then
         echo "${blue}Waiting 20 minutes for Control nodes to install before continuing with Compute nodes..."
@@ -1101,11 +1116,6 @@ start_virtual_nodes() {
       sed -i 's/bootstrap.sh/vm_nodes_provision.sh/' Vagrantfile
       ## modify default_gw to be node_default_gw
       sed -i 's/^.*default_gw =.*$/  default_gw = '\""$node_default_gw"\"'/' Vagrantfile
-      ## modify VM memory to be 4gig
-      ##if node type is controller
-      if [ "$node_type" == "controller" ]; then
-        sed -i 's/^.*vb.memory =.*$/     vb.memory = 4096/' Vagrantfile
-      fi
       echo "${blue}Starting Vagrant Node $node! ${reset}"
       ##stand up vagrant
       if ! vagrant up; then
@@ -1224,6 +1234,77 @@ check_baremetal_nodes() {
       exit 1
     fi
   fi
+}
+
+##resizes vagrant disk (cannot shrink)
+##params: size in GB
+##usage: resize_vagrant_disk 100
+resize_vagrant_disk() {
+  if [[ "$1" < 40 ]]; then
+    echo "${blue}Warn: Requested disk size cannot be less than 40, using 40 as new size${reset}"
+    new_size_gb=40
+  else
+    new_size_gb=$1
+  fi
+
+  if ! vagrant box list | grep opnfv; then
+    vagrant box remove -f opnfv/centos-7.0
+    if ! vagrant box add opnfv/centos-7.0 --provider virtualbox; then
+      echo "${red}Unable to reclone vagrant box! Exiting...${reset}"
+      exit 1
+    fi
+  fi
+
+  pushd $vagrant_box_dir
+
+  # Close medium to make sure we can modify it
+  vboxmanage closemedium disk $vagrant_box_vmdk
+
+  cur_size=$(vboxmanage showhdinfo $vagrant_box_vmdk | grep -i capacity | grep -Eo [0-9]+)
+  cur_size_gb=$((cur_size / 1024))
+
+  if [ "$cur_size_gb" -eq "$new_size_gb" ]; then
+    echo "${blue}Info: Disk size already ${cur_size_gb} ${reset}"
+    popd
+    return
+  elif [[ "$new_size_gb" < "$cur_size_gb" ]] ; then
+    echo "${blue}Info: Requested disk is less than ${cur_size_gb} ${reset}"
+    echo "${blue}Re-adding vagrant box${reset}"
+    if vagrant box list | grep opnfv; then
+      popd
+      vagrant box remove -f opnfv/centos-7.0
+      if ! vagrant box add opnfv/centos-7.0 --provider virtualbox; then
+        echo "${red}Unable to reclone vagrant box! Exiting...${reset}"
+        exit 1
+      fi
+      pushd $vagrant_box_dir
+    fi
+  fi
+
+  new_size=$((new_size_gb * 1024))
+  if ! vboxmanage clonehd $vagrant_box_vmdk tmp-disk.vdi --format vdi; then
+    echo "${red}Error: Unable to clone ${vagrant_box_vmdk}${reset}"
+    popd
+    return 1
+  fi
+
+  if ! vboxmanage modifyhd tmp-disk.vdi --resize $new_size; then
+    echo "${red}Error: Unable modify tmp-disk.vdi to ${new_size}${reset}"
+    popd
+    return 1
+  fi
+
+  if  ! vboxmanage clonehd tmp-disk.vdi resized-disk.vmdk --format vmdk; then
+    echo "${red}Error: Unable clone tmp-disk.vdi to vmdk${reset}"
+    popd
+    return 1
+  fi
+
+  vboxmanage closemedium disk tmp-disk.vdi --delete
+  rm -f tmp-disk.vdi $vagrant_box_vmdk
+  cp -f resized-disk.vmdk $vagrant_box_vmdk
+  vboxmanage closemedium disk resized-disk.vmdk --delete
+  popd
 }
 
 ##END FUNCTIONS
