@@ -511,7 +511,8 @@ configure_network() {
     echo "${blue}Detecting network configuration...${reset}"
     ##detect host 1 or 3 interface configuration
     #output=`ip link show | grep -E "^[0-9]" | grep -Ev ": lo|tun|virbr|vboxnet" | awk '{print $2}' | sed 's/://'`
-    output=`/bin/ls -l /sys/class/net | tail -n +2 | grep -v virtual | cut -d " " -f10`
+    #output=`/bin/ls -l /sys/class/net | tail -n +2 | grep -v virtual | cut -d " " -f10`
+    output=`/bin/ls -l /sys/class/net | tail -n +2 | grep -v virtual | awk {'print $9'}`
   fi
 
   if [ ! "$output" ]; then
