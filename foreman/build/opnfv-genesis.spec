@@ -21,11 +21,12 @@ The files from the OPNFV genesis repo
 %build
 
 %install
-mkdir -p %{buildroot}/usr/bin/
-cp foreman/ci/deploy.sh %{buildroot}/usr/bin/
+mkdir -p %{buildroot}/root/genesis
+cp -r foreman/ %{buildroot}/root/genesis
+cp -r common/ %{buildroot}/root/genesis
 
 %files
-/usr/bin/deploy.sh
+/root/genesis
 
 
 %changelog
