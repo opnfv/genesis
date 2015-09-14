@@ -97,11 +97,3 @@ class DeploymentEnvironmentAdapter(object):
         settings = self.get_property('settings')
         ntp_list = settings['editable']['external_ntp']['ntp_list']['value']
         return [n.strip() for n in ntp_list.split(',')]
-
-    def get_hosts(self):
-        opnfv = self.get_property('opnfv')
-        hosts_list = []
-        for host in opnfv['hosts']:
-            if host['address'] and host['fqdn']:
-                hosts_list.append(host)
-        return hosts_list

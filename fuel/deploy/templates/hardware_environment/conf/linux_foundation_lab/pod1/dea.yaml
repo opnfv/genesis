@@ -2,9 +2,9 @@ title: Deployment Environment Adapter (DEA)
 # DEA API version supported
 version:
 created:
-comment: Config for LF POD1 - HA deployment with Ceph
+comment: Config for LF POD1 - HA deployment with Ceph and Opendaylight
 environment:
-  name: opnfv_virt
+  name: opnfv
   mode: ha
   net_segment_type: gre
 wanted_release: Juno on Ubuntu 14.04.1
@@ -29,11 +29,6 @@ nodes:
   interfaces: interfaces_1
   transformations: transformations_2
   role: ceph-osd,compute
-opnfv:
-  hosts:
-  - name:
-    address:
-    fqdn:
 fuel:
   ADMIN_NETWORK:
     ipaddress: 10.20.0.2

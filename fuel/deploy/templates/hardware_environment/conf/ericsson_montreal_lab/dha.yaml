@@ -2,7 +2,7 @@ title: Deployment Hardware Adapter (DHA)
 # DHA API version supported
 version:
 created:
-comment: Test environment Ericsson Montreal
+comment: Config for Ericsson Montreal Lab
 
 # Adapter to use for this definition
 adapter: hp

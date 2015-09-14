@@ -22,7 +22,7 @@ E = {'id': 0, 'status': 1, 'name': 2, 'mode': 3, 'release_id': 4,
      'changes': 5, 'pending_release_id': 6}
 R = {'id': 0, 'name': 1, 'state': 2, 'operating_system': 3, 'version': 4}
 RO = {'name': 0, 'conflicts': 1}
-
+CWD = os.getcwd()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(message)s')
@@ -89,11 +89,15 @@ def warn(message):
 
 
 def check_file_exists(file_path):
+    if not os.path.dirname(file_path):
+        file_path = '%s/%s' % (CWD, file_path)
     if not os.path.isfile(file_path):
         err('ERROR: File %s not found\n' % file_path)
 
 
 def check_dir_exists(dir_path):
+    if not os.path.dirname(dir_path):
+        dir_path = '%s/%s' % (CWD, dir_path)
     if not os.path.isdir(dir_path):
         err('ERROR: Directory %s not found\n' % dir_path)
 
@@ -107,7 +111,7 @@ def create_dir_if_not_exists(dir_path):
 def delete(f):
     if os.path.isfile(f):
         log('Deleting file %s' % f)
-        os.remove(file)
+        os.remove(f)
     elif os.path.isdir(f):
         log('Deleting directory %s' % f)
         shutil.rmtree(f)
@@ -134,14 +138,6 @@ class ArgParser(argparse.ArgumentParser):
         sys.stderr.write('ERROR: %s\n' % message)
         self.print_help()
         sys.exit(2)
-
-
-class literal_unicode(unicode):
-    pass
-
-
-def literal_unicode_representer(dumper, data):
-    return dumper.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
 
 
 def backup(path):

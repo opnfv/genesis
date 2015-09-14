@@ -2,7 +2,7 @@ title: Deployment Environment Adapter (DEA)
 # DEA API version supported
 version:
 created:
-comment: Small libvirt setup
+comment: Config for Virtual Environment - HA deployment with Ceph and Opendaylight
 environment:
   name: opnfv_virt
   mode: ha
@@ -25,11 +25,6 @@ nodes:
   interfaces: interfaces_1
   transformations: transformations_2
   role: ceph-osd,compute
-opnfv:
-  hosts:
-  - name:
-    address:
-    fqdn:
 fuel:
   ADMIN_NETWORK:
     ipaddress: 10.20.0.2
