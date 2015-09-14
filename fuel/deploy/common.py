@@ -13,6 +13,7 @@ import os
 import logging
 import argparse
 import shutil
+import stat
 import errno
 
 N = {'id': 0, 'status': 1, 'name': 2, 'cluster': 3, 'ip': 4, 'mac': 5,
@@ -31,7 +32,7 @@ LOG.addHandler(out_handler)
 out_handler = logging.FileHandler('autodeploy.log', mode='w')
 out_handler.setFormatter(formatter)
 LOG.addHandler(out_handler)
-
+os.chmod('autodeploy.log', stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
 def exec_cmd(cmd, check=True):
     process = subprocess.Popen(cmd,

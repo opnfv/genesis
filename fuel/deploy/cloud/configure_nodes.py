@@ -88,7 +88,7 @@ class ConfigureNodes(object):
         interface_yaml = ('%s/node_%s/interfaces.yaml'
                           % (self.yaml_config_dir, node_id))
         check_file_exists(interface_yaml)
-        backup(interface_yaml)
+        backup('%s/node_%s' % (self.yaml_config_dir, node_id))
 
         with io.open(interface_yaml) as stream:
             interfaces = yaml.load(stream)

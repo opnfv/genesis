@@ -242,15 +242,26 @@ def parse_arguments():
     parser.add_argument('-c', dest='cleanup', action='store_true',
                         default=False,
                         help='Cleanup after deploy')
-    parser.add_argument('-iso', dest='iso_file', action='store', nargs='?',
-                        default='%s/OPNFV.iso' % CWD,
-                        help='ISO File [default: OPNFV.iso]')
-    parser.add_argument('-dea', dest='dea_file', action='store', nargs='?',
-                        default='%s/dea.yaml' % CWD,
-                        help='Deployment Environment Adapter: dea.yaml')
-    parser.add_argument('-dha', dest='dha_file', action='store', nargs='?',
-                        default='%s/dha.yaml' % CWD,
-                        help='Deployment Hardware Adapter: dha.yaml')
+    if {'-iso', '-dea', '-dha', '-h'}.intersection(sys.argv):
+        parser.add_argument('-iso', dest='iso_file', action='store', nargs='?',
+                            default='%s/OPNFV.iso' % CWD,
+                            help='ISO File [default: OPNFV.iso]')
+        parser.add_argument('-dea', dest='dea_file', action='store', nargs='?',
+                            default='%s/dea.yaml' % CWD,
+                            help='Deployment Environment Adapter: dea.yaml')
+        parser.add_argument('-dha', dest='dha_file', action='store', nargs='?',
+                            default='%s/dha.yaml' % CWD,
+                            help='Deployment Hardware Adapter: dha.yaml')
+    else:
+        parser.add_argument('iso_file', action='store', nargs='?',
+                            default='%s/OPNFV.iso' % CWD,
+                            help='ISO File [default: OPNFV.iso]')
+        parser.add_argument('dea_file', action='store', nargs='?',
+                            default='%s/dea.yaml' % CWD,
+                            help='Deployment Environment Adapter: dea.yaml')
+        parser.add_argument('dha_file', action='store', nargs='?',
+                            default='%s/dha.yaml' % CWD,
+                            help='Deployment Hardware Adapter: dha.yaml')
     parser.add_argument('-s', dest='storage_dir', action='store',
                         default='%s/images' % CWD,
                         help='Storage Directory [default: images]')
