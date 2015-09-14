@@ -25,10 +25,6 @@ run_proc = common.run_proc
 parse = common.parse
 err = common.err
 log = common.log
-literal_unicode = common.literal_unicode
-literal_unicode_representer = common.literal_unicode_representer
-yaml.add_representer(literal_unicode, literal_unicode_representer)
-backup = common.backup
 
 
 class Deployment(object):
@@ -40,70 +36,6 @@ class Deployment(object):
         self.env_id = env_id
         self.node_id_roles_dict = node_id_roles_dict
         self.no_health_check = no_health_check
-
-    def download_deployment_info(self):
-        log('Download deployment info for environment %s' % self.env_id)
-        deployment_dir = ('%s/deployment_%s'
-                          % (self.yaml_config_dir, self.env_id))
-        if os.path.exists(deployment_dir):
-            shutil.rmtree(deployment_dir)
-        exec_cmd('fuel deployment --env %s --download --dir %s'
-                 % (self.env_id, self.yaml_config_dir))
-
-    def upload_deployment_info(self):
-        log('Upload deployment info for environment %s' % self.env_id)
-        exec_cmd('fuel --env %s deployment --upload --dir %s'
-                 % (self.env_id, self.yaml_config_dir))
-
-    def __update_opnfv_dict(self, opnfv_dict, key, node_type, val):
-        if val:
-            if key not in opnfv_dict:
-                opnfv_dict.update({key: {}})
-            opnfv_dict[key].update({node_type: val})
-
-    def config_opnfv(self):
-        log('Configure OPNFV settings on environment %s' % self.env_id)
-        self.download_deployment_info()
-
-        opnfv = {'opnfv': {}}
-        dns_list = self.dea.get_dns_list()
-        host_list = self.dea.get_hosts()
-
-        ntp_list_for_controller = ''
-        for ntp in self.dea.get_ntp_list():
-            ntp_list_for_controller += 'server %s\n' % ntp
-
-        ntp_list_for_compute = ''
-        for controller_file in glob.glob(
-                        '%s/deployment_%s/*controller*.yaml'
-                        % (self.yaml_config_dir, self.env_id)):
-            with io.open(controller_file) as stream:
-                controller = yaml.load(stream)
-                ntp_list_for_compute += 'server %s\n' % controller['fqdn']
-
-        self.__update_opnfv_dict(
-            opnfv['opnfv'], 'dns', 'controller', dns_list[:])
-        self.__update_opnfv_dict(
-            opnfv['opnfv'], 'dns', 'compute', dns_list[:])
-        self.__update_opnfv_dict(
-            opnfv['opnfv'], 'ntp', 'controller',
-            literal_unicode(ntp_list_for_controller))
-        self.__update_opnfv_dict(
-            opnfv['opnfv'], 'ntp', 'compute',
-            literal_unicode(ntp_list_for_compute))
-
-        if host_list:
-            opnfv['opnfv'].update({'hosts': host_list})
-
-        for node_file in glob.glob('%s/deployment_%s/*.yaml'
-                                   % (self.yaml_config_dir, self.env_id)):
-            with io.open(node_file) as stream:
-                node = yaml.load(stream)
-                node.update(opnfv)
-            with io.open(node_file, 'w') as stream:
-                yaml.dump(node, stream, default_flow_style=False)
-
-        self.upload_deployment_info()
 
     def run_deploy(self):
         WAIT_LOOP = 180
@@ -159,7 +91,6 @@ class Deployment(object):
             err('Healthcheck failed!')
 
     def deploy(self):
-        self.config_opnfv()
         self.run_deploy()
         self.verify_node_status()
         if not self.no_health_check:

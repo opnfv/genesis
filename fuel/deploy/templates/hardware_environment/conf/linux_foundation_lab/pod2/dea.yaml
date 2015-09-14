@@ -2,7 +2,7 @@ title: Deployment Environment Adapter (DEA)
 # DEA API version supported
 version:
 created:
-comment: Test environment Ericsson Montreal
+comment: Config for LF POD2 - HA deployment with Ceph and Opendaylight
 environment:
   name: opnfv_virt
   mode: ha
@@ -29,36 +29,27 @@ nodes:
   interfaces: interfaces_1
   transformations: transformations_2
   role: ceph-osd,compute
-- id: 6
-  interfaces: interfaces_1
-  transformations: transformations_2
-  role: ceph-osd,compute
-opnfv:
-  hosts:
-  - name:
-    address:
-    fqdn:
 fuel:
   ADMIN_NETWORK:
-    ipaddress: 10.40.0.2
-    netmask: 255.255.255.0
-    dhcp_pool_start: 10.40.0.3
-    dhcp_pool_end: 10.40.0.254
-  DNS_UPSTREAM: 10.118.32.193
-  DNS_DOMAIN: opnfvericsson.ca
-  DNS_SEARCH: opnfvericsson.ca
+    ipaddress: 10.20.0.2
+    netmask: 255.255.0.0
+    dhcp_pool_start: 10.20.0.3
+    dhcp_pool_end: 10.20.0.254
+  DNS_UPSTREAM: 8.8.8.8
+  DNS_DOMAIN: domain.tld
+  DNS_SEARCH: domain.tld
   FUEL_ACCESS:
     user: admin
     password: admin
   HOSTNAME: opnfv
-  NTP1: 10.118.34.219
-  NTP2:
-  NTP3:
+  NTP1: 0.pool.ntp.org
+  NTP2: 1.pool.ntp.org
+  NTP3: 2.pool.ntp.org
 interfaces_1:
   eth0:
-  - fuelweb_admin
-  eth2:
   - public
+  eth1:
+  - fuelweb_admin
   - management
   - storage
   - private
@@ -88,13 +79,13 @@ transformations_1:
     name: eth0
   - action: add-port
     bridge: br-mgmt
-    name: eth2.320
+    name: eth1.300
   - action: add-port
     bridge: br-storage
-    name: eth2.220
+    name: eth1.301
   - action: add-port
     bridge: br-mesh
-    name: eth2.20
+    name: eth1.302
   - action: add-port
     bridge: br-ex
     name: eth0
@@ -113,21 +104,22 @@ transformations_2:
     name: eth0
   - action: add-port
     bridge: br-mgmt
-    name: eth2.320
+    name: eth1.300
   - action: add-port
     bridge: br-storage
-    name: eth2.220
+    name: eth1.301
   - action: add-port
     bridge: br-mesh
-    name: eth2.20
+    name: eth1.302
 network:
   networking_parameters:
     base_mac: fa:16:3e:00:00:00
     dns_nameservers:
-    - 10.118.32.193
+    - 8.8.4.4
+    - 8.8.8.8
     floating_ranges:
-    - - 10.118.34.226
-      - 10.118.34.230
+    - - 172.30.10.83
+      - 172.30.10.92
     gre_id_range:
     - 2
     - 65535
@@ -136,21 +128,21 @@ network:
     net_l23_provider: ovs
     segmentation_type: gre
     vlan_range:
-    - 2022
-    - 2023
+    - 1000
+    - 1030
   networks:
-  - cidr: 10.118.34.192/24
-    gateway: 10.118.34.193
+  - cidr: 172.30.10.0/24
+    gateway: 172.30.10.1
     ip_ranges:
-    - - 10.118.34.220
-      - 10.118.34.225
+    - - 172.30.10.73
+      - 172.30.10.82
     meta:
-      cidr: 10.118.34.192/24
+      cidr: 172.30.10.0/24
       configurable: true
       floating_range_var: floating_ranges
       ip_range:
-      - 10.118.34.220
-      - 10.118.34.225
+      - 172.30.10.73
+      - 172.30.10.82
       map_priority: 1
       name: public
       notation: ip_ranges
@@ -180,9 +172,9 @@ network:
       vips:
       - haproxy
       - vrouter
-      vlan_start: 320
+      vlan_start: 300
     name: management
-    vlan_start: 320
+    vlan_start: 300
   - cidr: 192.168.1.0/24
     gateway: null
     ip_ranges:
@@ -197,9 +189,9 @@ network:
       render_addr_mask: storage
       render_type: cidr
       use_gateway: false
-      vlan_start: 220
+      vlan_start: 301
     name: storage
-    vlan_start: 220
+    vlan_start: 301
   - cidr: 192.168.2.0/24
     gateway: null
     ip_ranges:
@@ -215,14 +207,14 @@ network:
       render_type: cidr
       seg_type: gre
       use_gateway: false
-      vlan_start: 20
+      vlan_start: 302
     name: private
-    vlan_start: 20
-  - cidr: 10.40.0.0/24
-    gateway: 10.40.0.2
+    vlan_start: 302
+  - cidr: 10.20.0.0/24
+    gateway: 10.20.0.2
     ip_ranges:
-    - - 10.40.0.3
-      - 10.40.255.254
+    - - 10.20.0.3
+      - 10.20.255.254
     meta:
       configurable: false
       map_priority: 0
@@ -424,7 +416,7 @@ settings:
           error: Invalid IP address list
           source: ^\*$|^(?:\d|1?\d\d|2[0-4]\d|25[0-5])(?:\.(?:\d|1?\d\d|2[0-4]\d|25[0-5])){3}(?:\s*,\s*(?:\d|1?\d\d|2[0-4]\d|25[0-5])(?:\.(?:\d|1?\d\d|2[0-4]\d|25[0-5])){3})*$
         type: text
-        value: 10.118.32.193
+        value: 8.8.4.4, 8.8.8.8
         weight: 10
       metadata:
         label: Host OS DNS Servers
@@ -489,7 +481,7 @@ settings:
           error: Invalid NTP server list
           source: ^\s*(?:(?:\w+(?:-+\w+)*\.)+[a-z]+|\d{1,3}(?:\.\d{1,3}){3})\s*(?:,\s*(?:(?:\w+(?:-+\w+)*\.)+[a-z]+|\d{1,3}(\.\d{1,3}){3})\s*)*$
         type: text
-        value:  10.118.34.219
+        value:  0.pool.ntp.org, 1.pool.ntp.org
         weight: 10
     kernel_params:
       kernel:
@@ -684,7 +676,7 @@ settings:
           section: main restricted
           suite: mos6.1
           type: deb
-          uri: http://10.40.0.2:8080/2014.2.2-6.1/ubuntu/x86_64
+          uri: http://10.20.0.2:8080/2014.2.2-6.1/ubuntu/x86_64
         - name: mos-updates
           priority: 1050
           section: main restricted
@@ -708,7 +700,7 @@ settings:
           section: main restricted
           suite: auxiliary
           type: deb
-          uri: http://10.40.0.2:8080/2014.2.2-6.1/ubuntu/auxiliary
+          uri: http://10.20.0.2:8080/2014.2.2-6.1/ubuntu/auxiliary
     storage:
       ephemeral_ceph:
         description: Configures Nova to store ephemeral volumes in RBD. This works best

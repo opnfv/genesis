@@ -23,7 +23,7 @@ exec_cmd = common.exec_cmd
 parse = common.parse
 err = common.err
 log = common.log
-delete_file = common.delete_file
+delete = common.delete
 commafy = common.commafy
 
 DEA_1 = '''
@@ -132,7 +132,8 @@ class Reap(object):
         tr_name = None
         with open(node_file[0]) as f:
             node_config = yaml.load(f)
-        transformation = node_config['network_scheme']['transformations']
+        transformation = {'transformations':
+                              node_config['network_scheme']['transformations']}
         if transformations:
             tr_name = self.check_dict_exists(transformations, transformation)
         if not tr_name:
@@ -186,8 +187,8 @@ class Reap(object):
 
         self.write_yaml(self.dha_file, {'nodes': dha_nodes}, False)
         self.write_yaml(self.dea_file, {'nodes': dea_nodes})
-        self.write_yaml(self.dea_file, {'interfaces': interfaces})
-        self.write_yaml(self.dea_file, {'transformations': transformations})
+        self.write_yaml(self.dea_file, interfaces)
+        self.write_yaml(self.dea_file, transformations)
         self.reap_fuel_node_info()
         self.write_yaml(self.dha_file, {'disks': DISKS})
 
@@ -207,10 +208,15 @@ class Reap(object):
         self.write_yaml(self.dha_file, dha_nodes)
 
     def reap_environment_info(self):
-        self.write_yaml(self.dea_file,
-                        {'environment_name': self.env[E['name']]})
-        self.write_yaml(self.dea_file,
-                        {'environment_mode': self.env[E['mode']]})
+        network_file = ('%s/network_%s.yaml'
+                        % (self.temp_dir, self.env_id))
+        network = self.read_yaml(network_file)
+        env = {'environment':
+                   {'name': self.env[E['name']],
+                    'mode': self.env[E['mode']],
+                    'net_segment_type':
+                        network['networking_parameters']['segmentation_type']}}
+        self.write_yaml(self.dea_file, env)
         wanted_release = None
         rel_list = parse(exec_cmd('fuel release'))
         for rel in rel_list:
@@ -221,11 +227,15 @@ class Reap(object):
     def reap_fuel_settings(self):
         data = self.read_yaml('/etc/fuel/astute.yaml')
         fuel = {}
-        del(data['ADMIN_NETWORK']['mac'])
-        del(data['ADMIN_NETWORK']['interface'])
+        del data['ADMIN_NETWORK']['mac']
+        del data['ADMIN_NETWORK']['interface']
         for key in ['ADMIN_NETWORK', 'HOSTNAME', 'DNS_DOMAIN', 'DNS_SEARCH',
                     'DNS_UPSTREAM', 'NTP1', 'NTP2', 'NTP3', 'FUEL_ACCESS']:
             fuel[key] = data[key]
+        for key in fuel['ADMIN_NETWORK'].keys():
+            if key not in ['ipaddress', 'netmask',
+                           'dhcp_pool_start', 'dhcp_pool_end']:
+                del fuel['ADMIN_NETWORK'][key]
         self.write_yaml(self.dea_file, {'fuel': fuel})
 
     def reap_network_settings(self):
@@ -244,21 +254,6 @@ class Reap(object):
         settings_file = '%s/settings_%s.yaml' % (self.temp_dir, self.env_id)
         settings = self.read_yaml(settings_file)
         self.write_yaml(self.dea_file, {'settings': settings})
-
-    def get_opnfv_astute(self, role):
-        node_files = glob.glob('%s/deployment_%s/*%s*.yaml'
-                               % (self.temp_dir, self.env_id, role))
-        node_config = self.read_yaml(node_files[0])
-        return node_config['opnfv'] if 'opnfv' in node_config else {}
-
-    def reap_opnfv_astute(self):
-        controller_opnfv_astute = self.get_opnfv_astute('controller')
-        compute_opnfv_astute = self.get_opnfv_astute('compute')
-        opnfv = {}
-        opnfv['opnfv'] = {
-            'controller': controller_opnfv_astute,
-            'compute': compute_opnfv_astute}
-        self.write_yaml(self.dea_file, opnfv)
 
     def get_interface(self, real_node_id):
         exec_cmd('fuel node --node-id %s --network --download --dir %s'
@@ -284,8 +279,8 @@ class Reap(object):
             return data
 
     def intro(self):
-        delete_file(self.dea_file)
-        delete_file(self.dha_file)
+        delete(self.dea_file)
+        delete(self.dha_file)
         self.temp_dir = exec_cmd('mktemp -d')
         date = time.strftime('%c')
         self.write(self.dea_file,
@@ -308,7 +303,6 @@ class Reap(object):
         self.reap_environment_info()
         self.reap_nodes_interfaces_transformations()
         self.reap_fuel_settings()
-        self.reap_opnfv_astute()
         self.reap_network_settings()
         self.reap_settings()
         self.finale()
