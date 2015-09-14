@@ -125,12 +125,9 @@ class InstallFuelMaster(object):
         return fuel_menu_pid
 
     def get_fuel_menu_pid(self, printout, search):
-        fuel_menu_pid = None
         for line in printout.splitlines():
-            if search in line:
-                fuel_menu_pid = clean(line)[1]
-                break
-        return fuel_menu_pid
+            if line.endswith(search):
+                return clean(line)[1]
 
     def ssh_exec_cmd(self, cmd, check=True):
         with self.ssh:
@@ -186,3 +183,23 @@ class InstallFuelMaster(object):
             log('Delete deprecated fuel client config %s' % FUEL_CLIENT_CONFIG)
             with self.ssh as s:
                 s.exec_cmd('rm %s' % FUEL_CLIENT_CONFIG, False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
