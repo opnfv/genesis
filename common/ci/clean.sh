@@ -239,8 +239,15 @@ done
 echo "${blue}Checking whether PXE bridge ${pxe_bridge} exists${reset}"
 if ! brctl show ${pxe_bridge} 2>&1 | grep -i 'No such device'; then
   echo "${blue}PXE bridge detected. Removing...${reset}"
-  if ifconfig | grep ${pxe_bridge}; then
-    ifdown ${pxe_bridge}
+  link_state=$(ip link show ${pxe_bridge} | grep -oP 'state \K[^ ]+')
+  if [[ ${link_state} != 'DOWN' ]]; then
+    ip link set dev ${pxe_bridge} down
+    sleep 5
+    link_state=$(ip link show ${pxe_bridge} | grep -oP 'state \K[^ ]+')
+    if [[ ${link_state} != 'DOWN' ]]; then
+      echo "${red}Could not bring DOWN bridge ${pxe_bridge} link state is ${link_state}${reset}"
+      exit 1
+    fi
   fi
   brctl delbr ${pxe_bridge}
   if ifconfig | grep ${pxe_bridge} || brctl show | grep ${pxe_bridge}; then
