@@ -7,6 +7,7 @@ global_params:
   controllers_hostnames_array: oscontroller1,oscontroller2,oscontroller3
   controllers_ip_array:
   amqp_vip:
+  admin_network:
   private_subnet:
   cinder_admin_vip:
   cinder_private_vip:

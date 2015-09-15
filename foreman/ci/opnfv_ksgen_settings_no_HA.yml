@@ -3,6 +3,7 @@ global_params:
   ha_flag: "false"
   odl_flag: "true"
   odl_control_ip:
+  admin_network:
   private_network:
   storage_network:
   public_network:
