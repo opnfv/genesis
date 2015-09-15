@@ -106,7 +106,7 @@ rpm-clean:
 
 .PHONY: rpm
 rpm:
-	pushd ../../ && git archive --format=tar --prefix=opnfv-genesis-0.1/ HEAD | gzip > foreman/build/opnfv-genesis.tar.gz
+	pushd ../../ && git archive --format=tar --prefix=opnfv-genesis-0.1/ origin/stable/arno | gzip > foreman/build/opnfv-genesis.tar.gz
 	rpmbuild -ba opnfv-genesis.spec -D '_topdir %(echo `pwd`)' -D '_builddir %(echo `pwd`)' -D '_sourcedir %(echo `pwd`)' -D '_rpmdir %(echo `pwd`)' -D '_specdir %(echo `pwd`)' -D '_srcrpmdir %(echo `pwd`)' 
 	@make rpm-clean
 
