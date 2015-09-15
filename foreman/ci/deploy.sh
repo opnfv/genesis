@@ -593,6 +593,7 @@ configure_network() {
       subnet_mask=$(find_netmask $interface)
       if [ "$if_counter" -eq 0 ]; then
         admin_subnet_mask=$subnet_mask
+        admin_ip=$new_ip
         if ! verify_subnet_size $admin_subnet_mask 5; then
           echo "${red} Not enough IPs in admin subnet: ${interface_ip_arr[$if_counter]} ${admin_subnet_mask}.  Need at least 5 IPs.  Please resize subnet! Exiting ${reset}"
           exit 1
@@ -887,6 +888,13 @@ configure_network() {
         done <<< "$public_output"
       fi
 
+      ##replace admin_network param for bare metal deployments
+      if [ -z "$virtual" ]; then
+        admin_subnet=$(find_subnet $admin_ip $admin_subnet_mask)
+        sed -i 's/^.*admin_network:.*$/  admin_network:'" $admin_subnet"'/' opnfv_ksgen_settings.yml
+      else
+        sed -i 's/^.*admin_network:.*$/  admin_network:'" \"false\""'/' opnfv_ksgen_settings.yml
+      fi
       ##replace public_network param
       public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
       sed -i 's/^.*public_network:.*$/  public_network:'" $public_subnet"'/' opnfv_ksgen_settings.yml
