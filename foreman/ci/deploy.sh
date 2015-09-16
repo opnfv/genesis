@@ -55,6 +55,8 @@ Not applicable with -virtual.  Example: -private_nic em2"
 Can also be used with -virtual.  Example: -public_nic em3"
   echo -e "\n   -storage_nic : Baremetal NIC for the storage network.  Optional.  Not applicable with -virtual. \
 Private NIC will be used for storage if not specified. Example: -storage_nic em4"
+  echo -e "\n   -single_baremetal_nic : Baremetal NIC for the all in one network.  Optional.  Not applicable with -virtual. \
+Example: -single_baremetal_nic em1"
 }
 
 ##verify vm dir exists
@@ -300,6 +302,10 @@ parse_cmdline() {
                 shift 2
                 nic_arg_flag=1
             ;;
+        -single_baremetal_nic)
+                single_baremetal_nic=$2
+                shift 2
+            ;;
         *)
                 display_usage
                 exit 1
@@ -328,6 +334,11 @@ parse_cmdline() {
 
   ##Validate nic args
   if [[ $nic_arg_flag -eq 1 ]]; then
+    if [ ! -z "$single_baremetal_nic" ]; then
+      echo "${red}Please do not specify other nic types along with single_baremetal_nic!${reset}"
+      exit 1
+    fi
+
     if [ -z "$virtual" ]; then
       for nic_type in admin_nic private_nic public_nic; do
         eval "nic_value=\$$nic_type"
@@ -343,7 +354,7 @@ parse_cmdline() {
       done
     else
       ##if virtual only public_nic should be specified
-      for nic_type in admin_nic private_nic storage_nic; do
+      for nic_type in admin_nic private_nic storage_nic single_baremetal_nic; do
         eval "nic_value=\$$nic_type"
         if [ ! -z "$nic_value" ]; then
           echo "${red}$nic_type is not a valid argument using -virtual.  Please only specify public_nic!${reset}"
@@ -356,6 +367,12 @@ parse_cmdline() {
         echo "${red}Public NIC: $public_nic does not have an IP address! Exiting... ${reset}"
         exit 1
       fi
+    fi
+  elif [ ! -z "$single_baremetal_nic" ]; then
+    interface_ip=$(find_ip $single_baremetal_nic)
+    if [ ! "$interface_ip" ]; then
+      echo "${red}Single Baremetal NIC: $single_baremetal_nic does not have an IP address! Exiting... ${reset}"
+      exit 1
     fi
   fi
 }
@@ -507,6 +524,8 @@ configure_network() {
     fi
     nic_array=( $nic_list )
     output=$nic_list
+  elif [ ! -z "$single_baremetal_nic" ]; then
+    output=$single_baremetal_nic
   else
     echo "${blue}Detecting network configuration...${reset}"
     ##detect host 1 or 3 interface configuration
@@ -573,63 +592,100 @@ configure_network() {
     sed -i 's/^.*eth_replace2.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
     if_counter=1
   else
-    ##find number of interfaces with ip and substitute in VagrantFile
-    if_counter=0
-    for interface in ${output}; do
-
-      if [ "$if_counter" -ge 4 ]; then
-        break
-      fi
-      interface_ip=$(find_ip $interface)
+    if [ ! -z $single_baremetal_nic ]; then
+      interface_ip=$(find_ip $single_baremetal_nic)
       if [ ! "$interface_ip" ]; then
-        continue
-      fi
-      new_ip=$(next_usable_ip $interface_ip)
-      if [ ! "$new_ip" ]; then
-        continue
-      fi
-      interface_arr[$interface]=$if_counter
-      interface_ip_arr[$if_counter]=$new_ip
-      subnet_mask=$(find_netmask $interface)
-      if [ "$if_counter" -eq 0 ]; then
-        admin_subnet_mask=$subnet_mask
-        admin_ip=$new_ip
-        if ! verify_subnet_size $admin_subnet_mask 5; then
-          echo "${red} Not enough IPs in admin subnet: ${interface_ip_arr[$if_counter]} ${admin_subnet_mask}.  Need at least 5 IPs.  Please resize subnet! Exiting ${reset}"
-          exit 1
-        fi
-
-      elif [ "$if_counter" -eq 1 ]; then
-        private_subnet_mask=$subnet_mask
-        private_short_subnet_mask=$(find_short_netmask $interface)
-
-        if ! verify_subnet_size $private_subnet_mask 15; then
-          echo "${red} Not enough IPs in private subnet: ${interface_ip_arr[$if_counter]} ${private_subnet_mask}.  Need at least 15 IPs.  Please resize subnet! Exiting ${reset}"
-          exit 1
-        fi
-      elif [ "$if_counter" -eq 2 ]; then
-        public_subnet_mask=$subnet_mask
-        public_short_subnet_mask=$(find_short_netmask $interface)
-
-        if ! verify_subnet_size $public_subnet_mask 25; then
-          echo "${red} Not enough IPs in public subnet: ${interface_ip_arr[$if_counter]} ${public_subnet_mask}.  Need at least 25 IPs.  Please resize subnet! Exiting ${reset}"
-          exit 1
-        fi
-      elif [ "$if_counter" -eq 3 ]; then
-        storage_subnet_mask=$subnet_mask
-
-        if ! verify_subnet_size $storage_subnet_mask 10; then
-          echo "${red} Not enough IPs in storage subnet: ${interface_ip_arr[$if_counter]} ${storage_subnet_mask}.  Need at least 10 IPs.  Please resize subnet! Exiting ${reset}"
-          exit 1
-        fi
-      else
-        echo "${red}ERROR: interface counter outside valid range of 0 to 3: $if_counter ! ${reset}"
+        echo "${red}Unable to determine IP address of $single_baremetal_nic. Exiting...${reset}"
         exit 1
       fi
-      sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
-      ((if_counter++))
-    done
+      subnet_mask=$(find_netmask $single_baremetal_nic)
+      public_subnet_mask=$subnet_mask
+      if ! verify_subnet_size $public_subnet_mask 50; then
+        echo "${red} Not enough IPs in subnet: $interface_ip $subnet_mask.  Need at least 50 IPs.  Please resize subnet! Exiting ${reset}"
+        exit 1
+      fi
+
+      new_ip=$(next_usable_ip $interface_ip)
+      if [ ! "$new_ip" ]; then
+        echo "${red}Unable to allocate new IP address: $interface_ip $subnet_mask Exiting...${reset}"
+        exit 1
+      fi
+
+      this_default_gw=$(ip route | grep default | awk '{print $3}')
+      echo "${blue}Default Gateway: $this_default_gw ${reset}"
+      this_default_gw_interface=$(ip route get $this_default_gw | awk '{print $3}')
+      if [ "$this_default_gw_interface" != "$single_baremetal_nic" ]; then
+        echo "${red}Error: Your default gateway interface: $this_default_gw_interface does not \
+match the baremetal nic you provided: ${single_baremetal_nic}. Exiting...${reset}"
+        exit 1
+      fi
+      sed -i 's/^.*eth_replace0.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$single_baremetal_nic"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
+      interface_ip_arr[0]=$new_ip
+      interface_arr[$single_baremetal_nic]=0
+      admin_ip=$new_ip
+      admin_subnet_mask=$subnet_mask
+      public_short_subnet_mask=$(find_short_netmask $single_baremetal_nic)
+      if_counter=1
+    else
+      ##find number of interfaces with ip and substitute in VagrantFile
+      if_counter=0
+      for interface in ${output}; do
+
+        if [ "$if_counter" -ge 4 ]; then
+          break
+        fi
+        interface_ip=$(find_ip $interface)
+        if [ ! "$interface_ip" ]; then
+          continue
+        fi
+        new_ip=$(next_usable_ip $interface_ip)
+        if [ ! "$new_ip" ]; then
+          continue
+        fi
+        interface_arr[$interface]=$if_counter
+        interface_ip_arr[$if_counter]=$new_ip
+        subnet_mask=$(find_netmask $interface)
+        if [ "$if_counter" -eq 0 ]; then
+          admin_subnet_mask=$subnet_mask
+          admin_ip=$new_ip
+          if ! verify_subnet_size $admin_subnet_mask 5; then
+            echo "${red} Not enough IPs in admin subnet: ${interface_ip_arr[$if_counter]} ${admin_subnet_mask}.  Need at least 5 IPs.  Please resize subnet! Exiting ${reset}"
+            exit 1
+          fi
+
+        elif [ "$if_counter" -eq 1 ]; then
+          private_subnet_mask=$subnet_mask
+          private_short_subnet_mask=$(find_short_netmask $interface)
+
+          if ! verify_subnet_size $private_subnet_mask 15; then
+            echo "${red} Not enough IPs in private subnet: ${interface_ip_arr[$if_counter]} ${private_subnet_mask}.  Need at least 15 IPs.  Please resize subnet! Exiting ${reset}"
+            exit 1
+          fi
+        elif [ "$if_counter" -eq 2 ]; then
+          public_subnet_mask=$subnet_mask
+          public_short_subnet_mask=$(find_short_netmask $interface)
+
+          if ! verify_subnet_size $public_subnet_mask 25; then
+            echo "${red} Not enough IPs in public subnet: ${interface_ip_arr[$if_counter]} ${public_subnet_mask}.  Need at least 25 IPs.  Please resize subnet! Exiting ${reset}"
+            exit 1
+          fi
+        elif [ "$if_counter" -eq 3 ]; then
+          storage_subnet_mask=$subnet_mask
+
+          if ! verify_subnet_size $storage_subnet_mask 10; then
+            echo "${red} Not enough IPs in storage subnet: ${interface_ip_arr[$if_counter]} ${storage_subnet_mask}.  Need at least 10 IPs.  Please resize subnet! Exiting ${reset}"
+            exit 1
+          fi
+        else
+          echo "${red}ERROR: interface counter outside valid range of 0 to 3: $if_counter ! ${reset}"
+          exit 1
+        fi
+        sed -i 's/^.*eth_replace'"$if_counter"'.*$/  config.vm.network "public_network", ip: '\""$new_ip"\"', bridge: '\'"$interface"\'', netmask: '\""$subnet_mask"\"'/' Vagrantfile
+        ((if_counter++))
+      done
+    fi
   fi
+
   ##now remove interface config in Vagrantfile for 1 node
   ##if 1, 3, or 4 interfaces set deployment type
   ##if 2 interfaces remove 2nd interface and set deployment type
@@ -649,6 +705,12 @@ configure_network() {
       sed -i 's/^.*eth_replace0.*$/  config.vm.network "private_network", virtualbox__intnet: "my_admin_network", ip: '\""$admin_internal_ip"\"', netmask: '\""$private_subnet_mask"\"'/' Vagrantfile
       remove_vagrant_network eth_replace3
       deployment_type=three_network
+    elif [[ "$if_counter" == 1 ]]; then
+       echo "${blue}Single network detected for Baremetal deployment! ${reset}"
+       remove_vagrant_network eth_replace1
+       remove_vagrant_network eth_replace2
+       remove_vagrant_network eth_replace3
+       deployment_type="single_network"
     else
        echo "${blue}Single network or 2 network detected for baremetal deployment.  This is unsupported! Exiting. ${reset}"
        exit 1
@@ -767,40 +829,79 @@ configure_network() {
     ##private interface will be of hosts, so we need to know the provisioned host interface name
     ##we add biosdevname=0, net.ifnames=0 to the kickstart to use regular interface naming convention on hosts
     ##replace IP for parameters with next IP that will be given to controller
-    if [ "$deployment_type" == "single_network" ]; then
-      ##we also need to assign IP addresses to nodes
-      ##for single node, foreman is managing the single network, so we can't reserve them
-      ##not supporting single network anymore for now
-      echo "{blue}Single Network type is unsupported right now.  Please check your interface configuration.  Exiting. ${reset}"
-      exit 0
 
-    elif [[ "$deployment_type" == "multi_network" || "$deployment_type" == "three_network" ]]; then
+    if [[ "$deployment_type" == "single_network" || "$deployment_type" == "multi_network" || "$deployment_type" == "three_network" ]]; then
 
       if [ "$deployment_type" == "three_network" ]; then
         sed -i 's/^.*network_type:.*$/network_type: three_network/' opnfv_ksgen_settings.yml
+      elif [ "$deployment_type" == "single_network" ]; then
+        sed -i 's/^.*network_type:.*$/network_type: single_network/' opnfv_ksgen_settings.yml
+        next_single_ip=${interface_ip_arr[0]}
+        foreman_ip=$next_single_ip
+        next_single_ip=$(next_usable_ip $next_single_ip)
       fi
 
       sed -i 's/^.*deployment_type:.*$/  deployment_type: '"$deployment_type"'/' opnfv_ksgen_settings.yml
 
       ##get ip addresses for private network on controllers to make dhcp entries
       ##required for controllers_ip_array global param
-      next_private_ip=${interface_ip_arr[1]}
-      type=_private
-      control_count=0
-      for node in controller1 controller2 controller3; do
-        next_private_ip=$(next_usable_ip $next_private_ip)
-        if [ ! "$next_private_ip" ]; then
-          printf '%s\n' 'deploy.sh: Unable to find next ip for private network for control nodes' >&2
-          exit 1
-        fi
-        sed -i 's/'"$node$type"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
-        controller_ip_array=$controller_ip_array$next_private_ip,
-        controllers_ip_arr[$control_count]=$next_private_ip
-        ((control_count++))
-      done
+      if [ "$deployment_type" == "single_network" ]; then
+        next_private_ip=$next_single_ip
+        sed -i 's/^.*no_dhcp:.*$/no_dhcp: true/' opnfv_ksgen_settings.yml
+        nodes=`sed -nr '/nodes:/{:start /workaround/!{N;b start};//p}' opnfv_ksgen_settings.yml | sed -n '/^  [A-Za-z0-9]\+:$/p' | sed 's/\s*//g' | sed 's/://g'`
+        compute_nodes=`echo $nodes | tr " " "\n" | grep -v controller | tr "\n" " "`
+        controller_nodes=`echo $nodes | tr " " "\n" | grep controller | tr "\n" " "`
+        nodes=${controller_nodes}${compute_nodes}
+        next_admin_ip=${interface_ip_arr[0]}
+        type1=_admin
+        type2=_private
+        control_count=0
+        for node in ${controller_nodes}; do
+          next_private_ip=$(next_usable_ip $next_private_ip)
+          if [ ! "$next_private_ip" ]; then
+            echo "${red} Unable to find an unused IP for $node ! ${reset}"
+            exit 1
+          else
+            sed -i 's/'"$node$type1"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
+            sed -i 's/'"$node$type2"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
+            controller_ip_array=$controller_ip_array$next_private_ip,
+            controllers_ip_arr[$control_count]=$next_private_ip
+            ((control_count++))
+          fi
+        done
 
-      next_public_ip=${interface_ip_arr[2]}
-      foreman_ip=$next_public_ip
+        for node in ${compute_nodes}; do
+          next_private_ip=$(next_usable_ip $next_private_ip)
+          if [ ! "$next_private_ip" ]; then
+            echo "${red} Unable to find an unused IP for $node ! ${reset}"
+            exit 1
+          else
+            sed -i 's/'"$node$type1"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
+          fi
+        done
+
+      else
+        next_private_ip=${interface_ip_arr[1]}
+
+        type=_private
+        control_count=0
+        for node in controller1 controller2 controller3; do
+          next_private_ip=$(next_usable_ip $next_private_ip)
+          if [ ! "$next_private_ip" ]; then
+            printf '%s\n' 'deploy.sh: Unable to find next ip for private network for control nodes' >&2
+            exit 1
+          fi
+          sed -i 's/'"$node$type"'/'"$next_private_ip"'/g' opnfv_ksgen_settings.yml
+          controller_ip_array=$controller_ip_array$next_private_ip,
+          controllers_ip_arr[$control_count]=$next_private_ip
+          ((control_count++))
+        done
+      fi
+
+      if [[ "$deployment_type" != "single_network" ]]; then
+        next_public_ip=${interface_ip_arr[2]}
+        foreman_ip=$next_public_ip
+      fi
 
       ##if no dhcp, find all the Admin IPs for nodes in advance
       if [ $virtual ]; then
@@ -866,11 +967,17 @@ configure_network() {
       ##replace foreman site
       sed -i 's/^.*foreman_url:.*$/  foreman_url:'" https:\/\/$foreman_ip"'\/api\/v2\//' opnfv_ksgen_settings.yml
       ##replace public vips
-      ##no need to do this if no dhcp
-      if [[ -z "$enable_virtual_dhcp" && ! -z "$virtual" ]]; then
-        next_public_ip=$(next_usable_ip $next_public_ip)
+
+      ##if single_network deployment we continue next_public_ip from next_private_ip
+      if [[ "$deployment_type" == "single_network" ]]; then
+        next_public_ip=$(next_usable_ip $next_private_ip)
       else
-        next_public_ip=$(increment_ip $next_public_ip 10)
+        ##no need to do this if no dhcp
+        if [[ -z "$enable_virtual_dhcp" && ! -z "$virtual" ]]; then
+          next_public_ip=$(next_usable_ip $next_public_ip)
+        else
+          next_public_ip=$(increment_ip $next_public_ip 10)
+        fi
       fi
 
       public_output=$(grep -E '*public_vip' opnfv_ksgen_settings.yml)
@@ -889,7 +996,7 @@ configure_network() {
       fi
 
       ##replace admin_network param for bare metal deployments
-      if [ -z "$virtual" ]; then
+      if [[ -z "$virtual" && -z "$single_network" ]]; then
         admin_subnet=$(find_subnet $admin_ip $admin_subnet_mask)
         sed -i 's/^.*admin_network:.*$/  admin_network:'" $admin_subnet"'/' opnfv_ksgen_settings.yml
       else
@@ -898,11 +1005,18 @@ configure_network() {
       ##replace public_network param
       public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
       sed -i 's/^.*public_network:.*$/  public_network:'" $public_subnet"'/' opnfv_ksgen_settings.yml
-      ##replace private_network param
-      private_subnet=$(find_subnet $next_private_ip $private_subnet_mask)
-      sed -i 's/^.*private_network:.*$/  private_network:'" $private_subnet"'/' opnfv_ksgen_settings.yml
+      if [ "$deployment_type" == "single_network" ]; then
+        sed -i 's/^.*private_network:.*$/  private_network:'" $public_subnet"'/' opnfv_ksgen_settings.yml
+      else
+        ##replace private_network param
+        private_subnet=$(find_subnet $next_private_ip $private_subnet_mask)
+        sed -i 's/^.*private_network:.*$/  private_network:'" $private_subnet"'/' opnfv_ksgen_settings.yml
+      fi
+
       ##replace storage_network
-      if [ "$deployment_type" == "three_network" ]; then
+      if [ "$deployment_type" == "single_network" ]; then
+        sed -i 's/^.*storage_network:.*$/  storage_network:'" $public_subnet"'/' opnfv_ksgen_settings.yml
+      elif [ "$deployment_type" == "three_network" ]; then
         sed -i 's/^.*storage_network:.*$/  storage_network:'" $private_subnet"'/' opnfv_ksgen_settings.yml
       else
         next_storage_ip=${interface_ip_arr[3]}
@@ -913,18 +1027,30 @@ configure_network() {
       ##replace public_subnet param
       public_subnet=$public_subnet'\'$public_short_subnet_mask
       sed -i 's/^.*public_subnet:.*$/  public_subnet:'" $public_subnet"'/' opnfv_ksgen_settings.yml
-      ##replace private_subnet param
-      private_subnet=$private_subnet'\'$private_short_subnet_mask
-      sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $private_subnet"'/' opnfv_ksgen_settings.yml
+      if [ "$deployment_type" == "single_network" ]; then
+        sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $public_subnet"'/' opnfv_ksgen_settings.yml
+      else
+        ##replace private_subnet param
+        private_subnet=$private_subnet'\'$private_short_subnet_mask
+        sed -i 's/^.*private_subnet:.*$/  private_subnet:'" $private_subnet"'/' opnfv_ksgen_settings.yml
+      fi
 
       ##replace public_dns param to be foreman server
-      sed -i 's/^.*public_dns:.*$/  public_dns: '${interface_ip_arr[2]}'/' opnfv_ksgen_settings.yml
+      if [ "$deployment_type" == "single_network" ]; then
+        sed -i 's/^.*public_dns:.*$/  public_dns: '${interface_ip_arr[0]}'/' opnfv_ksgen_settings.yml
+      else
+        sed -i 's/^.*public_dns:.*$/  public_dns: '${interface_ip_arr[2]}'/' opnfv_ksgen_settings.yml
+      fi
 
       ##replace public_gateway
       if [ -z "$public_gateway" ]; then
-        ##if unset then we assume its the first IP in the public subnet
-        public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
-        public_gateway=$(increment_subnet $public_subnet 1)
+        if [ "$deployment_type" == "single_network" ]; then
+          public_gateway=$node_default_gw
+        else
+          ##if unset then we assume its the first IP in the public subnet
+          public_subnet=$(find_subnet $next_public_ip $public_subnet_mask)
+          public_gateway=$(increment_subnet $public_subnet 1)
+        fi
       fi
       sed -i 's/^.*public_gateway:.*$/  public_gateway:'" $public_gateway"'/' opnfv_ksgen_settings.yml
 
