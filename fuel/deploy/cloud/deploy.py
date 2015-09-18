@@ -35,11 +35,9 @@ ArgParser = common.ArgParser
 
 class Deploy(object):
 
-    def __init__(self, dea_file, blade_node_file, plugins_dir,
-                 no_health_check):
+    def __init__(self, dea_file, blade_node_file, no_health_check):
         self.dea = DeploymentEnvironmentAdapter(dea_file)
         self.blade_node_file = blade_node_file
-        self.plugins_dir = plugins_dir
         self.no_health_check = no_health_check
         self.macs_per_blade = {}
         self.blades = self.dea.get_node_ids()
@@ -74,18 +72,7 @@ class Deploy(object):
                          self.node_roles_dict, self.no_health_check)
         dep.deploy()
 
-    def install_plugins(self):
-        log('Installing Fuel Plugins')
-        if self.plugins_dir and os.path.isdir(self.plugins_dir):
-            for f in glob.glob('%s/*.rpm' % self.plugins_dir):
-                log('Found plugin %s, installing ...' % f)
-                r, c = exec_cmd('fuel plugins --install %s' % f, False)
-                if c > 0 and 'does not update installed package' not in r:
-                    err('Installation of Fuel Plugin %s failed' % f)
-
     def deploy(self):
-
-        self.install_plugins()
 
         self.get_blade_node_mapping()
 
@@ -105,20 +92,15 @@ def parse_arguments():
                         help='Deployment Environment Adapter: dea.yaml')
     parser.add_argument('blade_node_file', action='store',
                         help='Blade Node mapping: blade_node.yaml')
-    parser.add_argument('plugins_dir', nargs='?', action='store',
-                        help='Plugins directory')
     args = parser.parse_args()
     check_file_exists(args.dea_file)
     check_file_exists(args.blade_node_file)
-    return (args.dea_file, args.blade_node_file, args.plugins_dir,
-            args.no_health_check)
+    return (args.dea_file, args.blade_node_file, args.no_health_check)
 
 
 def main():
-
-    dea_file, blade_node_file, plugins_dir, no_health_check = parse_arguments()
-
-    deploy = Deploy(dea_file, blade_node_file, plugins_dir, no_health_check)
+    dea_file, blade_node_file, no_health_check = parse_arguments()
+    deploy = Deploy(dea_file, blade_node_file, no_health_check)
     deploy.deploy()
 
 if __name__ == '__main__':

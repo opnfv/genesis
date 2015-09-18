@@ -102,7 +102,8 @@ class AutoDeploy(object):
         fuel = InstallFuelMaster(self.dea_file, self.dha_file,
                                  self.fuel_conf['ip'], self.fuel_username,
                                  self.fuel_password, self.fuel_node_id,
-                                 self.iso_file, WORK_DIR)
+                                 self.iso_file, WORK_DIR,
+                                 self.fuel_plugins_dir)
         fuel.install()
 
     def patch_iso(self, new_iso):
@@ -158,8 +159,7 @@ class AutoDeploy(object):
     def deploy_env(self):
         dep = CloudDeploy(self.dea, self.dha, self.fuel_conf['ip'],
                           self.fuel_username, self.fuel_password,
-                          self.dea_file, self.fuel_plugins_dir, WORK_DIR,
-                          self.no_health_check)
+                          self.dea_file, WORK_DIR, self.no_health_check)
         return dep.deploy()
 
     def setup_execution_environment(self):
