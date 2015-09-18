@@ -15,10 +15,8 @@ CACHECLEAN := $(addsuffix .clean,$(CACHEFILES) $(CACHEDIRS))
 ############################################################################
 # BEGIN of variables to customize
 #
-#CACHEDIRS := opendaylight/f_odl/package
+#CACHEDIRS := foo/bar
 
-#CACHEFILES := opendaylight/.odl-build-history
-#CACHEFILES += opendaylight/.odl-build.log
 CACHEFILES += .versions
 CACHEFILES += $(shell basename $(ISOSRC))
 #
