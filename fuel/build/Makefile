@@ -108,10 +108,6 @@ $(SUBDIRS):
 patch-packages:
 	ORIGISO=$(ISOCACHE) REVSTATE=$(REVSTATE) $(MAKE) -C $@ -f Makefile release
 
-.PHONY: prepare
-prepare:
-	#$(MAKE) -C opendaylight -f Makefile setup
-
 .PHONY: build-clean $(SUBCLEAN)
 build-clean: $(SUBCLEAN)
 	$(MAKE) -C patch-packages -f Makefile clean
@@ -120,9 +116,8 @@ build-clean: $(SUBCLEAN)
 	@rm -f $(NEWISO)
 
 .PHONY: clean $(SUBCLEAN)
-clean:  clean-cache prepare $(SUBCLEAN)
+clean:  clean-cache $(SUBCLEAN)
 	$(MAKE) -C patch-packages -f Makefile clean
-	#$(MAKE) -C opendaylight -f Makefile clean
 	@rm -f *.iso
 	@rm -Rf release
 	@rm -Rf newiso
@@ -135,7 +130,7 @@ $(SUBCLEAN): %.clean:
 # Todo: Make things smarter - we shouldn't need to clean everything
 # betwen make invocations.
 .PHONY: iso
-iso:	prepare build-clean $(ISOCACHE) $(SUBDIRS) patch-packages
+iso:	build-clean $(ISOCACHE) $(SUBDIRS) patch-packages
 	install/install.sh iso $(ISOCACHE) $(NEWISO) $(PRODNO) $(REVSTATE)
 	@printf "\n\nProduct ISO is $(NEWISO)\n\n"
 
