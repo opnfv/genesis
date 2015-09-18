@@ -30,20 +30,18 @@ RO = common.RO
 
 CLOUD_DEPLOY_FILE = 'deploy.py'
 BLADE_RESTART_TIMES = 3
-PLUGINS_DIR = '~/plugins'
 
 
 class CloudDeploy(object):
 
     def __init__(self, dea, dha, fuel_ip, fuel_username, fuel_password,
-                 dea_file, fuel_plugins_dir, work_dir, no_health_check):
+                 dea_file, work_dir, no_health_check):
         self.dea = dea
         self.dha = dha
         self.fuel_ip = fuel_ip
         self.fuel_username = fuel_username
         self.fuel_password = fuel_password
         self.dea_file = dea_file
-        self.fuel_plugins_dir = fuel_plugins_dir
         self.work_dir = work_dir
         self.no_health_check = no_health_check
         self.file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -65,14 +63,6 @@ class CloudDeploy(object):
             s.scp_put('%s/dea.py' % self.file_dir, self.work_dir)
             for f in glob.glob('%s/cloud/*' % self.file_dir):
                 s.scp_put(f, self.work_dir)
-
-    def upload_plugin_files(self):
-        with self.ssh as s:
-            s.exec_cmd('rm -rf %s' % PLUGINS_DIR, False)
-            s.exec_cmd('mkdir %s' % PLUGINS_DIR)
-            if self.fuel_plugins_dir:
-                for f in glob.glob('%s/*.rpm' % self.fuel_plugins_dir):
-                    s.scp_put(f, PLUGINS_DIR)
 
     def power_off_nodes(self):
         for node_id in self.node_ids:
@@ -98,10 +88,9 @@ class CloudDeploy(object):
         blade_node_file = '%s/%s' % (
             self.work_dir, os.path.basename(self.blade_node_file))
         with self.ssh as s:
-            status = s.run('python %s %s %s %s %s'
+            status = s.run('python %s %s %s %s'
                            % (('-nh' if self.no_health_check else ''),
-                              deploy_app, dea_file, blade_node_file,
-                              PLUGINS_DIR))
+                              deploy_app, dea_file, blade_node_file))
         return status
 
     def check_supported_release(self):
@@ -252,7 +241,5 @@ class CloudDeploy(object):
         self.wait_for_discovered_blades()
 
         self.upload_cloud_deployment_files()
-
-        self.upload_plugin_files()
 
         return self.run_cloud_deploy(CLOUD_DEPLOY_FILE)
