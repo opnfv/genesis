@@ -80,6 +80,32 @@ EOF
 ############################################################################
 
 ############################################################################
+# Begin of string xor function
+#
+function  xor()
+{
+      local res=(`echo "$1" | sed "s/../0x& /g"`)
+      shift 1
+      while [[ "$1" ]]; do
+            local one=(`echo "$1" | sed "s/../0x& /g"`)
+            local count1=${#res[@]}
+            if [ $count1 -lt ${#one[@]} ]
+            then
+                  count1=${#one[@]}
+            fi
+            for (( i = 0; i < $count1; i++ ))
+            do
+                  res[$i]=$((${one[$i]:-0} ^ ${res[$i]:-0}))
+            done
+            shift 1
+      done
+       printf "%02x" "${res[@]}"
+}
+#
+# END of string xor function
+############################################################################
+
+############################################################################
 # BEGIN of variables to customize
 #
 BUILD_BASE=$(readlink -e ../build/)
@@ -87,7 +113,7 @@ RESULT_DIR="${BUILD_BASE}/release"
 BUILD_SPEC="${BUILD_BASE}/config.mk"
 CACHE_DIR="cache"
 LOCAL_CACHE_ARCH_NAME="fuel-cache"
-REMOTE_CACHE_ARCH_NAME="fuel_cache-$(md5sum ${BUILD_SPEC}| cut -f1 -d " ")"
+
 REMOTE_ACCESS_METHD=curl
 INCLUDE_DIR=../include
 #
@@ -117,6 +143,14 @@ BUILD_DIR=
 BUILD_LOG=
 BUILD_VERSION=
 MAKE_ARGS=
+FUEL_GIT_SRC="$(make -f ../build/config.mk get-fuel-repo | cut -d " " -f1)"
+FUEL_GIT_BRANCH="$(make -f ../build/config.mk get-fuel-repo | cut -d " " -f2)"
+CACHE_MD5=$(md5sum ../build/cache.mk | cut -f1 -d " ")
+CONFIG_MD5=$(md5sum ../build/config.mk | cut -f1 -d " ")
+FUEL_COMMIT_ID=$(git ls-remote $FUEL_GIT_SRC -t $FUEL_GIT_BRANCH | cut -d $'\t' -f1)
+REMOTE_CACHE_ARCH_HASH_TMP="$(xor $CACHE_MD5 $CONFIG_MD5)"
+REMOTE_CACHE_ARCH_HASH="$(xor $REMOTE_CACHE_ARCH_HASH_TMP $FUEL_COMMIT_ID)"
+REMOTE_CACHE_ARCH_NAME="fuel_cache-$REMOTE_CACHE_ARCH_HASH"
 #
 # END of script assigned variables
 ############################################################################
