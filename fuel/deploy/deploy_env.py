@@ -88,9 +88,10 @@ class CloudDeploy(object):
         blade_node_file = '%s/%s' % (
             self.work_dir, os.path.basename(self.blade_node_file))
         with self.ssh as s:
-            status = s.run('python %s %s %s %s'
-                           % (('-nh' if self.no_health_check else ''),
-                              deploy_app, dea_file, blade_node_file))
+            status = s.run(
+                'python %s %s %s %s' % (
+                    deploy_app, ('-nh' if self.no_health_check else ''),
+                    dea_file, blade_node_file))
         return status
 
     def check_supported_release(self):
