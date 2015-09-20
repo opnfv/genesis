@@ -114,7 +114,8 @@ class InstallFuelMaster(object):
                 log('Found plugin %s, installing ...' % f)
                 r, e = s.exec_cmd('fuel plugins --install %s' % f, False)
                 if e and 'does not update installed package' not in r:
-                    raise('Installation of Fuel Plugin %s failed' % f)
+                    raise Exception('Installation of Fuel Plugin %s '
+                                    'failed' % f)
 
     def wait_for_node_up(self):
         WAIT_LOOP = 60
@@ -133,7 +134,7 @@ class InstallFuelMaster(object):
                 self.ssh.close()
 
         if not success:
-            raise('Could not SSH into Fuel VM %s' % self.fuel_ip)
+            raise Exception('Could not SSH into Fuel VM %s' % self.fuel_ip)
 
     def wait_until_fuel_menu_up(self):
         WAIT_LOOP = 60
@@ -150,7 +151,7 @@ class InstallFuelMaster(object):
                 else:
                     break
         if not fuel_menu_pid:
-            raise('Could not find the Fuel Menu Process ID')
+            raise Exception('Could not find the Fuel Menu Process ID')
         return fuel_menu_pid
 
     def get_fuel_menu_pid(self, printout, search):
@@ -193,7 +194,7 @@ class InstallFuelMaster(object):
                     time.sleep(SLEEP_TIME)
 
         if not install_completed:
-            raise('Fuel installation did not complete')
+            raise Exception('Fuel installation did not complete')
 
     def post_install_cleanup(self):
         log('Eject ISO file %s' % self.iso_file)
