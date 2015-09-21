@@ -47,12 +47,12 @@ fuel:
   NTP3: 2.pool.ntp.org
 interfaces_1:
   eth0:
-  - public
-  eth1:
   - fuelweb_admin
   - management
   - storage
   - private
+  eth2:
+  - public
 transformations_1:
   transformations:
   - action: add-br
@@ -79,16 +79,16 @@ transformations_1:
     name: eth0
   - action: add-port
     bridge: br-mgmt
-    name: eth1.300
+    name: eth0.300
   - action: add-port
     bridge: br-storage
-    name: eth1.301
+    name: eth0.301
   - action: add-port
     bridge: br-mesh
-    name: eth1.302
+    name: eth0.302
   - action: add-port
     bridge: br-ex
-    name: eth0
+    name: eth2
 transformations_2:
   transformations:
   - action: add-br
@@ -104,13 +104,13 @@ transformations_2:
     name: eth0
   - action: add-port
     bridge: br-mgmt
-    name: eth1.300
+    name: eth0.300
   - action: add-port
     bridge: br-storage
-    name: eth1.301
+    name: eth0.301
   - action: add-port
     bridge: br-mesh
-    name: eth1.302
+    name: eth0.302
 network:
   networking_parameters:
     base_mac: fa:16:3e:00:00:00
