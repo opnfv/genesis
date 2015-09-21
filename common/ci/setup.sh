@@ -10,7 +10,8 @@ reset=`tput sgr0`
 blue=`tput setaf 4`
 red=`tput setaf 1`
 green=`tput setaf 2`
-interface='enp7s0'
+private_interface='enp6s0'
+public_interface='enp8s0'
 pxe_bridge='pxebr'
 fuel_gw_ip='10.20.0.1/16'
 ##END VARS
@@ -100,26 +101,26 @@ check_interface() {
 }
 
 setup_pxe_bridge() {
-  #Check whether base interface exists
-  echo "${blue}Checking whether base interface ${interface} exists${reset}"
-  if ! ip link show ${interface}; then
-    echo "${red}Base interface ${interface} does not exists!${reset}"
+  #Check whether private interface exists
+  echo "${blue}Checking whether private interface ${private_interface} exists${reset}"
+  if ! ip link show ${private_interface}; then
+    echo "${red}Private interface ${private_interface} does not exists!${reset}"
     exit 1
   else
     echo "${green}OK!${reset}"
   fi
 
-  #Check whether base interface is UP
-  check_interface ${interface}
+  #Check whether private interface is UP
+  check_interface ${private_interface}
 
   pxe_vid=0
-  pxe_interface="${interface}.${pxe_vid}"
+  pxe_interface="${private_interface}.${pxe_vid}"
 
   #Check whether VLAN 0 (PXE) interface exists
   echo "${blue}Checking whether VLAN 0 (PXE) interface ${pxe_interface} exists${reset}"
   if ! ip link show ${pxe_interface}; then
     echo "${blue}Creating  VLAN 0 (PXE) interface ${pxe_interface}${reset}"
-    ip link add link ${interface} name ${pxe_interface} type vlan id ${pxe_vid}
+    ip link add link ${private_interface} name ${pxe_interface} type vlan id ${pxe_vid}
   else
     echo "${green}OK!${reset}"
   fi
@@ -165,6 +166,28 @@ setup_pxe_bridge() {
     echo "${green}OK!${reset}"
   fi
 }
+###check whether access to public network is granted
+check_access_enabled_to_public_network() {
+  #Check whether public interface exists
+  echo "${blue}Checking whether public interface ${public_interface} exists${reset}"
+  if ! ip link show ${public_interface}; then
+    echo "${red}Public interface ${public_interface} does not exists!${reset}"
+    exit 1
+  else
+    echo "${green}OK!${reset}"
+  fi
+
+  #Check whether public interface ${public_interface} is UP
+  check_interface ${public_interface}
+
+  echo "${blue}Checking whether access is granted to public network through interface ${public_interface}${reset}"
+  if ! sudo iptables -t nat -L POSTROUTING -v | grep "MASQUERADE.*${public_interface}.*anywhere.*anywhere"; then
+    echo "${blue}Enable access to public network through interface ${public_interface}${reset}"
+    iptables -t nat -A POSTROUTING -o ${public_interface} -j MASQUERADE
+  else
+    echo "${green}OK!${reset}"
+  fi
+}
 ##END FUNCTIONS
 
 main() {
@@ -173,6 +196,7 @@ main() {
   load_kvm_kernel_mod
   start_libvirtd_service
   setup_pxe_bridge
+  check_access_enabled_to_public_network
 }
 
 main "$@"

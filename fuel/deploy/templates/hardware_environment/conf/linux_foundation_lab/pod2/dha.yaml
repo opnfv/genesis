@@ -12,27 +12,27 @@ adapter: ipmi
 
 nodes:
 - id: 1
-  pxeMac: 00:25:B5:A0:00:2A
+  pxeMac: 00:25:b5:a0:00:2a
   ipmiIp: 172.30.8.75
   ipmiUser: admin
   ipmiPass: octopus
 - id: 2
-  pxeMac: 00:25:B5:A0:00:3A
+  pxeMac: 00:25:b5:a0:00:3a
   ipmiIp: 172.30.8.65
   ipmiUser: admin
   ipmiPass: octopus
 - id: 3
-  pxeMac: 00:25:B5:A0:00:4A
+  pxeMac: 00:25:b5:a0:00:4a
   ipmiIp: 172.30.8.74
   ipmiUser: admin
   ipmiPass: octopus
 - id: 4
-  pxeMac: 00:25:B5:A0:00:5A
+  pxeMac: 00:25:b5:a0:00:5a
   ipmiIp: 172.30.8.73
   ipmiUser: admin
   ipmiPass: octopus
 - id: 5
-  pxeMac: 00:25:B5:A0:00:6A
+  pxeMac: 00:25:b5:a0:00:6a
   ipmiIp: 172.30.8.72
   ipmiUser: admin
   ipmiPass: octopus
