@@ -115,7 +115,7 @@ class InstallFuelMaster(object):
                 r, e = s.exec_cmd('fuel plugins --install %s' % f, False)
                 if e and 'does not update installed package' not in r:
                     raise Exception('Installation of Fuel Plugin %s '
-                                    'failed' % f)
+                                    'failed: %s' % (f, e))
 
     def wait_for_node_up(self):
         WAIT_LOOP = 60
