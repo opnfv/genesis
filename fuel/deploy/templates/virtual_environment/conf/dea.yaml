@@ -28,7 +28,7 @@ nodes:
 fuel:
   ADMIN_NETWORK:
     ipaddress: 10.20.0.2
-    netmask: 255.255.255.0
+    netmask: 255.255.0.0
     dhcp_pool_start: 10.20.0.3
     dhcp_pool_end: 10.20.0.254
   DNS_UPSTREAM: 10.118.32.193
@@ -110,6 +110,8 @@ transformations_2:
     bridge: br-mesh
     name: eth2.103
 network:
+  management_vip: 192.168.0.2
+  management_vrouter_vip: 192.168.0.3
   networking_parameters:
     base_mac: fa:16:3e:00:00:00
     dns_nameservers:
@@ -155,7 +157,7 @@ network:
   - cidr: 192.168.0.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.0.1
+    - - 192.168.0.2
       - 192.168.0.254
     meta:
       cidr: 192.168.0.0/24
@@ -192,7 +194,7 @@ network:
   - cidr: 192.168.2.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.2.1
+    - - 192.168.2.2
       - 192.168.2.254
     meta:
       cidr: 192.168.2.0/24
@@ -207,7 +209,7 @@ network:
       vlan_start: 103
     name: private
     vlan_start: 103
-  - cidr: 10.20.0.0/24
+  - cidr: 10.20.0.0/16
     gateway: 10.20.0.2
     ip_ranges:
     - - 10.20.0.3
@@ -222,6 +224,8 @@ network:
       use_gateway: true
     name: fuelweb_admin
     vlan_start: null
+  public_vip: 172.16.0.2
+  public_vrouter_vip: 172.16.0.3
 settings:
   editable:
     access:
