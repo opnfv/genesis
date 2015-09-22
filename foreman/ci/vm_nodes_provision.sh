@@ -36,7 +36,7 @@ fi
 ##modify /etc/resolv.conf to point to foreman
 echo "${blue} Configuring resolv.conf with DNS: $dns_server ${reset}"
 cat > /etc/resolv.conf << EOF
-search ci.com $domain_name
+search $domain_name
 nameserver $dns_server
 nameserver 8.8.8.8
 
