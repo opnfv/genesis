@@ -4,7 +4,7 @@ version:
 created:
 comment: Config for LF POD2 - HA deployment with Ceph and Opendaylight
 environment:
-  name: opnfv_virt
+  name: opnfv
   mode: ha
   net_segment_type: gre
 wanted_release: Juno on Ubuntu 14.04.1
@@ -112,14 +112,16 @@ transformations_2:
     bridge: br-mesh
     name: eth0.302
 network:
+  management_vip: 192.168.0.2
+  management_vrouter_vip: 192.168.0.3
   networking_parameters:
     base_mac: fa:16:3e:00:00:00
     dns_nameservers:
     - 8.8.4.4
     - 8.8.8.8
     floating_ranges:
-    - - 172.30.10.83
-      - 172.30.10.92
+    - - 172.30.10.160
+      - 172.30.10.254
     gre_id_range:
     - 2
     - 65535
@@ -134,15 +136,15 @@ network:
   - cidr: 172.30.10.0/24
     gateway: 172.30.10.1
     ip_ranges:
-    - - 172.30.10.73
-      - 172.30.10.82
+    - - 172.30.10.64
+      - 172.30.10.159
     meta:
-      cidr: 172.30.10.0/24
+      cidr: 172.16.0.0/24
       configurable: true
       floating_range_var: floating_ranges
       ip_range:
-      - 172.30.10.73
-      - 172.30.10.82
+      - 172.16.0.2
+      - 172.16.0.126
       map_priority: 1
       name: public
       notation: ip_ranges
@@ -155,10 +157,28 @@ network:
       vlan_start: null
     name: public
     vlan_start: null
+  - cidr: 192.168.2.0/24
+    gateway: null
+    ip_ranges:
+    - - 192.168.2.2
+      - 192.168.2.254
+    meta:
+      cidr: 192.168.2.0/24
+      configurable: true
+      map_priority: 2
+      name: private
+      notation: cidr
+      render_addr_mask: private
+      render_type: cidr
+      seg_type: gre
+      use_gateway: false
+      vlan_start: 103
+    name: private
+    vlan_start: 302
   - cidr: 192.168.0.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.0.1
+    - - 192.168.0.2
       - 192.168.0.254
     meta:
       cidr: 192.168.0.0/24
@@ -172,13 +192,13 @@ network:
       vips:
       - haproxy
       - vrouter
-      vlan_start: 300
+      vlan_start: 101
     name: management
     vlan_start: 300
   - cidr: 192.168.1.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.1.1
+    - - 192.168.1.2
       - 192.168.1.254
     meta:
       cidr: 192.168.1.0/24
@@ -189,32 +209,14 @@ network:
       render_addr_mask: storage
       render_type: cidr
       use_gateway: false
-      vlan_start: 301
+      vlan_start: 102
     name: storage
     vlan_start: 301
-  - cidr: 192.168.2.0/24
-    gateway: null
-    ip_ranges:
-    - - 192.168.2.1
-      - 192.168.2.254
-    meta:
-      assign_vip: 192.168.2.0/24
-      configurable: true
-      map_priority: 2
-      name: private
-      notation: cidr
-      render_addr_mask: private
-      render_type: cidr
-      seg_type: gre
-      use_gateway: false
-      vlan_start: 302
-    name: private
-    vlan_start: 302
-  - cidr: 10.20.0.0/24
+  - cidr: 10.20.0.0/16
     gateway: 10.20.0.2
     ip_ranges:
     - - 10.20.0.3
-      - 10.20.255.254
+      - 10.20.0.254
     meta:
       configurable: false
       map_priority: 0
@@ -225,6 +227,8 @@ network:
       use_gateway: true
     name: fuelweb_admin
     vlan_start: null
+  public_vip: 172.30.10.64
+  public_vrouter_vip: 172.30.10.65
 settings:
   editable:
     access:
@@ -481,7 +485,7 @@ settings:
           error: Invalid NTP server list
           source: ^\s*(?:(?:\w+(?:-+\w+)*\.)+[a-z]+|\d{1,3}(?:\.\d{1,3}){3})\s*(?:,\s*(?:(?:\w+(?:-+\w+)*\.)+[a-z]+|\d{1,3}(\.\d{1,3}){3})\s*)*$
         type: text
-        value:  0.pool.ntp.org, 1.pool.ntp.org
+        value: 0.pool.ntp.org, 1.pool.ntp.org
         weight: 10
     kernel_params:
       kernel:

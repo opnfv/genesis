@@ -36,7 +36,7 @@ nodes:
 fuel:
   ADMIN_NETWORK:
     ipaddress: 10.40.0.2
-    netmask: 255.255.255.0
+    netmask: 255.255.0.0
     dhcp_pool_start: 10.40.0.3
     dhcp_pool_end: 10.40.0.254
   DNS_UPSTREAM: 10.118.32.193
@@ -116,6 +116,8 @@ transformations_2:
     bridge: br-mesh
     name: eth2.20
 network:
+  management_vip: 192.168.0.2
+  management_vrouter_vip: 192.168.0.3
   networking_parameters:
     base_mac: fa:16:3e:00:00:00
     dns_nameservers:
@@ -140,12 +142,12 @@ network:
     - - 10.118.34.220
       - 10.118.34.225
     meta:
-      cidr: 10.118.34.192/24
+      cidr: 172.16.0.0/24
       configurable: true
       floating_range_var: floating_ranges
       ip_range:
-      - 10.118.34.220
-      - 10.118.34.225
+      - 172.16.0.2
+      - 172.16.0.126
       map_priority: 1
       name: public
       notation: ip_ranges
@@ -158,6 +160,24 @@ network:
       vlan_start: null
     name: public
     vlan_start: null
+  - cidr: 192.168.2.0/24
+    gateway: null
+    ip_ranges:
+    - - 192.168.2.2
+      - 192.168.2.254
+    meta:
+      assign_vip: 192.168.2.0/24
+      configurable: true
+      map_priority: 2
+      name: private
+      notation: cidr
+      render_addr_mask: private
+      render_type: cidr
+      seg_type: gre
+      use_gateway: false
+      vlan_start: 103
+    name: private
+    vlan_start: 20
   - cidr: 192.168.0.0/24
     gateway: null
     ip_ranges:
@@ -175,13 +195,13 @@ network:
       vips:
       - haproxy
       - vrouter
-      vlan_start: 320
+      vlan_start: 101
     name: management
     vlan_start: 320
   - cidr: 192.168.1.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.1.1
+    - - 192.168.1.2
       - 192.168.1.254
     meta:
       cidr: 192.168.1.0/24
@@ -192,32 +212,14 @@ network:
       render_addr_mask: storage
       render_type: cidr
       use_gateway: false
-      vlan_start: 220
+      vlan_start: 102
     name: storage
     vlan_start: 220
-  - cidr: 192.168.2.0/24
-    gateway: null
-    ip_ranges:
-    - - 192.168.2.1
-      - 192.168.2.254
-    meta:
-      assign_vip: 192.168.2.0/24
-      configurable: true
-      map_priority: 2
-      name: private
-      notation: cidr
-      render_addr_mask: private
-      render_type: cidr
-      seg_type: gre
-      use_gateway: false
-      vlan_start: 20
-    name: private
-    vlan_start: 20
-  - cidr: 10.40.0.0/24
+  - cidr: 10.40.0.0/16
     gateway: 10.40.0.2
     ip_ranges:
     - - 10.40.0.3
-      - 10.40.255.254
+      - 10.40.0.254
     meta:
       configurable: false
       map_priority: 0
@@ -228,6 +230,8 @@ network:
       use_gateway: true
     name: fuelweb_admin
     vlan_start: null
+  public_vip: 10.118.34.220
+  public_vrouter_vip: 10.118.34.221
 settings:
   editable:
     access:
