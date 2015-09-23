@@ -517,9 +517,10 @@ Upstream OpenDaylight provides `a number of packaging and deployment options
 <https://wiki.opendaylight.org/view/Deployment>`_ meant for consumption by downstream projects like
 OPNFV.
 
-Currently, OPNFV Foreman uses
-`OpenDaylight's Puppet module <https://github.com/dfarrell07/puppet-opendaylight>`_, which in turn
-depends on `OpenDaylight's RPM <http://cbs.centos.org/repos/nfv7-opendaylight-3-candidate/>`_.
+Currently, OPNFV Foreman uses `OpenDaylight's Puppet module
+<https://github.com/dfarrell07/puppet-opendaylight>`_, which in turn depends on `OpenDaylight's RPM
+<https://github.com/opendaylight/integration-packaging/tree/master/rpm>`_ hosted on the `CentOS Community
+Build System <http://cbs.centos.org/repos/nfv7-opendaylight-2-candidate/x86_64/os/Packages/>`_.
 
 Foreman
 -------
