@@ -769,7 +769,7 @@ match the baremetal nic you provided: ${single_baremetal_nic}. Exiting...${reset
         sed -i 's/^.*nat_flag =.*$/  nat_flag = true/' Vagrantfile
         echo "${blue}Setting node gateway to be VM Admin IP${reset}"
         node_default_gw=${interface_ip_arr[0]}
-        public_gateway=$default_gw
+        public_gateway=$host_default_gw
         ;;
       3)
         echo "${red}Default Gateway Detected on Storage Interface!${reset}"
