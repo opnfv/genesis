@@ -16,9 +16,6 @@ There are two Fuel@OPNF autonomous scripts fo this, complying to the OPNFV CI pi
 
 For more info on usage:
 ./build.sh -h
-./deploy.sh -h
-
-
 sudo ./deploy.sh -h
 python deploy.py -h
 
