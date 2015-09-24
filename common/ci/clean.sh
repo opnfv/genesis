@@ -16,6 +16,9 @@ red=`tput setaf 1`
 green=`tput setaf 2`
 pxe_bridge='pxebr'
 vm_dir=/var/opt/opnfv
+private_interface='enp6s0'
+management_vid=300
+management_interface="${private_interface}.${management_vid}"
 ##END VARS
 
 ##FUNCTIONS
@@ -26,6 +29,27 @@ display_usage() {
   echo -e "\n   -base_config : Full path of ksgen settings file to parse. Required.  Will provide BMC info to shutdown hosts.  Example:  -base_config /opt/myinventory.yml \n"
 }
 
+remove_interface_with_name_pattern() {
+  if [ -z $1 ]; then
+    echo "${red}Cannot remove interface. No interface name pattern specified!${reset}"
+    exit 1
+  fi
+  local interface_name_pattern=$1
+  echo "${blue} Looking for interface with name pattern: ${interface_name_pattern}${reset}"
+  interface=$(ip link show | grep -oP ${interface_name_pattern})
+  if [ ! -z "${interface}" ]; then
+    echo "${blue}Interface ${interface} detected! Removing...${reset}"
+    ip link del ${interface}
+    if ip link show | grep -oP ${interface_name_pattern}; then
+      echo "${red}Could not remove interface ${interface} ${reset}"
+      exit 1
+    else
+      echo "${blue}Interface ${interface} successfully removed${reset}"
+    fi
+  else
+    echo "${blue}Interface with name pattern ${interface_name_pattern} does not exist, nothing to remove${reset}"
+  fi
+}
 ##END FUNCTIONS
 
 if [[ ( $1 == "--help") ||  $1 == "-h" ]]; then
@@ -235,10 +259,10 @@ for kernel_mod in vboxnetadp vboxnetflt vboxpci vboxdrv kvm_intel kvm; do
   fi
 done
 
-###remove pxebr
+###remove PXE bridge
 echo "${blue}Checking whether PXE bridge ${pxe_bridge} exists${reset}"
 if ! brctl show ${pxe_bridge} 2>&1 | grep -i 'No such device'; then
-  echo "${blue}PXE bridge detected. Removing...${reset}"
+  echo "${blue}PXE bridge ${pxe_bridge} detected! Removing...${reset}"
   link_state=$(ip link show ${pxe_bridge} | grep -oP 'state \K[^ ]+')
   if [[ ${link_state} != 'DOWN' ]]; then
     ip link set dev ${pxe_bridge} down
@@ -259,3 +283,39 @@ if ! brctl show ${pxe_bridge} 2>&1 | grep -i 'No such device'; then
 else
   echo "${blue}PXE bridge ${pxe_bridge} does not exist${reset}"
 fi
+
+###remove PXE interface (VLAN 0)
+echo "${blue}Checking whether PXE interface (VLAN 0) exists and remove it${reset}"
+remove_interface_with_name_pattern "enp.+s.+\.0"
+
+###moving IP Address from Openstack Management interface back to base interface
+echo "${blue}Moving IP addresses from VLAN ${management_vid} interface ${management_interface} back to interface ${private_interface}${reset}"
+management_interface_ip_addr_list=$(ip addr show ${management_interface} | grep -oP 'inet \K[^ ]+')
+if [[ ! -z ${management_interface_ip_addr_list} ]]; then
+  echo -e "${blue}Found IP addresses on VLAN ${management_vid} interface ${management_interface}:\n${management_interface_ip_addr_list}${reset}"
+  for management_interface_ip_addr in ${management_interface_ip_addr_list}
+  do
+    echo "${blue}Removing IP address ${management_interface_ip_addr} from VLAN ${management_vid} interface ${management_interface}${reset}"
+    ip addr del ${management_interface_ip_addr} dev ${management_interface}
+    if ip addr show ${management_interface} | grep ${management_interface_ip_addr}; then
+      echo "${red}Could not remove IP address ${management_interface_ip_addr} from VLAN ${management_vid} interface ${management_interface}${reset}"
+      exit 1
+    fi
+    if ! ip addr show ${private_interface} | grep ${management_interface_ip_addr}; then
+      echo "${blue}Adding IP address ${management_interface_ip_addr} to interface ${private_interface}${reset}"
+      ip addr add ${management_interface_ip_addr} dev ${private_interface}
+      if ! ip addr show ${private_interface} | grep ${management_interface_ip_addr}; then
+        echo "${red}Could not set IP address ${management_interface_ip_addr} to interface ${private_interface}${reset}"
+        exit 1
+      fi
+    else
+      echo "${blue}Interface ${private_interface} already has assigned to itself this IP address ${management_interface_ip_addr}${reset}"
+    fi
+  done
+else
+  echo "${red}No IP Address is assigned to VLAN ${management_vid} interface ${management_interface}, there isn't any IP address to move to interface ${private_interface}${reset}"
+fi
+
+###remove Openstack Management interface (VLAN 300)
+echo "${blue}Checking whether Openstack Management interface (VLAN 300) exists and remove it${reset}"
+remove_interface_with_name_pattern "enp.+s.+\.${management_vid}"
