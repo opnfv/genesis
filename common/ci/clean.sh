@@ -220,6 +220,12 @@ else
   echo "${blue}libvirt/KVM is not installed${reset}"
 fi
 
+###remove possible VMs (needed for 'rmmod kvm_intel')
+if [ -n "$(ps -ef | grep qemu-kvm | grep -v grep)" ]; then
+    echo "${blue}Removing existing VMs ${reset}"
+    killall -9 qemu-kvm
+fi
+
 ###remove kernel modules
 echo "${blue}Removing kernel modules ${reset}"
 for kernel_mod in vboxnetadp vboxnetflt vboxpci vboxdrv kvm_intel kvm; do
