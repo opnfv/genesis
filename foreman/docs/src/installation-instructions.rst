@@ -10,7 +10,8 @@ OPNFV Installation instructions for the Arno release of OPNFV when using Foreman
 Abstract
 ========
 
-This document describes how to install the Arno SR1 release of OPNFV when using Foreman/Quickstack as a
+This document describes how to install the Arno SR1 release of OPNFV when using Foreman/Quickstack as
+a
 deployment tool covering it's limitations, dependencies and required system resources.
 
 License
@@ -43,6 +44,10 @@ Version history
 | 2015-09-10         | 0.2.0              | Tim Rozet          | Update to SR1      |
 |                    |                    | (Red Hat)          |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-09-25         | 0.2.1              | Randy Levensalor   | Added CLI          |
+|                    |                    | (CableLabs)        | verification       |
++--------------------+--------------------+--------------------+--------------------+
+
 
 Introduction
 ============
@@ -63,7 +68,8 @@ The Genesis repo contains the necessary tools to get install and deploy an OPNFV
 Foreman/QuickStack.  These tools consist of the Foreman/QuickStack bootable ISO
 (``arno.2015.2.0.foreman.iso``), and the automatic deployment script (``deploy.sh``).
 
-An OPNFV install requires a "Jumphost" in order to operate.  The bootable ISO will allow you to install
+An OPNFV install requires a "Jumphost" in order to operate.  The bootable ISO will allow you to
+install
 a customized CentOS 7 release to the Jumphost, which then gives you the required packages needed to
 run ``deploy.sh``.  If you already have a Jumphost with CentOS 7 installed, you may choose to ignore
 the ISO step and instead move directly to cloning the git repository and running ``deploy.sh``.  In
@@ -92,7 +98,8 @@ The Jumphost requirements are outlined below:
 
 5.     Internet access for downloading packages, with a default gateway configured.
 
-6.     4 GB of RAM for a bare metal deployment, 18 GB (HA) or 8 GB (non-HA) of RAM for a VM deployment.
+6.     4 GB of RAM for a bare metal deployment, 18 GB (HA) or 8 GB (non-HA) of RAM for a VM
+deployment.
 
 Network Requirements
 --------------------
@@ -106,7 +113,8 @@ deployment only).  These make up the admin, private, public and optional storage
 1 VLAN network used for baremetal, then all of the previously listed logical networks will be
 consolidated to that single network.
 
-3.     Lights out OOB network access from Jumphost with IPMI node enabled (bare metal deployment only).
+3.     Lights out OOB network access from Jumphost with IPMI node enabled (bare metal deployment
+only).
 
 4.     Admin or public network has Internet access, meaning a gateway and DNS availability.
 
@@ -161,10 +169,12 @@ is put into this configuration file.
 ``deploy.sh`` brings up a CentOS 7 Vagrant VM, provided by VirtualBox.  The VM then executes an
 Ansible project called Khaleesi in order to install Foreman and QuickStack.  Once the
 Foreman/QuickStack VM is up, Foreman will be configured with the nodes' information.  This includes
-MAC address, IPMI, OpenStack type (controller, compute, OpenDaylight controller) and other information.
+MAC address, IPMI, OpenStack type (controller, compute, OpenDaylight controller) and other
+information.
 At this point Khaleesi makes a REST API call to Foreman to instruct it to provision the hardware.
 
-Foreman will then reboot the nodes via IPMI.  The nodes should already be set to PXE boot first off the
+Foreman will then reboot the nodes via IPMI.  The nodes should already be set to PXE boot first off
+the
 admin interface.  Foreman will then allow the nodes to PXE and install CentOS 7 as well as Puppet.
 Foreman/QuickStack VM server runs a Puppet Master and the nodes query this master to get their
 appropriate OPNFV configuration.  The nodes will then reboot one more time and once back up, will DHCP
@@ -232,7 +242,8 @@ Creating an Inventory File
 --------------------------
 
 You now need to take the MAC address/IPMI info gathered in section
-`Execution Requirements (Bare Metal Only)`_ and create the YAML inventory (also known as configuration)
+`Execution Requirements (Bare Metal Only)`_ and create the YAML inventory (also known as
+configuration)
 file for ``deploy.sh``.
 
 1.  Copy the ``opnfv_ksgen_settings.yml`` file (for HA) or ``opnfv_ksgen_settings_no_HA.yml`` from
@@ -303,9 +314,9 @@ Verifying the Setup
 Now that the installer has finished it is a good idea to check and make sure things are working
 correctly.  To access your Foreman/QuickStack VM:
 
-1.  ``cd /var/opt/opnfv/foreman_vm/``
+1.  As root: ``cd /var/opt/opnfv/foreman_vm/``
 
-2.  ``vagrant ssh`` (password is "vagrant")
+2.  ``vagrant ssh`` (no password is required)
 
 3.  You are now in the VM and can check the status of Foreman service, etc.  For example:
 ``systemctl status foreman``
@@ -324,7 +335,8 @@ your IP address to Horizon GUI.
 **Note: You can find out more about how to use Foreman by going to http://www.theforeman.org/ or
 by watching a walkthrough video here: https://bluejeans.com/s/89gb/**
 
-7.  Now go to your web browser and insert the Horizon public VIP.  The login will be "admin"/"octopus".
+7.  Now go to your web browser and insert the Horizon public VIP.  The login will be
+"admin"/"octopus".
 
 8.  You are now able to follow the `OpenStack Verification`_ section.
 
@@ -395,6 +407,107 @@ Instance Name of cirros1.
 
 Congratulations you have successfully installed OPNFV!
 
+OpenStack CLI Verification
+--------------------------
+
+This section is for users who do not have web access or prefer to use command line rather
+than a web browser to validate the OpenStack installation.  Do not run this if you have
+already completed the OpenStack verification, since this uses the same names.
+
+1. Install the OpenStack CLI tools or log-in to one of the compute or control servers.
+
+2. Find the IP of keystone public VIP.  As root:
+
+::
+
+  cat /var/opt/opnfv/foreman_vm/opnfv_ksgen_settings.yml | \
+  grep keystone_public_vip
+
+3. Set the environment variables.  Substitute the keystone public VIP for <VIP> below.
+
+::
+
+  export OS_AUTH_URL=http://<VIP>:5000/v2.0
+  export OS_TENANT_NAME="admin"
+  export OS_USERNAME="admin"
+  export OS_PASSWORD="octopus"
+
+4. Load the CirrOS image into glance.
+
+::
+
+  glance image-create --copy-from \
+  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img \
+  --disk-format qcow2 --container-format bare --name 'CirrOS'
+
+5. Verify the image is downloaded.  The status will be "active" when the download completes.
+
+  ``glance image-show CirrOS``
+
+6.  Create a private tenant network.
+
+  ``neutron net-create test_network``
+
+7.  Verify the network has been created by running the command below.
+
+  ``neutron net-show test_network``
+
+8. Crate a subnet for the tenant network.
+
+  ``neutron subnet-create test_network --name test_subnet  --dns-nameserver 8.8.8.8 10.0.0.0/24``
+
+9.  Verify the subnet was created.
+
+  ``neutron subnet-show test_subnet``
+
+10. Add an interface from the test_subnet to the provider router.
+
+  ``neutron router-interface-add provider_router test_subnet``
+
+11.  Verify the interface was added.
+
+  ``neutron router-port-list``
+
+12.  Deploy a VM.
+
+  ``nova boot --flavor 1 --image CirrOS cirros1``
+
+13. Wait for the VM to complete booting.  This can be completed by viewing the console log until a
+login prompt appears.
+
+  ``nova console-log cirros1``
+
+14.  Get the local ip from the VM.
+
+  ``nova show cirros1 | grep test_network``
+
+15.  Get the port ID for the ip from the previous command.  Replace <IP> with the IP from the previous
+command.  The port id is the first series of numbers and letters.
+
+  ``neutron port-list | grep 10.0.0.2 | awk ' { print $2 } '``
+
+16.  Assign a floating ip to the VM.  Substitue the port-id from the previous command for <PORT_ID>
+
+  ``neutron floatingip-create --port-id <PORT_ID> provider_network``
+
+17.  Log into the vm.  Substitute FLOATING_IP for the floating_ip_address displayed in the output in
+the above command.
+
+  ``ssh cirros@<FLOATING_IP>``
+
+18. Logout and create a second VM.
+
+  ``nova boot --flavor 1 --image CirrOS cirros2``
+
+19.  Get the ip for cirros2.
+
+  ``nova show cirros2 | grep test_network``
+
+20. Redo step 17 to log back into cirros1 and ping cirros2.  Replace <CIRROS2> with the ip from the
+previous step.
+
+  ``ping <CIRROS2>``
+
 Installation Guide - VM Deployment
 ==================================
 
@@ -437,7 +550,8 @@ Your compute and subsequent controller nodes will run in:
 - ``/var/opt/opnfv/controller2``
 - ``/var/opt/opnfv/controller3``
 
-Each VM will be brought up and bridged to your Jumphost NIC for the public network.  ``deploy.sh`` will
+Each VM will be brought up and bridged to your Jumphost NIC for the public network.  ``deploy.sh``
+will
 first bring up your Foreman/QuickStack Vagrant VM and afterwards it will bring up each of the nodes
 listed above, in order of controllers first.
 
@@ -449,7 +563,8 @@ Follow the steps below to execute:
 20 IP addresses (non-HA you need only 5) that are useable on your public subnet.
 ``Ex: -static_ip_range 192.168.1.101,192.168.1.120``
 
-**Note: You may also wish to use other options like manually selecting the NIC to be used on your host,
+**Note: You may also wish to use other options like manually selecting the NIC to be used on your
+host,
 etc.  Please use ``deploy.sh -h`` to see a full list of options available.**
 
 3.  It will take about 20-25 minutes to install Foreman/QuickStack VM.  If something goes wrong during
@@ -466,7 +581,8 @@ are built and initiate Puppet.
 5.  The speed at which nodes are provisioned is totally dependent on your Jumphost server specs.  When
 complete you will see "All VMs are UP!"
 
-6.  The deploy will then print out the URL for your foreman server as well as the URL to access horizon.
+6.  The deploy will then print out the URL for your foreman server as well as the URL to access
+horizon.
 
 Verifying the Setup - VMs
 -------------------------
@@ -519,7 +635,8 @@ OPNFV.
 
 Currently, OPNFV Foreman uses `OpenDaylight's Puppet module
 <https://github.com/dfarrell07/puppet-opendaylight>`_, which in turn depends on `OpenDaylight's RPM
-<https://github.com/opendaylight/integration-packaging/tree/master/rpm>`_ hosted on the `CentOS Community
+<https://github.com/opendaylight/integration-packaging/tree/master/rpm>`_ hosted on the `CentOS
+Community
 Build System <http://cbs.centos.org/repos/nfv7-opendaylight-2-candidate/x86_64/os/Packages/>`_.
 
 Foreman
@@ -535,4 +652,3 @@ Foreman
 Revision: _sha1_
 
 Build date:  _date_
-
