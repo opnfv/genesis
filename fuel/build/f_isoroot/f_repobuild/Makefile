@@ -15,11 +15,10 @@ DOCKVERSION = 1.0
 .PHONY: all
 all: .nailgun
 
-.fuel-createmirror:
-	sudo apt-get install -y rsync python dpkg-dev fakeroot openssl
-	sudo ln -s `pwd` /var/www
-	sudo mkdir /var/log/mirror-sync
-	sudo chmod 777 /var/log/mirror-sync
+.nailgun:
+	sudo apt-get update
+	sudo apt-get upgrade -y
+	sudo apt-get install -y rsync python python-yaml dpkg-dev openssl
 	rm -rf tmpiso tmpdir
 	mkdir tmpiso
 	fuseiso ${ISOCACHE} tmpiso
@@ -27,9 +26,12 @@ all: .nailgun
 	fusermount -u tmpiso
 	rm -rf tmpiso
 	sudo dpkg -i fuel-createmirror_6.1*.deb
-	sudo sed -i 's/DOCKER_MODE=true/DOCKER_MODE=false/' /etc/fuel-createmirror/common.cfg
-	touch .fuel-createmirror
-
+	rm -Rf nailgun
+	sudo mkdir -p /var/www
+	sudo su - -c /opt/fuel-createmirror-6.1/fuel-createmirror
+	sudo chmod -R 755 /var/www/nailgun
+	cp -Rp /var/www/nailgun .
+	touch .nailgun
 
 .PHONY: clean
 clean:
@@ -42,9 +44,3 @@ release:.nailgun
 	@mkdir -p ../release/opnfv
 	@cp -Rp nailgun ../release/opnfv/nailgun
 
-.nailgun: .fuel-createmirror
-	rm -Rf nailgun
-	fakeroot /opt/fuel-createmirror-6.1/fuel-createmirror
-	# Bug fix for https://bugs.launchpad.net/fuel/+bug/1476593
-	find nailgun/mos-ubuntu -type d -exec chmod 755 {} \;
-	touch .nailgun
