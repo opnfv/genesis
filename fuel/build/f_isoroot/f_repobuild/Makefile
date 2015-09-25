@@ -8,9 +8,16 @@
 # http://www.apache.org/licenses/LICENSE-2.0
 ##############################################################################
 
+SHELL := /bin/bash
 TOP := $(shell pwd)
 DOCKNAME = fuelrepo
 DOCKVERSION = 1.0
+
+# try to choose close ubuntu mirror which support rsync protocol
+# https://bugs.launchpad.net/fuel/+bug/1459252
+MIRROR_URLS := $(shell curl -s http://mirrors.ubuntu.com/mirrors.txt)
+MIRROR_HOSTS := $(shell for url in ${MIRROR_URLS}; do echo $$url | cut -d'/' -f3; done)
+RSYNC_HOST := $(shell for host in ${MIRROR_HOSTS}; do echo > /dev/tcp/$${host}/873 && echo $$host && break; done)
 
 .PHONY: all
 all: .nailgun
@@ -26,6 +33,9 @@ all: .nailgun
 	fusermount -u tmpiso
 	rm -rf tmpiso
 	sudo dpkg -i fuel-createmirror_6.1*.deb
+	sudo sed -i 's/DOCKER_MODE=true/DOCKER_MODE=false/' /etc/fuel-createmirror/common.cfg
+	sudo sed -i 's/DEBUG="no"/DEBUG="yes"/' /etc/fuel-createmirror/ubuntu.cfg
+	sudo sed -i 's/MIRROR_UBUNTU_HOST="archive.ubuntu.com"/MIRROR_UBUNTU_HOST="${RSYNC_HOST}"/' /etc/fuel-createmirror/common.cfg
 	rm -Rf nailgun
 	sudo mkdir -p /var/www
 	sudo su - -c /opt/fuel-createmirror-6.1/fuel-createmirror
