@@ -39,6 +39,9 @@ Version history
 | 2015-09-10         | 0.2.0              | Tim Rozet          | Updated for SR1    |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
+| 2015-09-25         | 0.2.1              | Randy Levensalor   | Added Workaround   |
+|                    |                    |                    | for DHCP issue     |
++--------------------+--------------------+--------------------+--------------------+
 
 
 Important notes
@@ -196,7 +199,9 @@ Bug corrections
 | JIRA: APEX-12                        | Fixes horizon IP URL for non-HA      |
 |                                      | deployments                          |
 +--------------------------------------+--------------------------------------+
-
+| JIRA: BGS-84                         | Set default route to public          |
+|                                      | gateway                              |
++--------------------------------------+--------------------------------------+
 
 Deliverables
 ------------
@@ -245,6 +250,20 @@ Known issues
 Workarounds
 -----------
 **-**
+JIRA: APEX-38 - Neutron fails to provide DHCP address to instance
+
+1. Find the controller that is running the DHCP service.  ssh to oscontroller[1-3] and
+run the command below until the command returns a namespace that start with with "qdhcp".
+
+  ``ip netns | grep qdhcp``
+
+2. Restart the neturon server and the neutron DHCP service.
+
+  ``systemctl restart neutron-server``
+
+  ``systemctl restart neutron-dhcp-agent``
+
+3. Restart the interface on the VM or restart the VM.
 
 
 Test Result
