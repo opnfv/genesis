@@ -1,6 +1,6 @@
-=====================================================================================
+=========================================================================================
 OPNFV Release Note for the Arno SR1 release of OPNFV when using Fuel as a deployment tool
-=====================================================================================
+=========================================================================================
 
 
 .. contents:: Table of Contents
@@ -15,9 +15,9 @@ This document compiles the release notes for the Arno SR1 release of OPNFV when 
 License
 =======
 
-Arno release with the Fuel deployment tool Docs (c) by Jonas Bjurel (Ericsson AB)
+Arno SR1 release with the Fuel deployment tool Docs (c) by Jonas Bjurel (Ericsson AB)
 
-Arno release with the Fuel deployment tool Docs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+Arno SR1 release with the Fuel deployment tool Docs are licensed under a Creative Commons Attribution 4.0 International License. You should have received a copy of the license along with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
 Version history
 ===============
@@ -30,7 +30,11 @@ Version history
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 | 2015-09-10         | 1.1.0              | Jonas Bjurel       | Arno SR1 release   |
-|                    |                    |                    |                    |
+|                    |                    |                    | draft              |
++--------------------+--------------------+--------------------+--------------------+
+| 2015-09-24         | 1.1.1              | Jonas Bjurel       | Arno SR1 release   |
+|                    |                    |                    | draft waiting for  |
+|                    |                    |                    | test results       |
 +--------------------+--------------------+--------------------+--------------------+
 
 Important notes
@@ -43,7 +47,7 @@ Carefully follow the installation-instructions and pay special attention to the 
 Summary
 =======
 
-For Arno, the typical use of Fuel as an OpenStack installer is supplemented with OPNFV unique components such as `OpenDaylight <http://www.opendaylight.org/software>`_ version Helium as well as OPNFV-unique configurations.
+For Arno SR1, the typical use of Fuel as an OpenStack installer is supplemented with OPNFV unique components such as `OpenDaylight <http://www.opendaylight.org/software>`_ version Helium as well as OPNFV-unique configurations.
 
 This Arno artefact provides Fuel as the deployment stage tool in the OPNFV CI pipeline including:
 
@@ -85,7 +89,7 @@ This is the second tracked release of genesis/fuel. It is based on following ups
 
 - Fuel 6.1.0
 - OpenStack Juno release
-- OpenDaylight Litium-SR1
+- OpenDaylight Litium release
 
 Document version changes
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,10 +109,10 @@ Feature additions
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| JIRA:-                               | Baselining Fuel 6.0.1 for OPNFV      |
+| JIRA: FUEL-4                         | Baselining Fuel 6.0.1 for OPNFV      |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| JIRA:-                               | Integration of OpenDaylight          |
+| JIRA: FUEL-17                        | Integration of OpenDaylight          |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 
@@ -133,33 +137,6 @@ Bug corrections
 |                                      | release.                             |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-4                               | Fuel 6.1 build rebasing              |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-5                               | Fuel 6.1 deploy rebasing             |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-7                               | Deploy clean-up script               |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-8                               | Virtualized deployment               |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-11                              | Updated installation instructions    |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-12                              | Updated build-system documentation   |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-13                              | Updated deploy-system documentation  |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-16                              | Deployment of ODL plugin             |
-+--------------------------------------+--------------------------------------+
-|                                      |                                      |
-| FUEL-17                              | ODL plugin for Fuel 6.1              |
-+--------------------------------------+--------------------------------------+
 
 Deliverables
 ------------
@@ -170,9 +147,9 @@ Fuel-based installer iso file <arno.2015.1.0.fuel.iso>
 
 Documentation deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-- OPNFV Installation instructions for Arno release with the Fuel deployment tool - ver. 1.0.0
-- OPNFV Build instructions for Arno release with the Fuel deployment tool - ver. 1.0.0
-- OPNFV Release Note for Arno release with the Fuel deployment tool - ver. 1.0.0 (this document)
+- OPNFV Installation instructions for Arno release with the Fuel deployment tool - ver. 1.1.0
+- OPNFV Build instructions for Arno release with the Fuel deployment tool - ver. 1.1.0
+- OPNFV Release Note for Arno release with the Fuel deployment tool - ver. 1.1.1 (this document)
 
 Known Limitations, Issues and Workarounds
 =========================================
@@ -242,7 +219,7 @@ References
 For more information on the OPNFV Arno release, please see http://wiki.opnfv.org/releases/arno.
 
 :Authors: Jonas Bjurel (Ericsson)
-:Version: 1.0.0
+:Version: 1.1.0
 
 **Documentation tracking**
 
