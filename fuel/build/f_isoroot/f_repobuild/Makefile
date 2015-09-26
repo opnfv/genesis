@@ -17,7 +17,7 @@ DOCKVERSION = 1.0
 # https://bugs.launchpad.net/fuel/+bug/1459252
 MIRROR_URLS := $(shell curl -s http://mirrors.ubuntu.com/mirrors.txt)
 MIRROR_HOSTS := $(shell for url in ${MIRROR_URLS}; do echo $$url | cut -d'/' -f3; done)
-RSYNC_HOST := $(shell for host in ${MIRROR_HOSTS}; do echo > /dev/tcp/$${host}/873 && echo $$host && break; done)
+RSYNC_HOST := $(shell for host in ${MIRROR_HOSTS}; do rsync -4 --contimeout 5 --no-motd --list-only "$${host}::ubuntu/." &> /dev/null && echo $$host && break; done)
 
 .PHONY: all
 all: .nailgun
