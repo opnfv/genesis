@@ -29,12 +29,8 @@ Version history
 | 2015-06-03         | 1.0.0              | Jonas Bjurel       | Arno SR0 release   |
 |                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
-| 2015-09-10         | 1.1.0              | Jonas Bjurel       | Arno SR1 release   |
-|                    |                    |                    | draft              |
-+--------------------+--------------------+--------------------+--------------------+
-| 2015-09-24         | 1.1.1              | Jonas Bjurel       | Arno SR1 release   |
-|                    |                    |                    | draft waiting for  |
-|                    |                    |                    | test results       |
+| 2015-09-28         | 1.1.3              | Jonas Bjurel       | Arno SR1 release   |
+|                    |                    |                    |                    |
 +--------------------+--------------------+--------------------+--------------------+
 
 Important notes
@@ -73,7 +69,7 @@ Release Data
 | **Release designation**              | Arno Base Service release 1 (SR1)    |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
-| **Release date**                     | 2015-09-28                           |
+| **Release date**                     | 2015-10-01                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
 | **Purpose of the delivery**          | OPNFV Arno Base SR1 release          |
@@ -143,13 +139,13 @@ Deliverables
 
 Software deliverables
 ~~~~~~~~~~~~~~~~~~~~~
-Fuel-based installer iso file <arno.2015.1.0.fuel.iso>
+Fuel-based installer iso file <arno.2015.2.0.fuel.iso>
 
 Documentation deliverables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 - OPNFV Installation instructions for Arno release with the Fuel deployment tool - ver. 1.1.0
 - OPNFV Build instructions for Arno release with the Fuel deployment tool - ver. 1.1.0
-- OPNFV Release Note for Arno release with the Fuel deployment tool - ver. 1.1.1 (this document)
+- OPNFV Release Note for Arno release with the Fuel deployment tool - ver. 1.1.3 (this document)
 
 Known Limitations, Issues and Workarounds
 =========================================
@@ -175,51 +171,32 @@ Known issues
 | **JIRA REFERENCE**                   | **SLOGAN**                           |
 |                                      |                                      |
 +--------------------------------------+--------------------------------------+
+| JIRA: FUEL-43                        | VMs not accessible through SSH due   |
+|                                      | to VXLAN 50 Byte overhead and lack   |
+|                                      | of proper MTU value setting on       |
+|                                      | virtual ethernet devices             |
++--------------------------------------+--------------------------------------+
+| JIRA: FUEL-44                        | Centos 6.5 option has not been       |
+|                                      | enough verified                      |
++--------------------------------------+--------------------------------------+
+
 
 Workarounds
 -----------
--
+See JIRA: `FUEL-43 <https://jira.opnfv.org/browse/FUEL-43>`
 
 
 Test Result
 ===========
-
-Arno release with the Fuel deployment tool has undergone QA test runs with the following results:
-
-+--------------------------------------+--------------------------------------+
-| **TEST-SUITE**                       | **Results:**                         |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| Tempest test suite 1:                | 27 out of 105 testcases fails        |
-|                                      | see note (1) and note (2)            |
-+--------------------------------------+--------------------------------------+
-| Tempest test suite 2:                | 26 out of 100 testcases fails        |
-|                                      | see note (1) and note (2)            |
-+--------------------------------------+--------------------------------------+
-| Tempest test suite 3:                | 14 out of 106 testcases fails        |
-|                                      | see note (1) and note (2)            |
-+--------------------------------------+--------------------------------------+
-| Rally test suite suie 1:             | 10 out of 18 testcases fails         |
-|                                      | see note (1) and note (3)            |
-+--------------------------------------+--------------------------------------+
-| ODL test suite suie                  | 7 out of 7 testcases fails           |
-|                                      | see note (1) and note (4)            |
-+--------------------------------------+--------------------------------------+
-| vPING                                | OK                                   |
-|                                      | see note (1)                         |
-+--------------------------------------+--------------------------------------+
-
-** - Note (1): Have been run with ODL controller active but not with integrated ODL networking VXLAN segmentation activated **
-** - Note (2): see https://wiki.opnfv.org/r1_tempest **
-** - Note (3): see https://wiki.opnfv.org/r1_rally_bench **
-** - Note (4): see https://wiki.opnfv.org/r1_odl_suite **
+Arno SR1 release with the Fuel deployment tool has undergone QA test runs with the following results:
+https://wiki.opnfv.org/arno_sr1_result_page?rev=1443626728
 
 References
 ==========
 For more information on the OPNFV Arno release, please see http://wiki.opnfv.org/releases/arno.
 
 :Authors: Jonas Bjurel (Ericsson)
-:Version: 1.1.0
+:Version: 1.1.3
 
 **Documentation tracking**
 
