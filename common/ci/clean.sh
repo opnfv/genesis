@@ -16,9 +16,10 @@ red=`tput setaf 1`
 green=`tput setaf 2`
 pxe_bridge='pxebr'
 vm_dir=/var/opt/opnfv
-private_interface='enp6s0'
+first_interface='enp6s0'
+second_interface='enp7s0'
 management_vid=300
-management_interface="${private_interface}.${management_vid}"
+management_interface="${first_interface}.${management_vid}"
 ##END VARS
 
 ##FUNCTIONS
@@ -294,34 +295,32 @@ fi
 echo "${blue}Checking whether PXE interface (VLAN 0) exists and remove it${reset}"
 remove_interface_with_name_pattern "enp.+s.+\.0"
 
-###moving IP Address from Openstack Management interface back to base interface
-echo "${blue}Moving IP addresses from VLAN ${management_vid} interface ${management_interface} back to interface ${private_interface}${reset}"
-management_interface_ip_addr_list=$(ip addr show ${management_interface} | grep -oP 'inet \K[^ ]+')
-if [[ ! -z ${management_interface_ip_addr_list} ]]; then
-  echo -e "${blue}Found IP addresses on VLAN ${management_vid} interface ${management_interface}:\n${management_interface_ip_addr_list}${reset}"
-  for management_interface_ip_addr in ${management_interface_ip_addr_list}
-  do
-    echo "${blue}Removing IP address ${management_interface_ip_addr} from VLAN ${management_vid} interface ${management_interface}${reset}"
-    ip addr del ${management_interface_ip_addr} dev ${management_interface}
-    if ip addr show ${management_interface} | grep ${management_interface_ip_addr}; then
-      echo "${red}Could not remove IP address ${management_interface_ip_addr} from VLAN ${management_vid} interface ${management_interface}${reset}"
-      exit 1
-    fi
-    if ! ip addr show ${private_interface} | grep ${management_interface_ip_addr}; then
-      echo "${blue}Adding IP address ${management_interface_ip_addr} to interface ${private_interface}${reset}"
-      ip addr add ${management_interface_ip_addr} dev ${private_interface}
-      if ! ip addr show ${private_interface} | grep ${management_interface_ip_addr}; then
-        echo "${red}Could not set IP address ${management_interface_ip_addr} to interface ${private_interface}${reset}"
-        exit 1
-      fi
-    else
-      echo "${blue}Interface ${private_interface} already has assigned to itself this IP address ${management_interface_ip_addr}${reset}"
-    fi
-  done
-else
-  echo "${red}No IP Address is assigned to VLAN ${management_vid} interface ${management_interface}, there isn't any IP address to move to interface ${private_interface}${reset}"
-fi
-
 ###remove Openstack Management interface (VLAN 300)
 echo "${blue}Checking whether Openstack Management interface (VLAN 300) exists and remove it${reset}"
 remove_interface_with_name_pattern "enp.+s.+\.${management_vid}"
+
+###bounce interfaces to restore default IP config
+echo "${blue}Bouncing interfaces to restore IP config${reset}"
+for interface in $first_interface $second_interface; do
+  echo "${blue}Bouncing interface: ${interface}${reset}"
+  ifdown $interface
+  sleep 5
+  ifup $interface
+  tries=5
+  counter=0
+  while [ $counter -lt $tries ]; do
+    if ip addr show $interface | grep -Eo "inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"; then
+      temp_ip=$(ip addr show $interface | grep -Eo "inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | awk '{print $2}')
+      echo "${blue}IP found on ${interface}.  IP is ${temp_ip}${reset}"
+      break
+    else
+      ((counter++))
+      sleep 2
+    fi
+  done
+
+  if [ "$counter" -ge 5 ]; then
+    echo "${red}Error: Unable to get IP address on ${interface}${reset}"
+    exit 1
+  fi
+done
