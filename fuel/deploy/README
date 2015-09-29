@@ -107,12 +107,12 @@ optional arguments:
 
 - Install Fuel Master and deploy OPNFV Cloud from scratch on Hardware Environment:
 
-    sudo python deploy.py -iso ~/ISO/opnfv.iso -dea ~/CONF/hardware/dea.yaml -dha ~/CONF/hardware/dha.yaml -s /mnt/images -b pxebr -p ~/PLUGIN
+    sudo python deploy.py -iso ~/ISO/opnfv.iso -dea ~/CONF/hardware/dea.yaml -dha ~/CONF/hardware/dha.yaml -s /mnt/images -b pxebr
 
 
 - Install Fuel Master and deploy OPNFV Cloud from scratch on Virtual Environment:
 
-    sudo python deploy.py -iso ~/ISO/opnfv.iso -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -s /mnt/images -p ~/PLUGIN
+    sudo python deploy.py -iso ~/ISO/opnfv.iso -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -s /mnt/images
 
 
 - Deploy OPNFV Cloud on an already active Environment where Fuel Master VM is running so no need to install Fuel again:
@@ -120,13 +120,13 @@ optional arguments:
     sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml
 
     => with plugin installation
-    sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -p ~/PLUGIN
+    sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml
 
     => with cleanup after deployment is finished
-    sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -p ~/PLUGIN -c
+    sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -c
 
     => no healthcheck after deployment is completed
-    sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -p ~/PLUGIN -nh
+    sudo python deploy.py -nf -dea ~/CONF/virtual/dea.yaml -dha ~/CONF/virtual/dha.yaml -nh
 
 
 - Install Fuel Master only (and Node VMs when using virtual environment):
@@ -163,7 +163,7 @@ as default, if DHA file does not exist, the application will terminate with an e
 => Optional argument -b PXE_BRIDGE is not required for Autodeployment in virtual environment,
    even if it is specified it will not be used at all because virtual environment is using a different virtual network setup
 
-=> If optional argument -p FUEL_PLUGINS_DIR is not specified, no plugins will be installed in Fuel
+=> If optional argument -p FUEL_PLUGINS_DIR is not specified, no external plugins will be installed in Fuel
 
 
 --- Networking considerations ---

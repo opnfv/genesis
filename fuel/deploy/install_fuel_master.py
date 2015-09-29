@@ -24,6 +24,7 @@ TRANSPLANT_FUEL_SETTINGS = 'transplant_fuel_settings.py'
 BOOTSTRAP_ADMIN = '/usr/local/sbin/bootstrap_admin_node'
 FUEL_CLIENT_CONFIG = '/etc/fuel/client/config.yaml'
 PLUGINS_DIR = '~/plugins'
+LOCAL_PLUGIN_FOLDER = '/opt/opnfv'
 
 
 class InstallFuelMaster(object):
@@ -91,7 +92,7 @@ class InstallFuelMaster(object):
 
         self.delete_deprecated_fuel_client_config_from_fuel_6_1()
 
-        self.upload_plugin_files()
+        self.collect_plugin_files()
 
         self.install_plugins()
 
@@ -99,12 +100,15 @@ class InstallFuelMaster(object):
 
         log('Fuel Master installed successfully !')
 
-    def upload_plugin_files(self):
+    def collect_plugin_files(self):
         with self.ssh as s:
             s.exec_cmd('mkdir %s' % PLUGINS_DIR)
             if self.fuel_plugins_dir:
                 for f in glob.glob('%s/*.rpm' % self.fuel_plugins_dir):
                     s.scp_put(f, PLUGINS_DIR)
+            else:
+                s.exec_cmd('cp %s/*.rpm %s' % (LOCAL_PLUGIN_FOLDER,
+                                               PLUGINS_DIR))
 
     def install_plugins(self):
         log('Installing Fuel Plugins')

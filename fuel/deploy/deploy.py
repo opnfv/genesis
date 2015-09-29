@@ -219,7 +219,7 @@ def check_fuel_plugins_dir(dir):
     elif not os.listdir(dir):
         msg = 'Fuel Plugins Directory is empty!'
     if msg:
-        warn('%s Opendaylight Fuel Plugin will not be installed!' % msg)
+        warn('%s No external plugins will be installed!' % msg)
 
 
 def parse_arguments():

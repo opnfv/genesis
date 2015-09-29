@@ -112,8 +112,8 @@ transformations_2:
     bridge: br-mesh
     name: eth0.302
 network:
-  management_vip: 192.168.0.2
-  management_vrouter_vip: 192.168.0.3
+  management_vip: 192.168.1.2
+  management_vrouter_vip: 192.168.1.3
   networking_parameters:
     base_mac: fa:16:3e:00:00:00
     dns_nameservers:
@@ -175,11 +175,11 @@ network:
       vlan_start: 103
     name: private
     vlan_start: 302
-  - cidr: 192.168.0.0/24
+  - cidr: 192.168.1.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.0.2
-      - 192.168.0.254
+    - - 192.168.1.2
+      - 192.168.1.254
     meta:
       cidr: 192.168.0.0/24
       configurable: true
@@ -195,11 +195,11 @@ network:
       vlan_start: 101
     name: management
     vlan_start: 300
-  - cidr: 192.168.1.0/24
+  - cidr: 192.168.0.0/24
     gateway: null
     ip_ranges:
-    - - 192.168.1.2
-      - 192.168.1.254
+    - - 192.168.0.2
+      - 192.168.0.254
     meta:
       cidr: 192.168.1.0/24
       configurable: true
