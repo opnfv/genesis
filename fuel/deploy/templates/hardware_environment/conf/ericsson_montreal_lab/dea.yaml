@@ -669,13 +669,13 @@ settings:
         - name: ubuntu-updates
           priority: null
           section: main
-          suite: trusty-updates
+          suite: trusty
           type: deb
           uri: http://10.20.0.2:8080/ubuntu-part
         - name: ubuntu-security
           priority: null
           section: main
-          suite: trusty-security
+          suite: trusty
           type: deb
           uri: http://10.20.0.2:8080/ubuntu-part
         - name: mos
