@@ -253,7 +253,7 @@ Workarounds
 JIRA: APEX-38 - Neutron fails to provide DHCP address to instance
 
 1. Find the controller that is running the DHCP service.  ssh to oscontroller[1-3] and
-run the command below until the command returns a namespace that start with with "qdhcp".
+   run the command below until the command returns a namespace that start with with "qdhcp".
 
   ``ip netns | grep qdhcp``
 
@@ -272,13 +272,7 @@ Test Result
 The Arno release with the Foreman/QuickStack deployment toolchain has undergone QA test runs with the
 following results:
 
-+--------------------------------------+--------------------------------------+
-| **TEST-SUITE**                       | **Results:**                         |
-|                                      |                                      |
-+--------------------------------------+--------------------------------------+
-| **-**                                | **-**                                |
-+--------------------------------------+--------------------------------------+
-
+https://wiki.opnfv.org/arno_sr1_result_page?rev=1443626728
 
 References
 ==========

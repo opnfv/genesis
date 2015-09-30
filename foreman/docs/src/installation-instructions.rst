@@ -1,6 +1,6 @@
-=======================================================================================================
-OPNFV Installation instructions for the Arno release of OPNFV when using Foreman as a deployment tool
-=======================================================================================================
+=========================================================================================================
+OPNFV Installation Instructions for the Arno SR1 Release of OPNFV when using Foreman as a deployment tool
+=========================================================================================================
 
 
 .. contents:: Table of Contents
@@ -22,7 +22,7 @@ Arno SR1 release of OPNFV when using Foreman as a deployment tool Docs are licen
 Commons Attribution 4.0 International License. You should have received a copy of the license along
 with this. If not, see <http://creativecommons.org/licenses/by/4.0/>.
 
-Version history
+Version History
 ===================
 
 +--------------------+--------------------+--------------------+--------------------+
@@ -94,12 +94,12 @@ The Jumphost requirements are outlined below:
 3.     libvirt or other hypervisors disabled (no kernel modules loaded).
 
 4.     3-4 NICs for bare metal deployment/only 1 NIC required for virtual deployment, untagged
-(no 802.1Q tagging), with IP addresses.
+       (no 802.1Q tagging), with IP addresses.
 
 5.     Internet access for downloading packages, with a default gateway configured.
 
 6.     4 GB of RAM for a bare metal deployment, 18 GB (HA) or 8 GB (non-HA) of RAM for a VM
-deployment.
+       deployment.
 
 Network Requirements
 --------------------
@@ -109,12 +109,12 @@ Network requirements include:
 1.     No DHCP or TFTP server running on networks used by OPNFV (bare metal deployment only).
 
 2.     1, 3, or 4 separate VLANs (untagged) with connectivity between Jumphost and nodes (bare metal
-deployment only).  These make up the admin, private, public and optional storage networks.  If only
-1 VLAN network used for baremetal, then all of the previously listed logical networks will be
-consolidated to that single network.
+       deployment only).  These make up the admin, private, public and optional storage networks.  If
+       only 1 VLAN network used for baremetal, then all of the previously listed logical networks will
+       be consolidated to that single network.
 
 3.     Lights out OOB network access from Jumphost with IPMI node enabled (bare metal deployment
-only).
+       only).
 
 4.     Admin or public network has Internet access, meaning a gateway and DNS availability.
 
@@ -212,17 +212,17 @@ Install Bare Metal Jumphost
 ---------------------------
 
 1.  If your Jumphost does not have CentOS 7 already on it, or you would like to do a fresh install,
-then download the Foreman/QuickStack bootable ISO
-<http://artifacts.opnfv.org/arno.2015.2.0/foreman/arno.2015.2.0.foreman.iso> here.  If you already
-have a CentOS 7 install that you would like to use then go to step 3.
+    then download the Foreman/QuickStack bootable ISO
+    `here <http://artifacts.opnfv.org/arno.2015.2.0/foreman/arno.2015.2.0.foreman.iso>`_.  If you
+    already have a CentOS 7 install that you would like to use then go to step 3.
 
 2.  Boot the ISO off of a USB or other installation media and walk through installing OPNFV CentOS 7.
 
 3.  After OS is installed login to your Jumphost as root.  If /root/genesis does not exist then
-``git clone -b arno.2015.2.0 https://gerrit.opnfv.org/gerrit/genesis /root/genesis``
+    ``git clone -b arno.2015.2.0 https://gerrit.opnfv.org/gerrit/genesis /root/genesis``
 
 4.  Configure IP addresses on 3-4 interfaces that you have selected as your admin, private, public,
-and storage (optional) networks.
+    and storage (optional) networks.
 
 5.  Configure the IP gateway to the Internet either, preferably on the public interface.
 
@@ -247,20 +247,20 @@ configuration)
 file for ``deploy.sh``.
 
 1.  Copy the ``opnfv_ksgen_settings.yml`` file (for HA) or ``opnfv_ksgen_settings_no_HA.yml`` from
-``/root/genesis/foreman/ci/`` to another directory and rename it to be what you want Example:
-``/root/my_ksgen_settings.yml``
+    ``/root/genesis/foreman/ci/`` to another directory and rename it to be what you want Example:
+    ``/root/my_ksgen_settings.yml``
 
 2.  Edit the file in your favorite editor.  There is a lot of information in this file, but you
-really only need to be concerned with the "nodes:" dictionary.
+    really only need to be concerned with the "nodes:" dictionary.
 
 3.  The nodes dictionary contains each bare metal host you want to deploy.  You can have 1 or more
-compute nodes and must have 3 controller nodes (these are already defined for you) if ha_flag is set
-to true.  If ha_flag is set to false, please only define 1 controller node.  It is optional at this
-point to add more compute nodes into the dictionary.  You must use a different name, hostname,
-short_name and dictionary keyname for each node.
+    compute nodes and must have 3 controller nodes (these are already defined for you) if ha_flag is
+    set to true.  If ha_flag is set to false, please only define 1 controller node.  It is optional at
+    this point to add more compute nodes into the dictionary.  You must use a different name, hostname
+    , short_name and dictionary keyname for each node.
 
 4.  Once you have decided on your node definitions you now need to modify the MAC address/IPMI info
-dependent on your hardware.  Edit the following values for each node:
+    dependent on your hardware.  Edit the following values for each node:
 
     - ``mac_address``: change to MAC address of that node's admin NIC (defaults to 1st NIC)
     - ``bmc_ip``: change to IP Address of BMC (out-of-band)/IPMI IP
@@ -299,14 +299,14 @@ If you would like to specify the NIC mapping to logical network, see help output
 "-private_nic", "-public_nic", "-storage_nic".**
 
 3.  It will take about 20-25 minutes to install Foreman/QuickStack VM.  If something goes wrong during
-this part of the process, it is most likely a problem with the setup of your Jumphost.  You will also
-notice different outputs in your shell.  When you see messages that say "TASK:" or "PLAY:" this is
-Khalessi running and installing Foreman/QuickStack inside of your VM or deploying your nodes.  Look
-for "PLAY [Deploy Nodes]" as a sign that Foreman/QuickStack is finished installing and now your nodes
-are being rebuilt.
+    this part of the process, it is most likely a problem with the setup of your Jumphost.  You will
+    also notice different outputs in your shell.  When you see messages that say "TASK:" or "PLAY:"
+    this is Khalessi running and installing Foreman/QuickStack inside of your VM or deploying your
+    nodes.  Look for "PLAY [Deploy Nodes]" as a sign that Foreman/QuickStack is finished installing
+    and now your nodes are being rebuilt.
 
 4.  Your nodes will take 40-60 minutes to re-install CentOS 7 and install/configure OPNFV.  When
-complete you will see "Finished: SUCCESS"
+    complete you will see "Finished: SUCCESS"
 
 Verifying the Setup
 -------------------
@@ -319,24 +319,24 @@ correctly.  To access your Foreman/QuickStack VM:
 2.  ``vagrant ssh`` (no password is required)
 
 3.  You are now in the VM and can check the status of Foreman service, etc.  For example:
-``systemctl status foreman``
+    ``systemctl status foreman``
 
 4.  Type "exit" and leave the Vagrant VM.  Now execute:
-``cat /var/opt/opnfv/foreman_vm/opnfv_ksgen_settings.yml | grep foreman_url``
+    ``cat /var/opt/opnfv/foreman_vm/opnfv_ksgen_settings.yml | grep foreman_url``
 
 5.  This is your Foreman URL on your public interface.  You can go to your web browser,
-``http://<foreman_ip>``, login will be "admin"/"octopus".  This way you can look around in Foreman and
-check that your hosts are in a good state, etc.
+    ``http://<foreman_ip>``, login will be "admin"/"octopus".  This way you can look around in
+    Foreman and check that your hosts are in a good state, etc.
 
 6.  In Foreman GUI, you can now go to Infrastructure -> Global Parameters.  This is a list of all the
-variables being handed to Puppet for configuring OPNFV.  Look for ``horizon_public_vip``.  This is
-your IP address to Horizon GUI.
+    variables being handed to Puppet for configuring OPNFV.  Look for ``horizon_public_vip``.  This is
+    your IP address to Horizon GUI.
 
 **Note: You can find out more about how to use Foreman by going to http://www.theforeman.org/ or
 by watching a walkthrough video here: https://bluejeans.com/s/89gb/**
 
 7.  Now go to your web browser and insert the Horizon public VIP.  The login will be
-"admin"/"octopus".
+    "admin"/"octopus".
 
 8.  You are now able to follow the `OpenStack Verification`_ section.
 
@@ -353,7 +353,7 @@ correctly:
 3.  Now in the left pane, click Compute -> Images, click Create Image
 
 4.  Insert a name "cirros", Insert an Image Location
-``http://download.cirros-cloud.net/0.3.3/cirros-0.3.3-x86_64-disk.img``
+    ``http://download.cirros-cloud.net/0.3.3/cirros-0.3.3-x86_64-disk.img``
 
 5.  Select format "QCOW2", select Public, then hit Create Image
 
@@ -380,14 +380,14 @@ range will be used for DHCP**
 14. Now go to Project -> Compute -> Instances, click Launch Instance
 
 15. Enter Instance Name "cirros1", select Instance Boot Source "Boot from image", and then select
-Image Name "cirros"
+    Image Name "cirros"
 
 16. Click Launch, status should show "Spawning" while it is being built
 
 17. You can now repeat steps 15 and 16, but create a "cirros2" named instance
 
 18. Once both instances are up you can see their IP addresses on the Instances page.  Click the
-Instance Name of cirros1.
+    Instance Name of cirros1.
 
 19. Now click the "Console" tab and login as "cirros"/"cubswin:)"
 
@@ -396,12 +396,12 @@ Instance Name of cirros1.
 21. Continue to the next steps to provide external network access to cirros1.
 
 22. Go to Project -> Compute -> Instances.  From the drop down menu under "Actions" select
-"Associate Floating IP"
+    "Associate Floating IP"
 
 23. Press the "+" symbol next under "IP Address".  Select "Allocate IP" on the new pop up.
 
 24. You should now see an external IP address filled into the "IP Address" field.  Click
-"Associate".
+    "Associate".
 
 25. Now from your external network you should be able to ping/ssh to the floating IP address.
 
@@ -418,95 +418,89 @@ already completed the OpenStack verification, since this uses the same names.
 
 2. Find the IP of keystone public VIP.  As root:
 
-::
-
-  cat /var/opt/opnfv/foreman_vm/opnfv_ksgen_settings.yml | \
-  grep keystone_public_vip
+   cat /var/opt/opnfv/foreman_vm/opnfv_ksgen_settings.yml | \
+   grep keystone_public_vip
 
 3. Set the environment variables.  Substitute the keystone public VIP for <VIP> below.
 
-::
-
-  export OS_AUTH_URL=http://<VIP>:5000/v2.0
-  export OS_TENANT_NAME="admin"
-  export OS_USERNAME="admin"
-  export OS_PASSWORD="octopus"
+   | export OS_AUTH_URL=http://<VIP>:5000/v2.0
+   | export OS_TENANT_NAME="admin"
+   | export OS_USERNAME="admin"
+   | export OS_PASSWORD="octopus"
 
 4. Load the CirrOS image into glance.
 
-::
-
-  glance image-create --copy-from \
-  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img \
-  --disk-format qcow2 --container-format bare --name 'CirrOS'
+   glance image-create --copy-from \
+   http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img \
+   --disk-format qcow2 --container-format bare --name 'CirrOS'
 
 5. Verify the image is downloaded.  The status will be "active" when the download completes.
 
-  ``glance image-show CirrOS``
+   ``glance image-show CirrOS``
 
-6.  Create a private tenant network.
+6. Create a private tenant network.
 
-  ``neutron net-create test_network``
+   ``neutron net-create test_network``
 
-7.  Verify the network has been created by running the command below.
+7. Verify the network has been created by running the command below.
 
-  ``neutron net-show test_network``
+   ``neutron net-show test_network``
 
-8. Crate a subnet for the tenant network.
+8. Create a subnet for the tenant network.
 
-  ``neutron subnet-create test_network --name test_subnet  --dns-nameserver 8.8.8.8 10.0.0.0/24``
+   ``neutron subnet-create test_network --name test_subnet  --dns-nameserver 8.8.8.8 10.0.0.0/24``
 
-9.  Verify the subnet was created.
+9. Verify the subnet was created.
 
-  ``neutron subnet-show test_subnet``
+   ``neutron subnet-show test_subnet``
 
 10. Add an interface from the test_subnet to the provider router.
 
-  ``neutron router-interface-add provider_router test_subnet``
+    ``neutron router-interface-add provider_router test_subnet``
 
-11.  Verify the interface was added.
+11. Verify the interface was added.
 
-  ``neutron router-port-list``
+    ``neutron router-port-list``
 
-12.  Deploy a VM.
+12. Deploy a VM.
 
-  ``nova boot --flavor 1 --image CirrOS cirros1``
+    ``nova boot --flavor 1 --image CirrOS cirros1``
 
 13. Wait for the VM to complete booting.  This can be completed by viewing the console log until a
-login prompt appears.
+    login prompt appears.
 
-  ``nova console-log cirros1``
+    ``nova console-log cirros1``
 
-14.  Get the local ip from the VM.
+14. Get the local ip from the VM.
 
-  ``nova show cirros1 | grep test_network``
+    ``nova show cirros1 | grep test_network``
 
 15.  Get the port ID for the ip from the previous command.  Replace <IP> with the IP from the previous
-command.  The port id is the first series of numbers and letters.
+     command.  The port id is the first series of numbers and letters.
 
-  ``neutron port-list | grep 10.0.0.2 | awk ' { print $2 } '``
+     ``neutron port-list | grep 10.0.0.2 | awk ' { print $2 } '``
 
-16.  Assign a floating ip to the VM.  Substitue the port-id from the previous command for <PORT_ID>
+16. Assign a floating ip to the VM.  Substitue the port-id from the previous command for <PORT_ID>
 
-  ``neutron floatingip-create --port-id <PORT_ID> provider_network``
+    ``neutron floatingip-create --port-id <PORT_ID> provider_network``
 
-17.  Log into the vm.  Substitute FLOATING_IP for the floating_ip_address displayed in the output in
-the above command.
+17. Log into the vm.  Substitute FLOATING_IP for the floating_ip_address displayed in the output in
+    the above command.
 
-  ``ssh cirros@<FLOATING_IP>``
+    ``ssh cirros@<FLOATING_IP>``
 
 18. Logout and create a second VM.
 
-  ``nova boot --flavor 1 --image CirrOS cirros2``
+    ``nova boot --flavor 1 --image CirrOS cirros2``
 
-19.  Get the ip for cirros2.
+19. Get the ip for cirros2.
 
-  ``nova show cirros2 | grep test_network``
+    ``nova show cirros2 | grep test_network``
 
 20. Redo step 17 to log back into cirros1 and ping cirros2.  Replace <CIRROS2> with the ip from the
-previous step.
+    previous step.
 
-  ``ping <CIRROS2>``
+    ``ping <CIRROS2>``
 
 Installation Guide - VM Deployment
 ==================================
@@ -560,29 +554,30 @@ Follow the steps below to execute:
 1.  ``cd /root/genesis/foreman/ci/``
 
 2.  ``./deploy.sh -virtual -static_ip_range <your_range>``, Where <your_range> is a range of at least
-20 IP addresses (non-HA you need only 5) that are useable on your public subnet.
-``Ex: -static_ip_range 192.168.1.101,192.168.1.120``
+    20 IP addresses (non-HA you need only 5) that are useable on your public subnet.
+    ``Ex: -static_ip_range 192.168.1.101,192.168.1.120``
 
 **Note: You may also wish to use other options like manually selecting the NIC to be used on your
 host,
-etc.  Please use ``deploy.sh -h`` to see a full list of options available.**
+etc.  Please use "deploy.sh -h" to see a full list of options available.**
 
 3.  It will take about 20-25 minutes to install Foreman/QuickStack VM.  If something goes wrong during
-this part of the process, it is most likely a problem with the setup of your Jumphost.  You will also
-notice different outputs in your shell.  When you see messages that say "TASK:" or "PLAY:" this is
-Khalessi running and installing Foreman/QuickStack inside of your VM or deploying your nodes.  When
-you see "Foreman is up!", that means deploy will now move on to bringing up your other nodes.
+    this part of the process, it is most likely a problem with the setup of your Jumphost.  You will
+    also notice different outputs in your shell.  When you see messages that say "TASK:" or "PLAY:"
+    this is Khalessi running and installing Foreman/QuickStack inside of your VM or deploying your
+    nodes.  When you see "Foreman is up!", that means deploy will now move on to bringing up your
+    other nodes.
 
 4.  ``deploy.sh`` will now bring up your other nodes, look for logging messages like "Starting Vagrant
-Node <node name>", "<node name> VM is up!"  These are indicators of how far along in the process you
-are.  ``deploy.sh`` will start each Vagrant VM, then run provisioning scripts to inform Foreman they
-are built and initiate Puppet.
+    Node <node name>", "<node name> VM is up!"  These are indicators of how far along in the process
+    you are.  ``deploy.sh`` will start each Vagrant VM, then run provisioning scripts to inform
+    Foreman they are built and initiate Puppet.
 
 5.  The speed at which nodes are provisioned is totally dependent on your Jumphost server specs.  When
-complete you will see "All VMs are UP!"
+    complete you will see "All VMs are UP!"
 
 6.  The deploy will then print out the URL for your foreman server as well as the URL to access
-horizon.
+    horizon.
 
 Verifying the Setup - VMs
 -------------------------
