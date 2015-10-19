@@ -27,12 +27,61 @@ class opnfv::external_net_presetup {
   if ($admin_network != '') and ($admin_network != 'false') {
     $admin_nic = get_nic_from_network("$admin_network")
     if $admin_nic == '' { fail('admin_nic was not found') }
-    #Disable defalute route on Admin network
-    file_line { 'disable-defroute-admin':
-      path => "/etc/sysconfig/network-scripts/ifcfg-$admin_nic",
-      line  => 'DEFROUTE=no',
-      match => '^DEFROUTE',
+    $admin_ip = get_ip_from_nic("admin_nic")
+    $admin_netmask = get_netmask_from_nic("$admin_nic")
+    #Modify ifcfg Admin network
+    augeas { "main-$admin_nic":
+        context => "/files/etc/sysconfig/network-scripts/ifcfg-$public_nic",
+        changes => [
+                "set IPADDR $admin_ip",
+                "set NETMASK $admin_netmask",
+                "rm GATEWAY",
+                "rm DNS1",
+                "set DEFROUTE no",
+                "rm IPV6_DEFROUTE",
+                "rm IPV6_PEERDNS",
+                "rm IPV6_PEERROUTES",
+                "rm PEERROUTES",
+                "set PEERDNS no",
+                "set BOOTPROTO static",
+                "set IPV6INIT no",
+                "set IPV6_AUTOCONF no",
+                "set ONBOOT yes",
+
+        ],
+        before  => Exec['systemctl restart network'],
     }
+
+  }
+
+  if ($private_network != '') and ($private_network != 'false') {
+    $private_nic = get_nic_from_network("$private_network")
+    if $private_nic == '' { fail('private_nic was not found') }
+    $private_ip = get_ip_from_nic("private_nic")
+    $private_netmask = get_netmask_from_nic("$private_nic")
+    #Modify ifcfg private network
+    augeas { "main-$private_nic":
+        context => "/files/etc/sysconfig/network-scripts/ifcfg-$private_nic",
+        changes => [
+                "set IPADDR $private_ip",
+                "set NETMASK $private_netmask",
+                "rm GATEWAY",
+                "rm DNS1",
+                "set DEFROUTE no",
+                "rm IPV6_DEFROUTE",
+                "rm IPV6_PEERDNS",
+                "rm IPV6_PEERROUTES",
+                "rm PEERROUTES",
+                "set PEERDNS no",
+                "set BOOTPROTO static",
+                "set IPV6INIT no",
+                "set IPV6_AUTOCONF no",
+                "set ONBOOT yes",
+
+        ],
+        before  => Exec['systemctl restart network'],
+    }
+
   }
 
   #find public NIC
