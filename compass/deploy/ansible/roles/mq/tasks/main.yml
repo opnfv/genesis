@@ -1,5 +1,0 @@
----
-- include: rabbitmq.yml
-
-#- include: rabbitmq_cluster.yml
-#  when: HA_CLUSTER is defined
