@@ -27,11 +27,14 @@ class opnfv::external_net_presetup {
   if ($admin_network != '') and ($admin_network != 'false') {
     $admin_nic = get_nic_from_network("$admin_network")
     if $admin_nic == '' { fail('admin_nic was not found') }
-    $admin_ip = get_ip_from_nic("admin_nic")
+    $admin_ip = get_ip_from_nic("$admin_nic")
     $admin_netmask = get_netmask_from_nic("$admin_nic")
+    if !$admin_ip { fail("admin_ip was not found $admin_nic") }
+    if !$admin_netmask { fail("admin_netmask was not found on $admin_nic") }
+
     #Modify ifcfg Admin network
     augeas { "main-$admin_nic":
-        context => "/files/etc/sysconfig/network-scripts/ifcfg-$public_nic",
+        context => "/files/etc/sysconfig/network-scripts/ifcfg-$admin_nic",
         changes => [
                 "set IPADDR $admin_ip",
                 "set NETMASK $admin_netmask",
@@ -49,7 +52,7 @@ class opnfv::external_net_presetup {
                 "set ONBOOT yes",
 
         ],
-        before  => Exec['systemctl restart network'],
+        notify  => Exec['systemctl restart network'],
     }
 
   }
@@ -57,8 +60,12 @@ class opnfv::external_net_presetup {
   if ($private_network != '') and ($private_network != 'false') {
     $private_nic = get_nic_from_network("$private_network")
     if $private_nic == '' { fail('private_nic was not found') }
-    $private_ip = get_ip_from_nic("private_nic")
+    notify {"Private nic $private_nic":}
+    $private_ip = get_ip_from_nic("$private_nic")
     $private_netmask = get_netmask_from_nic("$private_nic")
+    if !$private_ip { fail("private_ip was not found on $private_nic") }
+    if !$private_netmask { fail("private_netmask was not found on $private_nic") }
+
     #Modify ifcfg private network
     augeas { "main-$private_nic":
         context => "/files/etc/sysconfig/network-scripts/ifcfg-$private_nic",
@@ -79,7 +86,7 @@ class opnfv::external_net_presetup {
                 "set ONBOOT yes",
 
         ],
-        before  => Exec['systemctl restart network'],
+        notify  => Exec['systemctl restart network'],
     }
 
   }
