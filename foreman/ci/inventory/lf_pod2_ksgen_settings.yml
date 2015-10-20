@@ -1,5 +1,6 @@
 global_params:
   admin_email: opnfv@opnfv.com
+  admin_network:
   ha_flag: "true"
   odl_flag: "true"
   private_network:
@@ -44,6 +45,7 @@ global_params:
   deployment_type:
 network_type: multi_network
 default_gw:
+domain_name: opnfv.com
 foreman:
   seed_values:
     - { name: heat_cfn, oldvalue: true, newvalue: false }
